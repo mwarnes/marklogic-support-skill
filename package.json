@@ -5,6 +5,7 @@
   "keywords": ["pi-package", "pi-skill", "marklogic"],
   "license": "MIT",
   "pi": {
-    "skills": ["skills"]
+    "skills": ["skills"],
+    "prompts": ["prompts"]
   }
 }
