@@ -1,0 +1,10 @@
+{
+  "name": "marklogic-support-skill",
+  "version": "1.0.0",
+  "description": "Pi agent skill for MarkLogic support engineers: triage config/security/performance/monitoring/DR/scaling issues, review server-side and client-side code, analyse support dumps and logs.",
+  "keywords": ["pi-package", "pi-skill", "marklogic"],
+  "license": "MIT",
+  "pi": {
+    "skills": ["skills"]
+  }
+}

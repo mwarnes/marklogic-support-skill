@@ -1,0 +1,2 @@
+2026-08-23 10:00:00.000 Notice: Starting MarkLogic Server 12.0.1 x86_64 in /opt/MarkLogic with data in /var/opt/MarkLogic
+2026-08-23 10:00:05.000 Info: Merged 157 MB in 5 sec at 31 MB/sec to /var/opt/MarkLogic/Forests/F1/00001dcd

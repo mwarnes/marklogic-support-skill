@@ -1,0 +1,1 @@
+{"time":"2026-08-24T10:00:00Z", "url":"/v1/search", "user":"alice", "elapsedTime":1.2, "requests":1}

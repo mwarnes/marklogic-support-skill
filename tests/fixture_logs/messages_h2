@@ -1,0 +1,13 @@
+Aug 24 00:45:35 H2 MarkLogic[15193]: Restarting XDQPServer, client=h1.example.com, conn=10.0.0.1:7999-10.0.0.2:36986, recvTicks=20, sendTicks=25, sslChange=0
+Aug 24 00:45:55 H2 MarkLogic[15193]: AppRequestTask::run: XDMP-FORESTMNT: Forest Security not mounted: disconnected
+Aug 24 00:45:56 H2 MarkLogic[15193]: AppRequestTask::run: XDMP-FORESTMNT: Forest Security not mounted: disconnected
+Aug 24 14:20:00 H2 kernel: Out of memory: Killed process 15193 (MarkLogic) total-vm:20000000kB, anon-rss:15000000kB
+Aug 24 14:23:10 H2 agent[894]: 2026-08-24 14:23:10 UTC | CORE | INFO | noise one
+Aug 24 14:23:10 H2 agent[894]: 2026-08-24 14:23:10 UTC | CORE | INFO | noise two
+Aug 24 14:23:11 H2 agent[894]: 2026-08-24 14:23:11 UTC | CORE | INFO | noise three
+Aug 24 14:23:11 H2 agent[894]: 2026-08-24 14:23:11 UTC | CORE | INFO | noise four
+Aug 24 14:23:11 H2 agent[894]: 2026-08-24 14:23:11 UTC | CORE | INFO | noise five
+Aug 24 14:23:12 H2 systemd[1]: Starting MarkLogic Server...
+Aug 24 14:23:13 H2 systemd[1]: Started MarkLogic Server.
+Aug 24 14:23:14 H2 systemd[1]: session-99.scope: Succeeded.
+Aug 24 14:23:15 H2 splunk[2632183]: Warning: Attempting to revert the SPLUNK_HOME ownership

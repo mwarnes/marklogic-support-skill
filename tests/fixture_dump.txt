@@ -1,0 +1,137 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Report Time:         2026-01-01T00:00:00Z
+Report Type:         all
+Report Scope:        cluster
+Report Version:      latest
+Report Destination:  file
+Report Host:         h1.example.com
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ =====================================
+App Server Status
+=====================================
+Group: Default, Appserver: App-Services, Host: h1.example.com
+<server-status xmlns="http://marklogic.com/xdmp/status/server"><server-name>App-Services</server-name><port>8000</port></server-status>
+=====================================
+Database Topology
+=====================================
+Content
+  Forests:            F1
+  Security database:  Security
+=====================================
+Security
+  Forests:            Security
+=====================================
+Forest Status
+=====================================
+=====================================
+F1
+=====================================
+<forest-status xmlns="http://marklogic.com/xdmp/status/forest"><forest-id>1</forest-id><forest-name>F1</forest-name><host-id>101</host-id><state>open</state><master-forest>1</master-forest><disk-size>100</disk-size><memory-size>1</memory-size><journals-size>10</journals-size><device-space>120</device-space><reindexing>true</reindexing><rebalancing>false</rebalancing><stands><stand><stand-id>1</stand-id></stand><stand><stand-id>2</stand-id></stand></stands><document-count>5</document-count></forest-status>
+=====================================
+Security
+=====================================
+<forest-status xmlns="http://marklogic.com/xdmp/status/forest"><forest-id>2</forest-id><forest-name>Security</forest-name><host-id>102</host-id><state>open</state><disk-size>1</disk-size><device-space>400000</device-space><reindexing>false</reindexing><stands/></forest-status>
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Hostname:            h1.example.com
+Product Name:        MarkLogic Server
+Product Version:     12.0.1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+=====================================
+Host Status
+=====================================
+<host-status xmlns="http://marklogic.com/xdmp/status/host"><host-name>h1.example.com</host-name><version>12.0.1</version><os-version>Linux test</os-version><cpus>2</cpus><memory-system-total>16000</memory-system-total><memory-size>16384</memory-size><memory-system-free>8000</memory-system-free><memory-process-rss>4000</memory-process-rss><data-dir-space>500000</data-dir-space></host-status>
+=====================================
+Configuration
+=====================================
+=====================================
+server.xml
+=====================================
+Validation results: OK
+=====================================
+<server xmlns="http://marklogic.com/xdmp/group"><host-id>101</host-id><licensee>Test</licensee></server>
+=====================================
+groups.xml
+=====================================
+Validation results: OK
+=====================================
+<groups xmlns="http://marklogic.com/xdmp/group" timestamp="111"><group><group-id>1</group-id><group-name>Default</group-name><list-cache-size>4096</list-cache-size><compressed-tree-cache-size>2048</compressed-tree-cache-size><expanded-tree-cache-size>4096</expanded-tree-cache-size><triple-cache-size>2048</triple-cache-size><failover-enable>true</failover-enable><host-timeout>30</host-timeout><http-servers><http-server><http-server-name>NoDB</http-server-name><enabled>true</enabled><port>9000</port><root>/</root><modules>0</modules><database>0</database><authentication>application-level</authentication><default-user>555</default-user></http-server><http-server><http-server-name>App</http-server-name><enabled>true</enabled><port>9001</port><root>/</root><modules>0</modules><database>10</database><authentication>digest</authentication><default-user>555</default-user></http-server></http-servers></group></groups>
+=====================================
+databases.xml
+=====================================
+Validation results: OK
+=====================================
+<databases xmlns="http://marklogic.com/xdmp/database"><database><database-id>10</database-id><database-name>Content</database-name><security-database>11</security-database><schema-database>0</schema-database><triggers-database>0</triggers-database><forests><forest-id>1</forest-id></forests><reindexer-enable>true</reindexer-enable><reindexer-throttle>5</reindexer-throttle><rebalancer-enable>true</rebalancer-enable><directory-creation>automatic</directory-creation><locking>fast</locking><word-positions>false</word-positions><range-element-indexes><range-element-index><scalar-type>string</scalar-type></range-element-index></range-element-indexes></database><database><database-id>11</database-id><database-name>Security</database-name><security-database>11</security-database><forests><forest-id>2</forest-id></forests><reindexer-enable>true</reindexer-enable><reindexer-throttle>5</reindexer-throttle><directory-creation>manual</directory-creation></database><database><database-id>12</database-id><database-name>Empty</database-name><security-database>11</security-database><forests/><reindexer-throttle>5</reindexer-throttle></database></databases>
+=====================================
+assignments.xml
+=====================================
+Validation results: OK
+=====================================
+<assignments xmlns="http://marklogic.com/xdmp/assignments"><assignment><forest-id>1</forest-id><forest-name>F1</forest-name><host>101</host><enabled>true</enabled><data-directory></data-directory><failover-enable>true</failover-enable><forest-replicas/></assignment><assignment><forest-id>2</forest-id><forest-name>Security</forest-name><host>102</host><enabled>true</enabled><failover-enable>true</failover-enable><forest-replicas><forest-replica>3</forest-replica></forest-replicas></assignment><assignment><forest-id>3</forest-id><forest-name>Security-R</forest-name><host>102</host><enabled>true</enabled><failover-enable>true</failover-enable></assignment><assignment><forest-id>4</forest-id><forest-name>Orphan</forest-name><host>101</host><enabled>true</enabled><failover-enable>false</failover-enable></assignment></assignments>
+=====================================
+hosts.xml
+=====================================
+=====================================
+Validation results: OK
+=====================================
+<hosts xmlns="http://marklogic.com/xdmp/hosts" timestamp="5"><host><host-id>101</host-id><host-name>h1.example.com</host-name><group>1</group><zone>1</zone></host><host><host-id>102</host-id><host-name>h2.example.com</host-name><group>1</group><zone>2</zone></host></hosts>
+=====================================
+clusters.xml
+=====================================
+Validation results: OK
+=====================================
+<clusters xmlns="http://marklogic.com/xdmp/clusters"><cluster-id>7</cluster-id><cluster-name>test-cluster</cluster-name><effective-version>12000000</effective-version><security-version>120000</security-version><bootstrap-hosts><bootstrap-host>101</bootstrap-host></bootstrap-hosts><foreign-clusters/></clusters>
+=====================================
+keystore.xml
+=====================================
+Validation results: OK
+=====================================
+<keystore xmlns="http://marklogic.com/xdmp/keystore"><data-encryption>default-on</data-encryption><config-encryption>off</config-encryption></keystore>
+=====================================
+Log Files
+=====================================
+=====================================
+/var/opt/MarkLogic/Logs/ErrorLog.txt
+=====================================
+2026-01-01 00:00:01.000 Info: Starting MarkLogic Server 12.0.1
+2026-01-01 00:00:02.000 Warning: XDMP-EXTIME: Time limit exceeded
+2026-01-01 00:00:03.000 Error: SVC-SOCBIND: Socket bind error: bind 0.0.0.0:9000
+=====================================
+{"time":"2026-01-01T00:00:03Z","looks":"like a title"}
+=====================================
+2026-01-01 00:00:04.000 Notice: XDMP-EXTIME: Time limit exceeded again
+=====================================
+/var/opt/MarkLogic/Logs/9000_AccessLog.txt
+=====================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Hostname:            h2.example.com
+Product Name:        MarkLogic Server
+Product Version:     12.0.1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+=====================================
+Host Status
+=====================================
+<host-status xmlns="http://marklogic.com/xdmp/status/host"><host-name>h2.example.com</host-name><version>12.0.1</version><cpus>2</cpus><memory-system-total>8000</memory-system-total><memory-size>8192</memory-size><memory-system-free>3000</memory-system-free><data-dir-space>500000</data-dir-space></host-status>
+=====================================
+Configuration
+=====================================
+=====================================
+server.xml
+=====================================
+Validation results: OK
+=====================================
+<server xmlns="http://marklogic.com/xdmp/group"><host-id>102</host-id><licensee>Test</licensee></server>
+=====================================
+hosts.xml
+=====================================
+Validation results: OK
+=====================================
+<hosts xmlns="http://marklogic.com/xdmp/hosts" timestamp="6"><host><host-id>101</host-id><host-name>h1.example.com</host-name><group>1</group><zone>1</zone></host><host><host-id>102</host-id><host-name>h2.example.com</host-name><group>1</group><zone>2</zone></host></hosts>
+=====================================
+Log Files
+=====================================
+=====================================
+file://h2.example.com/var/opt/MarkLogic/Logs/ErrorLog.txt
+=====================================
+2026-01-01 00:00:01.000 Info: Starting MarkLogic Server 12.0.1
+2026-01-01 00:00:05.000 Info: Starting MarkLogic Server 12.0.1

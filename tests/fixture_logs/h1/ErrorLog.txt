@@ -1,0 +1,16 @@
+2026-08-24 00:42:00.243 Warning: Memory low: anon+swap+file=94%phys
+2026-08-24 00:42:59.249 Warning: Memory low: anon+swap+file=102%phys
+2026-08-24 00:47:05.460 Warning: Heartbeat: XDMP-CLOCKSKEW: Detected clock skew: host h2.example.com skewed by 58 seconds
+2026-08-24 00:48:14.761 Error: Detecting indexes for database Security is slow (took 110087 ms). This might indicate storage problems.
+2026-08-24 00:49:47.511 Critical: Detecting indexes is slow for database Content (165192 ms so far). This might indicate storage problems.
+2026-08-24 01:00:00.000 Error: XDMP-UNEXPECTED: Something odd happened
+  continuation line one
+  continuation line two
+2026-08-24 14:23:40.411 Notice: Starting MarkLogic Server 12.0.1 x86_64 in /opt/MarkLogic with data in /var/opt/MarkLogic
+2026-08-24 14:23:42.212 Notice: Mounted forest F1 locally on /var/opt/MarkLogic/Forests/F1 read write
+2026-08-24 14:23:43.724 Info: Detected quorum (2 online, 0 suspect, 0 offline)
+2026-08-24 14:23:49.219 Info: Linux Huge Pages: detected 0, recommend 2560 to 13188
+2026-08-24 15:00:00.000 Debug: AppRequestTask::run: SVC-SOCACC: Socket accept error: 10.0.0.1:9011
+2026-08-24 15:00:01.000 Debug: AppRequestTask::run: SVC-SOCACC: Socket accept error: 10.0.0.2:9011
+2026-08-24 15:00:02.000 Debug: AppRequestTask::run: SVC-SOCACC: Socket accept error: 10.0.0.3:9011
+2026-08-24 16:00:00.000 Info: Merged 157 MB in 5 sec at 31 MB/sec to /var/opt/MarkLogic/Forests/F1/00001dcd

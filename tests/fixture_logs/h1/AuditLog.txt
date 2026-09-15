@@ -1,0 +1,4 @@
+2026-08-24 10:00:00.000 event=authentication-failure; user=bob; success=false; database=Content; uri=/v1/search
+2026-08-24 10:00:01.000 event=permission-change; uri=/a.xml; database=Content; success=true; user=alice; roles=r1
+2026-08-24 10:00:02.000 event=authentication-failure; user=bob; success=false; database=Content; uri=/v1/search
+2026-08-24 11:00:02.000 event=document-read; uri=/b.xml; database=Content; success=true; user=alice; roles=r1
