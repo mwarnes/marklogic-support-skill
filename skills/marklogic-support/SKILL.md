@@ -29,6 +29,8 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
 
 Rules: never assert a root cause without at least one confirming check. Quote error codes exactly. If the reference row is marked `[unverified — confirm]`, say so.
 
+Then update the audit trail per the **Audit trail** section below.
+
 ## Q&A mode
 
 Answer from the references; cite the reference file and the source URL. If the answer is version-dependent, say which version each statement applies to. If the references do not cover it, say so and point to the closest `references/sources.md` link rather than guessing.
@@ -43,6 +45,7 @@ Answer from the references; cite the reference file and the source URL. If the a
    Then the Triage-mode format (Likely causes ranked · Questions to ask · What to check · Best-practice recommendation · Doc links), where each cause comes from a finding: read the referenced phase-1 file's row, state the finding's evidence, and mark `config error` / `possible bug / capacity limit`. Group repeated findings (e.g. 40 forests without replicas) into one cause listing the affected databases.
 4. If the engineer also gave a ticket symptom, rank findings that explain the symptom first and say which findings are unrelated.
 5. For detail beyond the summary, read `topology.json`, the specific `config/<host>/*.xml`, or `logs/<host>/ERRORLOG-SUMMARY.md`. Open a raw log only for a specific timestamp/code.
+6. Then update the audit trail per the **Audit trail** section below.
 
 ## Log mode
 
@@ -50,6 +53,30 @@ Answer from the references; cite the reference file and the source URL. If the a
 2. Read `references/log-anatomy.md`, then `<out>/INVENTORY.md`, `<out>/TIMELINE.md`, `<out>/PATTERNS.md`. Open `ACCESS.md` only for access/availability tickets and `AUDIT.md` only for security tickets. For a specific code or minute, grep `events.jsonl` or the split log — never paste whole logs.
 3. Output: **Incident timeline** — the 5–15 key events in order (time as written, host, kind, one-line meaning), the causal chain you infer, and what the logs cannot show; then the Triage-mode format. Distinguish "symptom" events (restart, forest mounts) from "cause" events (memory, storage, network) explicitly.
 4. If a dump analysis exists, cross-reference its `findings.md` (e.g. cache-vs-ram ↔ Memory low; failover-no-replica ↔ database unavailable during restart).
+5. Then update the audit trail per the **Audit trail** section below.
+
+## Audit trail
+
+If `audit-trail/` exists in the current working directory (created by `/ticket`), read
+`references/ticket-auditing.md` once per session, then after producing output in Triage, Dump, or
+Log mode (never Q&A mode — a one-off question is not ticket work):
+
+- Append one `Timeline.md` line for what just happened.
+- A new ranked cause → append a `Problems.md` entry, status `Open`, unless evidence already in
+  hand confirms or rules it out.
+- A new "Questions to ask the customer" → append a `Required-Diagnostics.md` entry,
+  Salesforce-paste-ready.
+- Data just supplied answers an existing diagnostic request → find that request by its heading,
+  append a `**Status:** Received ...` line (never edit or delete the original ask).
+- Real diagnostic reasoning (dump/log correlation, evidence review) → an `Analysis.md` entry,
+  stage-tagged (`[Identification]`/`[Diagnosis]`/`[Escalation]`/`[Resolution]`/`[Closure]`), citing
+  the `Problems.md`/`Required-Diagnostics.md` entry numbers it relates to.
+
+**Never auto-write without the engineer's explicit go-ahead in the conversation:** a `Problems.md`
+entry moving to `Confirmed`, `Root-Cause.md` itself, an `[Escalation]` entry, or a `[Closure]`
+entry. These are assertions, not triage output — propose them, then write only once the engineer
+confirms (e.g. "confirmed", "write up root cause", "we escalated to X", "customer accepted, close
+it"). If `audit-trail/` does not exist, skip all of this silently.
 
 ## Routing table (symptom / keyword → reference)
 

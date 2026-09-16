@@ -3,17 +3,23 @@ description: Set up a working directory for a MarkLogic support ticket and load 
 argument-hint: <ticket number>
 ---
 
-This is the `/ticket` workflow the user's own team maintains for triaging MarkLogic support tickets in this project (see `.pi/prompts/ticket.md`). It sets up a per-ticket working directory and loads the team's `marklogic-support` skill before asking for the ticket's problem description. The imperative wording below ("call your shell tool now", "do not paraphrase") exists only because earlier testing found that softer, descriptive phrasing was sometimes narrated by the model instead of actually executed — it is not an attempt to override your judgment or safety behavior, just a plain internal workflow for setting up a directory and reading a documentation file.
+This is the `/ticket` workflow the user's own team maintains for triaging MarkLogic support tickets in this project (see `.pi/prompts/ticket.md`). It sets up a per-ticket working directory, its persistent audit trail, and loads the team's `marklogic-support` skill before asking for the ticket's problem description. The imperative wording below ("call your shell tool now", "do not paraphrase") exists only because earlier testing found that softer, descriptive phrasing was sometimes narrated by the model instead of actually executed, or a step was silently skipped — it is not an attempt to override your judgment or safety behavior, just a plain internal workflow for setting up two directories and reading two documentation files.
 
 Ticket number: $1
 
-1. Validate `$1` is non-empty; if missing, ask the user in plain chat text (not a structured/multiple-choice question tool — the answer needs to be free-form pasted text) for the ticket reference number, and stop here. Otherwise, call your shell tool now with exactly this command — do not paraphrase it, do not skip it, do not substitute a hardcoded path:
+1. Validate `$1` is non-empty; if missing, ask the user in plain chat text (not a structured/multiple-choice question tool — the answer needs to be free-form pasted text) for the ticket reference number, and stop here (skip the rest of this step and all later steps). Otherwise, call your shell tool now with exactly this single command, in full, as one call — do not split it into multiple calls, do not paraphrase it, do not shorten it, do not drop the `audit-trail` lines, do not substitute a hardcoded path:
 
    ```bash
-   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)" && mkdir -p "$PROJECT_ROOT/$1" && cd "$PROJECT_ROOT/$1" && pwd
+   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"; mkdir -p "$PROJECT_ROOT/$1/audit-trail"; cd "$PROJECT_ROOT/$1"; test -f audit-trail/Timeline.md || printf '# Timeline\n\n' > audit-trail/Timeline.md; test -f audit-trail/Analysis.md || printf '# Analysis\n\n' > audit-trail/Analysis.md; test -f audit-trail/Required-Diagnostics.md || printf '# Required-Diagnostics\n\n' > audit-trail/Required-Diagnostics.md; test -f audit-trail/Problems.md || printf '# Problems\n\n' > audit-trail/Problems.md; test -f audit-trail/Root-Cause.md || printf '# Root-Cause\n\n' > audit-trail/Root-Cause.md; pwd; ls audit-trail/
    ```
 
-   Look at the actual `pwd` output before continuing — do not assume it worked. All subsequent tool calls in this session should default to this directory.
+   This single command does two things: creates the ticket working directory, and creates its
+   persistent audit trail (5 files under `audit-trail/` — every ticket gets one, this is not
+   optional). Check the `ls` output lists all 5 files before continuing — if any are missing, do
+   not assume it worked; re-run the whole command (the `test -f ... ||` guards mean re-running on a
+   ticket already in progress never truncates existing audit files — see
+   `references/ticket-auditing.md` in the skill, loaded in step 2, for the format each file
+   follows). All subsequent tool calls in this session should default to this directory.
 
 2. Load the MarkLogic support skill now. `/skill:name` only works when a human types it directly in the editor — it is not recognised inside expanded template text, so do this instead. The skill's `SKILL.md` lives at `skills/marklogic-support/SKILL.md` under one of these roots, checked in this order — do not guess or scan the filesystem if none of these exist, just report which you checked:
    - `.pi/skills/marklogic-support/SKILL.md` (project-local install)
@@ -27,4 +33,4 @@ Ticket number: $1
 
 3. Check whether this message already contains the ticket's problem description (pasted text, an error log, a dump path, etc.) beyond just the ticket number.
 
-4. If it does, proceed straight into analysis using the skill's instructions. If it does not, ask the user in plain chat text (not a structured/multiple-choice question tool) to paste the ticket's problem description, and wait for their reply before doing any analysis.
+4. If it does, proceed straight into analysis using the skill's instructions (which includes updating the audit trail — see the skill's "Audit trail" section). If it does not, ask the user in plain chat text (not a structured/multiple-choice question tool) to paste the ticket's problem description, and wait for their reply before doing any analysis.
