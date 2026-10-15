@@ -78,6 +78,12 @@ entry. These are assertions, not triage output — propose them, then write only
 confirms (e.g. "confirmed", "write up root cause", "we escalated to X", "customer accepted, close
 it"). If `audit-trail/` does not exist, skip all of this silently.
 
+## KCS articles
+
+On `/kcs` (see `prompts/kcs.md`) or a request to write a KCS article for a finished ticket, read
+`references/kcs-writing.md` and write from the ticket's `audit-trail/`; render with
+`scripts/kcs_render.py`. Never in Q&A mode without a ticket.
+
 ## Routing table (symptom / keyword → reference)
 
 | If the ticket mentions… | Read |

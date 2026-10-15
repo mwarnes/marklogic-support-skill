@@ -33,6 +33,13 @@ The skill classifies the input (ticket / question / support dump / log files) an
 the right reference domain automatically. See `skills/marklogic-support/SKILL.md` for the full
 routing table and output format.
 
+### Writing a KCS article
+
+After a ticket is worked (`/ticket <n>`), `/kcs` (in the same session) or `/kcs <n>` (any existing
+ticket folder) drafts a compliant KCS article from the ticket's audit trail and writes
+`<n>/kcs/kcs-<n>-<problem|howto>-<slug>.{md,docx,html}` — Markdown (canonical), Word, and
+Salesforce-paste-ready HTML. Needs [pandoc](https://pandoc.org) for the Word/HTML renders.
+
 ## What's included
 
 ```
@@ -40,6 +47,7 @@ skills/marklogic-support/
 ├── SKILL.md                     triage method, routing table, dump/log modes
 ├── scripts/
 │   ├── parse_dump.py            splits a support dump into config/status/logs + findings
+│   ├── kcs_render.py            renders a KCS article .md to .docx and Salesforce .html (pandoc)
 │   └── analyse_logs.py          classifies ErrorLog/messages/AccessLog/AuditLog into an
 │                                 incident timeline + pattern summary
 └── references/                  14 domains, each: Concepts → Standard procedures →
