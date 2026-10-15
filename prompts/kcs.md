@@ -12,7 +12,7 @@ Ticket argument: $1
    - If `$1` is empty, use the ticket opened by `/ticket` earlier in this same session. If `/ticket` was not run in this session, ask the user in plain chat text for an existing ticket number, and stop.
    - Work from `<PROJECT_ROOT>/<TICKET>/` from here on.
 
-2. **Load the skill material.** Read `skills/marklogic-support/references/kcs-writing.md` (locate the skill the same way `/ticket` step 2 does; if it cannot be found, say so and stop). Then read all five files in `<TICKET>/audit-trail/`: `Timeline.md`, `Analysis.md`, `Required-Diagnostics.md`, `Problems.md`, `Root-Cause.md`.
+2. **Load the skill material.** Read `skills/marklogic-support/references/kcs-writing.md` (locate the skill by checking the same paths as `/ticket` step 2 — pi and Claude Code locations, `~/.claude/skills/marklogic-support/` included; if none exists or the symlink is broken, say so and stop). Then read all five files in `<TICKET>/audit-trail/`: `Timeline.md`, `Analysis.md`, `Required-Diagnostics.md`, `Problems.md`, `Root-Cause.md`.
 
 3. **Check the ticket is article-worthy.** If `Root-Cause.md` has no entries beyond its title line, warn the user the cause is not confirmed and a KCS article would be premature; ask (plain chat) whether to continue anyway, and stop unless they say yes. Articles written this way must say plainly in Cause which parts are unconfirmed and use `Validation Status: Unverified`.
 

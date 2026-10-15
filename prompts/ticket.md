@@ -21,7 +21,9 @@ Ticket number: $1
    `references/ticket-auditing.md` in the skill, loaded in step 2, for the format each file
    follows). All subsequent tool calls in this session should default to this directory.
 
-2. Load the MarkLogic support skill now. `/skill:name` only works when a human types it directly in the editor — it is not recognised inside expanded template text, so do this instead. The skill's `SKILL.md` lives at `skills/marklogic-support/SKILL.md` under one of these roots, checked in this order — do not guess or scan the filesystem if none of these exist, just report which you checked:
+2. Load the MarkLogic support skill now. In pi, `/skill:name` only works when a human types it directly in the editor — it is not recognised inside expanded template text, so do this instead. The skill's `SKILL.md` lives at `skills/marklogic-support/SKILL.md` under one of these roots, checked in this order — do not guess or scan the filesystem if none of these exist, just report which you checked:
+   - `.claude/skills/marklogic-support/SKILL.md` (Claude Code project-local install)
+   - `~/.claude/skills/marklogic-support/SKILL.md` (Claude Code global install; may be a symlink to a clone)
    - `.pi/skills/marklogic-support/SKILL.md` (project-local install)
    - any project-level skill path listed in `.pi/settings.json`
    - `$PI_CODING_AGENT_DIR/skills/marklogic-support/SKILL.md` if that environment variable is set (a custom agent directory)
@@ -29,7 +31,7 @@ Ticket number: $1
    - `~/.pi/agent/git/github.com/mwarnes/marklogic-support-skill/skills/marklogic-support/SKILL.md` (default global git-package install path)
    - `$PI_CODING_AGENT_DIR/git/github.com/mwarnes/marklogic-support-skill/skills/marklogic-support/SKILL.md` if `PI_CODING_AGENT_DIR` is set (git-package install under a custom agent directory)
 
-   `read` whichever one exists in full, and follow its instructions for the rest of this session exactly as if the user had typed `/skill:marklogic-support`. If none of the above exist, tell the user the skill is not installed or is installed somewhere non-standard (ask them to run `pi install git:github.com/mwarnes/marklogic-support-skill`, or to confirm their `PI_CODING_AGENT_DIR`) and continue without it — do not run a filesystem-wide `find` to locate it.
+   `read` whichever one exists in full, and follow its instructions for the rest of this session exactly as if the user had typed `/skill:marklogic-support`. If none of the above exist, tell the user the skill is not installed or is installed somewhere non-standard (pi: `pi install git:github.com/mwarnes/marklogic-support-skill` or confirm `PI_CODING_AGENT_DIR`; Claude Code: symlink the repo's `skills/marklogic-support` into `~/.claude/skills/`; also check the symlink is not broken) and continue without it — do not run a filesystem-wide `find` to locate it.
 
 3. Check whether this message already contains the ticket's problem description (pasted text, an error log, a dump path, etc.) beyond just the ticket number.
 
