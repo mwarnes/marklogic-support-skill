@@ -78,6 +78,10 @@ entry. These are assertions, not triage output — propose them, then write only
 confirms (e.g. "confirmed", "write up root cause", "we escalated to X", "customer accepted, close
 it"). If `audit-trail/` does not exist, skip all of this silently.
 
+**After a confirmed `[Closure]` entry is written**, offer once — in one sentence, no other action —
+to draft a KCS article with `/kcs` (or `/kcs <ticket>` in a later session). Skip the offer if
+`<ticket>/kcs/` already holds an article for this ticket, or the engineer has declined it.
+
 ## KCS articles
 
 On `/kcs` (see `prompts/kcs.md`) or a request to write a KCS article for a finished ticket, read
