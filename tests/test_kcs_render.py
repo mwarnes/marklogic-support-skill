@@ -61,6 +61,21 @@ class TableTest(unittest.TestCase):
 
 
 class ValidateTest(unittest.TestCase):
+    def test_environment_must_be_four_standard_lines(self):
+        d = Path(tempfile.mkdtemp()); p = d / "bad.md"
+        p.write_text(FIXTURE.read_text().replace("OS: All supported platforms\\\n", ""))
+        r = run(p)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("Environment", r.stderr)
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_environment_renders_as_four_lines(self):
+        d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
+        h = (d / (FIXTURE.stem + ".html")).read_text()
+        env = re.search(r"Environment</h2>(.*?)<h2", h, re.S).group(1)
+        self.assertEqual(env.count("<br"), 3)
+        self.assertIn("Product: MarkLogic", env)
+
     def test_missing_heading_rejected(self):
         d = Path(tempfile.mkdtemp()); p = d / "bad.md"
         p.write_text(FIXTURE.read_text().replace("## Workaround", "## Nope"))

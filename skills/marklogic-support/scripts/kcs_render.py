@@ -69,6 +69,16 @@ def tables_to_lists(md):
     return "\n".join(out)
 
 
+def check_environment(md):
+    body = re.search(r"^## Environment\s*\n(.*?)(?=^## )", md, re.M | re.S).group(1)
+    lines = [l.rstrip("\\ ").strip() for l in body.strip().splitlines()]
+    labels = [l.split(":", 1)[0] for l in lines]
+    if labels != ["Product", "Version", "OS", "Component"] or not all(l.split(":", 1)[1].strip() for l in lines):
+        sys.exit("kcs_render: the Environment section must be exactly four non-empty lines "
+                 "'Product: ...', 'Version: ...', 'OS: ...', 'Component: ...' "
+                 f"(found: {lines}). Put free-form detail under Clarifying Information.")
+
+
 def pandoc(*args, stdin=None):
     r = subprocess.run(["pandoc", *args], capture_output=True, text=True, input=stdin)
     if r.returncode:
@@ -100,6 +110,7 @@ def main():
                  "The Markdown article is complete; only the .docx/.html rendering needs pandoc.")
     md = a.article.read_text()
     check_headings(md)
+    check_environment(md)
     out = (a.outdir or a.article.parent); out.mkdir(parents=True, exist_ok=True)
     stem = a.article.stem
     pandoc("-f", "gfm", "-t", "docx", "-o", str(out / f"{stem}.docx"), str(a.article))

@@ -19,9 +19,10 @@ With the MarkLogic 12.1 OAuth 2.0 Authorization Code flow, the Identity Provider
 *(assigned by Salesforce on save)*
 
 ## Environment
-MarkLogic Server 12.1.0 and later
-External Security configuration with `oauth-flow-type` = `Authorization code`
-Identity Provider whose OAuth 2.0 / OIDC client registration has an allowed grant types setting (reproduced with Authentik 2026.8)
+Product: MarkLogic\
+Version: All supported versions\
+OS: All supported platforms\
+Component: Security
 
 ## Question/Problem Description
 After configuring the OAuth 2.0 Authorization Code flow, browsing to the protected app server redirects to the IdP's authorization endpoint, but the IdP returns an error immediately instead of showing a sign-in page. The browser is returned to the MarkLogic app server URL with `error=invalid_request` and `error_description=The request is otherwise malformed` in the query string.
@@ -33,6 +34,8 @@ After configuring the OAuth 2.0 Authorization Code flow, browsing to the protect
 4. The IdP returns `invalid_request` / "The request is otherwise malformed" instead of a sign-in page.
 
 ## Clarifying Information
+**Environment details:** MarkLogic Server 12.1.0 and later; External Security configuration with `oauth-flow-type` = `Authorization code`; Identity Provider whose OAuth 2.0 / OIDC client registration has an allowed grant types setting (reproduced with Authentik 2026.8).
+
 The error text does not name the parameter at fault, so it is easily mistaken for a redirect URI mismatch or a malformed PKCE `code_challenge`. The request reaches the IdP and is rejected before sign-in; MarkLogic receives only the error response on its redirect URI and cannot tell which IdP client setting caused it. The IdP's own log identifies the reason.
 
 ## Error Message

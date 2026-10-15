@@ -42,10 +42,10 @@ Without a banner, `kcs_render.py` infers the type from `-problem-` / `-howto-` i
 | 3 | Validation Status | `Unverified` (a reviewer changes it in Salesforce). |
 | 4 | Summary | 2–4 sentences: symptom, then cause/answer. Usable as a search snippet. |
 | 5 | Article Number | `*(assigned by Salesforce on save)*` |
-| 6 | Environment | MarkLogic version(s) and what was verified ("later (verified on 12.1.0)"), plus the configuration that must be in place. Backtick setting names/values. |
+| 6 | Environment | Company standard, exactly four lines and nothing else — see "Environment format" below. |
 | 7 | Question/Problem Description | What the user sees/asks, in their terms, not the diagnosis. |
 | 8 | Steps to Reproduce | Numbered, minimal, runnable. How-To or non-reproducible: `N/A — <why>`. |
-| 9 | Clarifying Information | What it is easily mistaken for, how to tell them apart, caching/timing gotchas. |
+| 9 | Clarifying Information | An **Environment details** paragraph first (free-form: versions verified, required configuration, third-party product versions), then what it is easily mistaken for, how to tell them apart, caching/timing gotchas. |
 | 10 | Error Message | Verbatim log/HTTP text in an indented/fenced code block, stating where it appears and which trace events produce it. `N/A` if none. |
 | 11 | Defect Number | Bug ID or `N/A`. |
 | 12 | Enhancement Number | Enhancement ID or `N/A`. |
@@ -55,6 +55,24 @@ Without a banner, `kcs_render.py` infers the type from `-problem-` / `-howto-` i
 | 16 | Notes | Related checks and limits. Finish with `**Related articles:**` bullet list of article *titles*. |
 | 17 | Keyword Phrase | One line of search terms: product, error codes, setting names, key nouns, vendor names. |
 | 18 | Admin Ticket ID | The ticket number (the only place it appears). Leave `*(fill in if applicable)*` if none. |
+
+## Environment format
+
+The Environment section is the four fields below, one per line (end each line but the last with a
+backslash `\` so Markdown keeps the line breaks), with no other text:
+
+```
+Product: MarkLogic\
+Version: All supported versions\
+OS: All supported platforms\
+Component: Administration
+```
+
+`/kcs` asks the user for each value (option 1 default, option 2 derived from the ticket, option 3
+free text): Product `MarkLogic` / `Semaphore`; Version `All supported versions` / the ticket's
+version; OS `All supported platforms` / `Linux` or `Windows`; Component `Server` / the affected
+area (e.g. `Administration`, `Security`). Free-form environment detail goes in Clarifying
+Information, never here.
 
 ## Style rules
 

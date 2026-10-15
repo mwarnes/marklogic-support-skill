@@ -18,8 +18,19 @@ Ticket argument: $1
 
 4. **Choose the type.** Problem/Solution or How-To, per `kcs-writing.md`. Decide from the evidence; ask the user one plain-chat question only if genuinely ambiguous.
 
-5. **Draft** `<TICKET>/kcs/kcs-<TICKET>-<type>-<slug>.md` (create `kcs/` if needed) following `kcs-writing.md` exactly: all 18 `## ` headings in order, sanitised (no customer names, hosts, IPs, IDs, secrets), ticket number only under Admin Ticket ID. Take facts only from the audit trail and files in the ticket folder; do not invent versions, steps or test results. Show the full draft to the user and list anything you could not source. Wait for their approval or edits; apply edits and re-show if they ask.
+5. **Ask the four Environment values.** The company standard Environment section is exactly four lines (Product, Version, OS, Component). Ask them as four questions — with the structured/multiple-choice question tool if your harness has one (the automatic "Other" entry is option 3), otherwise as numbered plain-chat options with "3. Something else (type it)". Derive option 2 from the audit trail and ticket folder; if nothing supports a derived value, drop option 2 rather than guess.
 
-6. **Render** once approved: `python3 <skill-dir>/scripts/kcs_render.py <TICKET>/kcs/<file>.md`. If it reports pandoc missing, tell the user the `.md` is finished and how to install pandoc; do not hand-write the other formats. Confirm all three files exist with `ls`.
+   | Item | Option 1 (default) | Option 2 (derived from the ticket) | Option 3 |
+   | --- | --- | --- | --- |
+   | Product | `MarkLogic` | `Semaphore` | Something else — user types the product |
+   | Version | `All supported versions` | the version(s) in the ticket, e.g. `12.1.0` | Something else |
+   | OS | `All supported platforms` | `Linux` or `Windows`, as the ticket shows | Something else |
+   | Component | `Server` | the affected area, e.g. `Administration`, `Security` | Something else |
 
-7. **Record it** per `references/ticket-auditing.md`: append a `Timeline.md` line ("KCS article drafted: <title>, <folder>"). Do not write an `[Closure]` entry in `Analysis.md` unless the user has confirmed the ticket is closed. Finish by listing the three file paths.
+   Use the answers verbatim in the Environment section (format in `kcs-writing.md`). Put the free-form environment detail that used to live there (exact versions verified, required configuration, IdP/product versions) under Clarifying Information as an **Environment details** paragraph.
+
+6. **Draft** `<TICKET>/kcs/kcs-<TICKET>-<type>-<slug>.md` (create `kcs/` if needed) following `kcs-writing.md` exactly: all 18 `## ` headings in order, sanitised (no customer names, hosts, IPs, IDs, secrets), ticket number only under Admin Ticket ID. Take facts only from the audit trail and files in the ticket folder; do not invent versions, steps or test results. Show the full draft to the user and list anything you could not source. Wait for their approval or edits; apply edits and re-show if they ask.
+
+7. **Render** once approved: `python3 <skill-dir>/scripts/kcs_render.py <TICKET>/kcs/<file>.md`. If it reports pandoc missing, tell the user the `.md` is finished and how to install pandoc; do not hand-write the other formats. Confirm all three files exist with `ls`.
+
+8. **Record it** per `references/ticket-auditing.md`: append a `Timeline.md` line ("KCS article drafted: <title>, <folder>"). Do not write an `[Closure]` entry in `Analysis.md` unless the user has confirmed the ticket is closed. Finish by listing the three file paths.
