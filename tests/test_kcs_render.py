@@ -84,5 +84,98 @@ class ValidateTest(unittest.TestCase):
         self.assertIn("Workaround", r.stderr)
 
 
+class NamingTest(unittest.TestCase):
+    def test_slugify(self):
+        self.assertEqual(kcs_render.slugify("SAML: Redirect Loop (Okta) / Login!"), "saml-redirect-loop-okta-login")
+        self.assertEqual(kcs_render.slugify("  ---  "), "article")
+
+    def test_slugify_truncates_on_word_boundary(self):
+        s = kcs_render.slugify("alpha " * 30)
+        self.assertLessEqual(len(s), 60)
+        self.assertFalse(s.endswith("-"))
+        self.assertTrue(set(s.split("-")) == {"alpha"})
+
+    def test_title_of(self):
+        md = "## Title\n\nHow to renew a certificate\n\n## URL Name\n\nx\n"
+        self.assertEqual(kcs_render.title_of(md), "How to renew a certificate")
+        self.assertIsNone(kcs_render.title_of("## Summary\n\nx\n"))
+
+    def test_output_dir(self):
+        d = Path(tempfile.mkdtemp())
+        self.assertEqual(kcs_render.output_dir(d), d)
+        (d / "kcs-drafts").mkdir()
+        self.assertEqual(kcs_render.output_dir(d), d / "kcs-drafts")
+
+    def test_unique_stem_suffixes_on_any_existing_format(self):
+        d = Path(tempfile.mkdtemp())
+        self.assertEqual(kcs_render.unique_stem(d, "foo"), "kcs-foo")
+        (d / "kcs-foo.docx").write_text("x")
+        self.assertEqual(kcs_render.unique_stem(d, "foo"), "kcs-foo-2")
+        (d / "kcs-foo-2.html").write_text("x")
+        self.assertEqual(kcs_render.unique_stem(d, "foo"), "kcs-foo-3")
+
+    def test_cli_target_prefers_kcs_drafts(self):
+        d = Path(tempfile.mkdtemp()); (d / "kcs-drafts").mkdir()
+        r = subprocess.run([sys.executable, str(SCRIPT), "--target", "My Title!", "--cwd", str(d)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout.strip(), str(d / "kcs-drafts" / "kcs-my-title"))
+
+    def test_cli_target_falls_back_to_cwd(self):
+        d = Path(tempfile.mkdtemp())
+        r = subprocess.run([sys.executable, str(SCRIPT), "--target", "My Title!", "--cwd", str(d)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.stdout.strip(), str(d / "kcs-my-title"))
+
+    def test_cli_target_empty_title_gives_kcs_article(self):
+        d = Path(tempfile.mkdtemp())
+        r = subprocess.run([sys.executable, str(SCRIPT), "--target", "", "--cwd", str(d)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(r.stdout.strip().endswith("kcs-article"), r.stdout)
+
+
+class ImportTest(unittest.TestCase):
+    def test_html_import_without_pandoc_suggests_pasting(self):
+        d = Path(tempfile.mkdtemp()); p = d / "a.html"; p.write_text("<h2>Title</h2>")
+        empty = tempfile.mkdtemp()
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", str(p)],
+                           capture_output=True, text=True, env={"PATH": empty})
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("paste", r.stderr)
+        self.assertIn("pandoc.org", r.stderr)
+
+    def test_md_passthrough_needs_no_pandoc(self):
+        self.assertEqual(kcs_render.import_markdown(FIXTURE), FIXTURE.read_text())
+
+    def test_unsupported_extension_rejected(self):
+        d = Path(tempfile.mkdtemp()); p = d / "a.pdf"; p.write_text("x")
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", str(p)], capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn(".docx", r.stderr)
+
+    def test_missing_file_rejected(self):
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", "/nonexistent/a.md"],
+                           capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("not found", r.stderr)
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_html_and_docx_round_trip_to_18_headings(self):
+        d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
+        for ext in (".html", ".docx"):
+            md = kcs_render.import_markdown(d / (FIXTURE.stem + ext))
+            self.assertEqual(re.findall(r"^## (.+?)\s*$", md, re.M), kcs_render.FIELDS, ext)
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_imported_html_can_be_rendered_again(self):
+        d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", str(d / (FIXTURE.stem + ".html"))],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        again = d / "again.md"; again.write_text(r.stdout)
+        self.assertEqual(run(again, d / "out").returncode, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

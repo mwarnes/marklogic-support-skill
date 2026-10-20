@@ -40,6 +40,14 @@ ticket folder) drafts a compliant KCS article from the ticket's audit trail and 
 `<n>/kcs/kcs-<n>-<problem|howto>-<slug>.{md,docx,html}` — Markdown (canonical), Word, and
 Salesforce-paste-ready HTML. Needs [pandoc](https://pandoc.org) for the Word/HTML renders.
 
+### Reviewing a KCS article
+
+`/kcs-review [path]` reviews an article another engineer wrote (`.md`, `.html` or `.docx`, or paste
+the text), summarises recommendations (must-fix / should-fix / optional), and on acceptance writes
+`kcs-<title-slug>.{md,docx,html}` to `kcs-drafts/` if that folder exists in the working directory,
+otherwise to the working directory. The original is never modified. Declining asks which parts need
+correction and revises. Needs [pandoc](https://pandoc.org) for html/docx input and for the renders.
+
 ## What's included
 
 ```

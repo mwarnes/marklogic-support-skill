@@ -88,6 +88,10 @@ On `/kcs` (see `prompts/kcs.md`) or a request to write a KCS article for a finis
 `references/kcs-writing.md` and write from the ticket's `audit-trail/`; render with
 `scripts/kcs_render.py`. Never in Q&A mode without a ticket.
 
+On `/kcs-review` (see `prompts/kcs-review.md`) or a request to review someone else's KCS article,
+read `references/kcs-writing.md` ("Reviewing an article") and import/render with
+`scripts/kcs_render.py` (`--to-md`, `--target`). No ticket is involved.
+
 ## Routing table (symptom / keyword → reference)
 
 | If the ticket mentions… | Read |

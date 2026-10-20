@@ -101,3 +101,23 @@ customer, replace it.
 
 All 18 headings present once in order; no `TBD`/placeholders; every command runnable as written;
 Cause is confirmed; sanitised; title and keyword phrase would match what a customer would search.
+
+## Reviewing an article (used by `/kcs-review`)
+
+Review an article written by someone else against everything above, then group findings:
+
+- **must-fix** — breaks the format or is unsafe: missing/misordered/extra headings, Environment not
+  exactly the four standard lines, unsanitised customer data (names, hosts, IPs, IDs, secrets,
+  ticket number outside Admin Ticket ID), unconfirmed Cause stated as fact, commands that cannot
+  run as written, claims contradicted by the skill's reference files.
+- **should-fix** — hurts findability or clarity: missing or incorrect type banner comment
+  (`<!-- KCS ARTICLE — <type> ... -->`; html/docx imports always lose it), weak Title or Keyword Phrase, URL Name not
+  lowercase-hyphen, wrong Problem/Solution vs How-To framing (How-To fields should be
+  `N/A — ...`), `Validation Status` stronger than the evidence, scope/versions not stated
+  honestly, missing "substitute these values" notes, no Management API alternative where one exists.
+- **optional** — style: wording, bold/backtick conventions, table cell length, ordering of steps.
+
+Checks that cannot be settled from the article and the references (a version number, a behaviour
+claim) are reported as "could not verify" — never silently changed. An imported article whose
+headings differ from the 18 fields is mapped only where the match is unambiguous (e.g. `Problem`
+→ `Question/Problem Description`); otherwise the field is reported missing.
