@@ -22,9 +22,15 @@ class RenderTest(unittest.TestCase):
         assert r.returncode == 0, r.stderr
         cls.html = (cls.out / (FIXTURE.stem + ".html")).read_text()
 
-    def test_html_has_18_headings_in_order(self):
+    def test_html_has_all_headings_in_order(self):
         heads = re.findall(r"<h2[^>]*>(.*?)</h2>", self.html)
         self.assertEqual(heads, kcs_render.FIELDS)
+
+    def test_field_list_is_the_20_scs_fields(self):
+        self.assertEqual(len(kcs_render.FIELDS), 20)
+        self.assertEqual(kcs_render.FIELDS[:4], ["Title", "URL Name", "Summary", "Validation Status"])
+        self.assertEqual(kcs_render.FIELDS[-4:],
+                         ["Internal Comments", "Article Category", "Keyword Phrase", "Admin Ticket ID"])
 
     def test_html_inline_styles(self):
         self.assertIn("Verdana", self.html)
@@ -161,7 +167,7 @@ class ImportTest(unittest.TestCase):
         self.assertIn("not found", r.stderr)
 
     @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
-    def test_html_and_docx_round_trip_to_18_headings(self):
+    def test_html_and_docx_round_trip_to_all_headings(self):
         d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
         for ext in (".html", ".docx"):
             md = kcs_render.import_markdown(d / (FIXTURE.stem + ext))
@@ -175,6 +181,126 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         again = d / "again.md"; again.write_text(r.stdout)
         self.assertEqual(run(again, d / "out").returncode, 0)
+
+
+FIX = FIXTURE.read_text()
+TITLE = "MarkLogic OAuth: request is otherwise malformed"
+
+
+def issues(old=None, new=None):
+    md = FIX.replace(old, new, 1) if old is not None else FIX
+    return kcs_render.content_issues(md)
+
+
+def has(msgs, field):
+    return any(m.startswith(field) for m in msgs)
+
+
+class ContentTest(unittest.TestCase):
+    def test_fixture_is_clean(self):
+        self.assertEqual(issues(), ([], []))
+
+    def test_url_name(self):
+        self.assertEqual(kcs_render.url_name("INTERNAL Foo: Bar/Baz!"), "foo-bar-baz")
+        self.assertEqual(kcs_render.url_name("How to set up SAML (Okta)"), "how-to-set-up-saml-okta")
+
+    def test_url_must_match_title(self):
+        e, _ = issues("marklogic-oauth-request-is-otherwise-malformed", "marklogic-oauth-malformed")
+        self.assertTrue(has(e, "URL Name"))
+
+    def test_internal_prefix_not_in_url_or_length(self):
+        t = "INTERNAL " + TITLE
+        md = FIX.replace(TITLE, t, 1)
+        self.assertEqual(kcs_render.content_issues(md), ([], []))
+
+    def test_title_length_bands(self):
+        long60 = "MarkLogic OAuth login fails: request is otherwise malformed"   # 59
+        e, w = issues(TITLE, long60)
+        self.assertTrue(has(w, "Title")); self.assertFalse(has(e, "Title"))
+        too_long = TITLE + " " + "x" * 30
+        e, _ = issues(TITLE, too_long)
+        self.assertTrue(has(e, "Title"))
+
+    def test_summary_bands(self):
+        s = "MarkLogic OAuth 2.0 Authorization Code login returns `invalid_request` \"The request is otherwise malformed\" before the IdP sign-in page appears."
+        e, w = issues(s, s + " " + "word " * 12)          # ~200
+        self.assertTrue(has(w, "Summary")); self.assertFalse(has(e, "Summary"))
+        e, _ = issues(s, s + " " + "word " * 30)           # >250
+        self.assertTrue(has(e, "Summary"))
+
+    def test_defect_and_enhancement_ids(self):
+        e, _ = issues("## Defect Number\nN/A", "## Defect Number\nMLE-123, MLE-4567")
+        self.assertFalse(has(e, "Defect Number"))
+        e, _ = issues("## Defect Number\nN/A", "## Defect Number\n12345")
+        self.assertTrue(has(e, "Defect Number"))
+        e, _ = issues("## Enhancement Number\nN/A", "## Enhancement Number\nPSC00012345")
+        self.assertTrue(has(e, "Enhancement Number"))
+
+    def test_category_values(self):
+        e, _ = issues("Area of Interest: Security", "Area of Interest:")
+        self.assertFalse(has(e, "Article Category"))           # empty is allowed
+        e, _ = issues("Area of Interest: Security", "Area of Interest: Networking")
+        self.assertTrue(has(e, "Article Category"))
+        e, _ = issues("Product Group: MarkLogic", "Product Group: Semaphore")
+        self.assertTrue(has(e, "Article Category"))
+        e, _ = issues("Product Group: MarkLogic\\\nArea of Interest: Security", "Product Group: MarkLogic")
+        self.assertTrue(has(e, "Article Category"))
+
+    def test_category_without_colon_is_clean_error(self):
+        e, _ = issues("Product Group: MarkLogic\\\nArea of Interest: Security",
+                      "Product Group: MarkLogic\\\nArea of Interest")
+        self.assertTrue(has(e, "Article Category"))
+
+    def test_pronoun_us_only_lowercase(self):
+        _, w = issues("Other IdPs have an equivalent", "The US-region IdPs have an equivalent")
+        self.assertFalse(any("pronoun" in m for m in w))
+        _, w = issues("Other IdPs have an equivalent", "Other IdPs give us an equivalent")
+        self.assertTrue(has(w, "Cause"))
+
+    def test_pronoun_in_indented_fence_ignored(self):
+        _, w = issues("Other IdPs have an equivalent",
+                      "Other IdPs have an equivalent\n\n1. Step\n\n   ```\n   we saw your request\n   ```")
+        self.assertFalse(any("pronoun" in m for m in w))
+
+    def test_manual_fields_must_be_placeholders(self):
+        e, _ = issues("## Admin Ticket ID\n*(fill in if applicable)*", "## Admin Ticket ID\n12345")
+        self.assertTrue(has(e, "Admin Ticket ID"))
+        e, _ = issues("## Internal Comments\n*(manual entry)*", "## Internal Comments\nFixed in hot fix 1.2.3")
+        self.assertTrue(has(e, "Internal Comments"))
+
+    def test_pronouns_warn_outside_code_only(self):
+        _, w = issues("Other IdPs have an equivalent", "You can set an equivalent; other IdPs have an equivalent")
+        self.assertTrue(has(w, "Cause"))
+        _, w = issues("Other IdPs have an equivalent", "Other IdPs have `your` equivalent")
+        self.assertFalse(has(w, "Cause"))
+        _, w = issues("Authentik server log:\n\n```\nInvalid grant_type for provider\n```",
+                      "Authentik server log:\n\n```\nwe saw your request\n```")
+        self.assertFalse(any("pronoun" in m for m in w))
+
+
+class ContentCliTest(unittest.TestCase):
+    def test_errors_exit_nonzero_before_rendering(self):
+        d = Path(tempfile.mkdtemp()); p = d / "kcs-t-problem-x.md"
+        p.write_text(FIX.replace("## Defect Number\nN/A", "## Defect Number\n12345"))
+        r = run(p)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("Defect Number", r.stderr)
+        self.assertFalse((d / "kcs-t-problem-x.html").exists())
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_warnings_do_not_block(self):
+        d = Path(tempfile.mkdtemp()); p = d / "kcs-t-problem-x.md"
+        p.write_text(FIX.replace("Other IdPs have an equivalent", "You can set an equivalent; other IdPs have an equivalent"))
+        r = run(p)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("warning", r.stderr)
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_troubleshoot_type_inferred_from_filename(self):
+        d = Path(tempfile.mkdtemp()); p = d / "kcs-t-troubleshoot-x.md"
+        p.write_text(re.sub(r"\A<!--.*?-->\n", "", FIX, flags=re.S))
+        self.assertEqual(run(p).returncode, 0)
+        self.assertIn("KCS ARTICLE — How to troubleshoot", (d / "kcs-t-troubleshoot-x.html").read_text())
 
 
 if __name__ == "__main__":

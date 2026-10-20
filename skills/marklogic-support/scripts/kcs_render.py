@@ -6,15 +6,16 @@ Usage: kcs_render.py ARTICLE.md [--outdir DIR]     (default DIR = the .md's dire
        kcs_render.py --to-md SRC                  (prints SRC (.html/.docx/.md) as Markdown)
 Tables are kept in .docx but become bullet lists in .html.
 Writes: <stem>.docx  <stem>.html   next to (or in DIR beside) the .md.
-Requires pandoc on PATH. The .md must contain the 18 KCS field headings (## ...) in order.
+Requires pandoc on PATH. The .md must contain the 20 KCS field headings (## ...) in order.
 """
 import argparse, html, re, shutil, subprocess, sys
 from pathlib import Path
 
-FIELDS = ["Title", "URL Name", "Validation Status", "Summary", "Article Number", "Environment",
+FIELDS = ["Title", "URL Name", "Summary", "Validation Status", "Article Number", "Environment",
           "Question/Problem Description", "Steps to Reproduce", "Clarifying Information",
           "Error Message", "Defect Number", "Enhancement Number", "Cause", "Resolution",
-          "Workaround", "Notes", "Keyword Phrase", "Admin Ticket ID"]
+          "Workaround", "Notes", "Internal Comments", "Article Category", "Keyword Phrase",
+          "Admin Ticket ID"]
 
 FONT = "font-family:Verdana,Geneva,sans-serif;font-size:14px;"
 MONO = "font-family:'Courier New',Courier,monospace;font-size:14px;"
@@ -34,7 +35,7 @@ def check_headings(md):
     found = re.findall(r"^## (.+?)\s*$", md, re.M)
     if found != FIELDS:
         missing = [f for f in FIELDS if f not in found]
-        sys.exit("kcs_render: the 18 KCS headings must appear exactly once, in order. "
+        sys.exit("kcs_render: the 20 KCS headings must appear exactly once, in order. "
                  f"Missing: {missing or 'none'}; found {len(found)}: {found}")
 
 
@@ -79,6 +80,78 @@ def check_environment(md):
         sys.exit("kcs_render: the Environment section must be exactly four non-empty lines "
                  "'Product: ...', 'Version: ...', 'OS: ...', 'Component: ...' "
                  f"(found: {lines}). Put free-form detail under Clarifying Information.")
+
+
+AREAS = ["Admin/Config", "Defects", "Enhancement", "Installation", "Licensing", "Performance",
+         "Programming", "Security"]
+PRONOUNS = re.compile(r"\b(?:[Yy]ou|[Yy]our|[Yy]ours|[Ww]e|[Oo]ur|[Oo]urs|us)\b")
+ID_LIST = re.compile(r"MLE-\d+(\s*,\s*MLE-\d+)*")
+
+
+def section(md, name):
+    m = re.search(r"^## %s\s*\n(.*?)(?=^## |\Z)" % re.escape(name), md, re.M | re.S)
+    return m.group(1).strip() if m else ""
+
+
+def url_name(title):
+    t = re.sub(r"^INTERNAL\s+", "", title.strip())
+    return re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")
+
+
+def content_issues(md):
+    """SCS content checks. Returns (errors, warnings); messages start with the field name."""
+    errors, warnings = [], []
+    title = re.sub(r"^INTERNAL\s+", "", (title_of(md) or "").strip())
+    if len(title) > 70:
+        errors.append(f"Title is {len(title)} characters; the SCS maximum is 70 (target 55, "
+                      "not counting an INTERNAL prefix). Trim the error text to its key phrase.")
+    elif len(title) > 55:
+        warnings.append(f"Title is {len(title)} characters; the SCS target is 55 (maximum 70).")
+    url = section(md, "URL Name")
+    if url != url_name(title_of(md) or ""):
+        errors.append(f"URL Name must be the Title lowercased with hyphens "
+                      f"('{url_name(title_of(md) or '')}'), without any INTERNAL prefix; found '{url}'.")
+    summary = " ".join(section(md, "Summary").split())
+    if len(summary) > 250:
+        errors.append(f"Summary is {len(summary)} characters; the maximum here is 250 (SCS target 160). "
+                      "State the symptom or question only, never the cause or resolution.")
+    elif len(summary) > 160:
+        warnings.append(f"Summary is {len(summary)} characters; the SCS target is 160.")
+    for f in ("Defect Number", "Enhancement Number"):
+        body = section(md, f)
+        if body != "N/A" and not ID_LIST.fullmatch(body):
+            errors.append(f"{f} must be N/A or comma-separated MLE-<number> ids; found '{body}'.")
+    cat = [l.rstrip("\\ ").strip() for l in section(md, "Article Category").splitlines() if l.strip()]
+    labels = [l.partition(":")[0] if ":" in l else l + " (no colon)" for l in cat]
+    if labels != ["Product Group", "Area of Interest"]:
+        errors.append("Article Category must be the two lines 'Product Group: MarkLogic' and "
+                      f"'Area of Interest: <value or empty>'; found {cat}.")
+    else:
+        group, area = (l.partition(":")[2].strip() for l in cat)
+        if group != "MarkLogic":
+            errors.append(f"Article Category: Product Group must be MarkLogic; found '{group}'.")
+        if area and area not in AREAS:
+            errors.append(f"Article Category: Area of Interest must be one of {', '.join(AREAS)} "
+                          f"or empty; found '{area}'.")
+    for f in ("Internal Comments", "Admin Ticket ID"):
+        if not section(md, f).startswith("*("):
+            errors.append(f"{f} is entered manually in Salesforce; leave the placeholder "
+                          "(a line starting '*(') instead of filling it in.")
+    current, fenced, seen = None, False, set()
+    for line in re.sub(r"\A\s*<!--.*?-->", "", md, count=1, flags=re.S).splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+        elif fenced:
+            continue
+        elif line.startswith("## "):
+            current = line[3:].strip()
+        else:
+            for w in PRONOUNS.findall(re.sub(r"`[^`]*`", "", line)):
+                if (current, w.lower()) not in seen:
+                    seen.add((current, w.lower()))
+                    warnings.append(f"{current}: personal pronoun '{w}'; write impersonally "
+                                    "in present tense (SCS style).")
+    return errors, warnings
 
 
 def slugify(title, limit=60):
@@ -165,16 +238,23 @@ def main():
         return
     if a.article is None:
         ap.error("ARTICLE.md is required unless --target is given")
-    require_pandoc()
     md = a.article.read_text()
     check_headings(md)
     check_environment(md)
-    out = (a.outdir or a.article.parent); out.mkdir(parents=True, exist_ok=True)
+    errors, warnings = content_issues(md)
+    for w in warnings:
+        print(f"kcs_render: warning: {w}", file=sys.stderr)
+    if errors:
+        sys.exit("kcs_render: SCS content errors:\n  - " + "\n  - ".join(errors))
+    require_pandoc()
+    out =(a.outdir or a.article.parent); out.mkdir(parents=True, exist_ok=True)
     stem = a.article.stem
     pandoc("-f", "gfm", "-t", "docx", "-o", str(out / f"{stem}.docx"), str(a.article))
     banner = re.search(r"KCS ARTICLE — (.+)", md)
-    kind = banner.group(1).strip() if banner else ("How-To (framed as Problem/Solution per template constraints)" if "-howto-" in stem
-            else "Problem/Solution" if "-problem-" in stem else "Article")
+    kind = banner.group(1).strip() if banner else (
+        "How-To (framed as Problem/Solution per template constraints)" if "-howto-" in stem
+        else "How to troubleshoot" if "-troubleshoot-" in stem
+        else "Problem/Solution" if "-problem-" in stem else "Article")
     body = style_html(pandoc("-f", "gfm", "-t", "html", "--wrap=none", "--no-highlight", "-", stdin=tables_to_lists(re.sub(r"\A\s*<!--.*?-->", "", md, count=1, flags=re.S))))
     doc = ('<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8" />\n<title>%s</title>\n</head>\n'
            '<body style="%s">\n<!--\nKCS ARTICLE — %s\nPaste each section below into the matching Salesforce field.\n-->\n\n%s</body>\n</html>\n'
