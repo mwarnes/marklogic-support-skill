@@ -127,8 +127,24 @@ class NamingTest(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(r.stdout.strip(), str(d / "kcs-my-title"))
 
+    def test_cli_target_empty_title_gives_kcs_article(self):
+        d = Path(tempfile.mkdtemp())
+        r = subprocess.run([sys.executable, str(SCRIPT), "--target", "", "--cwd", str(d)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(r.stdout.strip().endswith("kcs-article"), r.stdout)
+
 
 class ImportTest(unittest.TestCase):
+    def test_html_import_without_pandoc_suggests_pasting(self):
+        d = Path(tempfile.mkdtemp()); p = d / "a.html"; p.write_text("<h2>Title</h2>")
+        empty = tempfile.mkdtemp()
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", str(p)],
+                           capture_output=True, text=True, env={"PATH": empty})
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("paste", r.stderr)
+        self.assertIn("pandoc.org", r.stderr)
+
     def test_md_passthrough_needs_no_pandoc(self):
         self.assertEqual(kcs_render.import_markdown(FIXTURE), FIXTURE.read_text())
 

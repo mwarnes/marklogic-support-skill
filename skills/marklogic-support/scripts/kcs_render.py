@@ -113,10 +113,9 @@ def pandoc(*args, stdin=None):
     return r.stdout
 
 
-def require_pandoc():
+def require_pandoc(tail="The Markdown article is complete; only the .docx/.html rendering needs pandoc."):
     if not shutil.which("pandoc"):
-        sys.exit("kcs_render: pandoc not found on PATH (install: https://pandoc.org/installing.html). "
-                 "The Markdown article is complete; only the .docx/.html rendering needs pandoc.")
+        sys.exit(f"kcs_render: pandoc not found on PATH (install: https://pandoc.org/installing.html). {tail}")
 
 
 def import_markdown(src):
@@ -129,7 +128,7 @@ def import_markdown(src):
     fmt = {".html": "html", ".htm": "html", ".docx": "docx"}.get(ext)
     if not fmt:
         sys.exit(f"kcs_render: unsupported file type '{ext}' (use .md, .html or .docx)")
-    require_pandoc()
+    require_pandoc("pandoc is needed to read .html/.docx input; paste the article text or supply a .md instead.")
     return pandoc("-f", fmt, "-t", "gfm", "--wrap=none", str(src))
 
 
@@ -157,7 +156,7 @@ def main():
     ap.add_argument("--to-md", type=Path, metavar="SRC",
                     help="convert an .html/.docx/.md article to Markdown on stdout, then exit")
     a = ap.parse_args()
-    if a.target:
+    if a.target is not None:
         d = output_dir(a.cwd or Path.cwd())
         print(d / unique_stem(d, slugify(a.target)))
         return

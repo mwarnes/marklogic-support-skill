@@ -110,7 +110,8 @@ Review an article written by someone else against everything above, then group f
   exactly the four standard lines, unsanitised customer data (names, hosts, IPs, IDs, secrets,
   ticket number outside Admin Ticket ID), unconfirmed Cause stated as fact, commands that cannot
   run as written, claims contradicted by the skill's reference files.
-- **should-fix** — hurts findability or clarity: weak Title or Keyword Phrase, URL Name not
+- **should-fix** — hurts findability or clarity: missing or incorrect type banner comment
+  (`<!-- KCS ARTICLE — <type> ... -->`; html/docx imports always lose it), weak Title or Keyword Phrase, URL Name not
   lowercase-hyphen, wrong Problem/Solution vs How-To framing (How-To fields should be
   `N/A — ...`), `Validation Status` stronger than the evidence, scope/versions not stated
   honestly, missing "substitute these values" notes, no Management API alternative where one exists.
