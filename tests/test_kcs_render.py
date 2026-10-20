@@ -277,8 +277,34 @@ class ContentTest(unittest.TestCase):
                       "Authentik server log:\n\n```\nwe saw your request\n```")
         self.assertFalse(any("pronoun" in m for m in w))
 
+    def test_word_breach_is_an_error_in_any_form_and_place(self):
+        for bad in ("A breach of the policy", "The data was breached.", "BREACHES occur", "Breaching it"):
+            e, _ = issues("Other IdPs have an equivalent", bad + "; other IdPs have an equivalent")
+            self.assertTrue(has(e, "Wording"), bad)
+        e, _ = issues("Invalid grant_type for provider", "a breach in the log")      # inside a code block
+        self.assertTrue(has(e, "Wording"))
+        md = FIX.replace("KCS ARTICLE — Problem/Solution", "KCS ARTICLE — breach", 1)  # banner comment
+        self.assertTrue(has(kcs_render.content_issues(md)[0], "Wording"))
+
+    def test_breach_lookalikes_are_not_flagged(self):
+        e, _ = issues("Other IdPs have an equivalent", "Abreachx and Unbreached words; other IdPs have an equivalent")
+        self.assertFalse(has(e, "Wording"))
+
+    def test_wording_error_reports_the_line(self):
+        e, _ = issues("Other IdPs have an equivalent", "A breach occurred; other IdPs have an equivalent")
+        msg = [m for m in e if m.startswith("Wording")][0]
+        self.assertRegex(msg, r"line \d+")
+
 
 class ContentCliTest(unittest.TestCase):
+    def test_breach_blocks_rendering(self):
+        d = Path(tempfile.mkdtemp()); p = d / "kcs-t-problem-x.md"
+        p.write_text(FIX.replace("Other IdPs have an equivalent", "A breach occurred; other IdPs have an equivalent"))
+        r = run(p)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("breach", r.stderr)
+        self.assertFalse((d / "kcs-t-problem-x.html").exists())
+
     def test_errors_exit_nonzero_before_rendering(self):
         d = Path(tempfile.mkdtemp()); p = d / "kcs-t-problem-x.md"
         p.write_text(FIX.replace("## Defect Number\nN/A", "## Defect Number\n12345"))
