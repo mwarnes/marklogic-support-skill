@@ -96,6 +96,19 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/unfiltered.html>
 - <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html>
 
+## sar-analysis.md
+
+- <https://brendangregg.com/USEmethod/use-linux.html> — USE method; SAR flags for CPU, memory, disk and network utilization/saturation/errors
+- <https://man7.org/linux/man-pages/man1/sar.1.html> — `sar(1)`: column meanings, `-s`/`-e`/`-f`, default 08:00-18:00 window, `S_TIME_FORMAT`, file names
+- <https://man7.org/linux/man-pages/man1/sadf.1.html> — `sadf(1)`: `-t`/`-T`/`-U` time handling, `-c` conversion, version compatibility
+- <https://sources.debian.org/src/sysstat/12.7.5-2/README.md> — sa1/sa2/sadc, cron or systemd, 10-minute default, enabling collection
+- <https://access.redhat.com/solutions/276533> — RHEL collection (cron and systemd timers), `/var/log/sa`, saNN vs sarNN, retention
+- <https://www.thomas-krenn.com/en/wiki/Collect_and_report_Linux_System_Activity_Information_with_sar> — enabling collection, Debian `/var/log/sysstat`, `-f` for history (2013 article, old sysstat)
+- <https://github.com/marklogic-community/mlstat> — mlstat (archived): system plus MarkLogic stats, `%nice` and merges, blocked/iowait
+- <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/marklogic-server-monitoring-history/view-monitoring-history.html> — Monitoring History charts
+- <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/introduction/guidelines-for-configuring-your-monitoring-tools/establish-a-performance-baseline.html> — baseline of normal performance
+- <https://docs.marklogic.com/admin-help/group> — background I/O limit covers merge, backup, restore
+
 ## monitoring.md
 
 - <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/introduction.html>
