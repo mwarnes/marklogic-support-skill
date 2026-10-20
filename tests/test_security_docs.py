@@ -31,6 +31,19 @@ class SecurityDocsTest(unittest.TestCase):
         self.assertIn("the MarkLogic product security team, or the Progress Security team if there is none", text)
         self.assertNotIn("Vulnerability component", text)
 
+    def test_kcs_docs_carry_the_security_rules(self):
+        w = (SKILL / "references/kcs-writing.md").read_text()
+        self.assertIn("Internal App", w)
+        self.assertIn("Area of Interest to `Security`", w)
+        self.assertIn('"breach"', w)
+        self.assertIn("always `Security`", w)
+        k = (ROOT / "prompts/kcs.md").read_text()
+        self.assertIn("incident gate", k)
+        self.assertIn("Area of Interest", k)
+        r = (ROOT / "prompts/kcs-review.md").read_text()
+        self.assertIn("breach", r)
+        self.assertIn("Security", r)
+
 
 if __name__ == "__main__":
     unittest.main()

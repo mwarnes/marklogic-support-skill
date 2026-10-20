@@ -40,9 +40,13 @@ Without a banner, `kcs_render.py` infers the type from `-problem-` / `-howto-` /
 - **Alerts are out of scope.** A Product Alert (product-wide issue, release announcement) or Critical
   Alert (serious defect affecting most customers) needs Product Management/Legal approval and a
   separate process. `/kcs` stops and tells the engineer so.
-- **Security / CVE content.** Anything that describes a security defect, vulnerability or CVE may be
-  published internally only, unless Product Management or the Security team directs otherwise. Write
-  the article, prefix the Title with `INTERNAL`, and warn the engineer not to publish externally.
+- **Security vulnerability content.** Anything that describes a security defect, a product
+  vulnerability or a CVE (see `security-vulnerability-handling.md`) is published to the `Internal App`
+  channel only, unless Product Management or the product's Security team directs otherwise after the
+  engineer has synchronised with them. A TSE may create it, edit it after consulting the original
+  author or a security subject-matter expert, and publish it internally; a TSE may not publish it
+  externally alone. Write the article, prefix the Title with `INTERNAL`, set Area of Interest to `Security`, and warn the
+  engineer not to publish externally.
 
 ## Title prefix
 
@@ -133,7 +137,7 @@ Area of Interest: Security
 
 Product Group is always `MarkLogic`. Area of Interest is one of `Admin/Config`, `Defects`,
 `Enhancement`, `Installation`, `Licensing`, `Performance`, `Programming`, `Security`, derived from the
-article and ticket: a filed defect → `Defects`; a filed enhancement → `Enhancement`; otherwise the
+article and ticket: a security vulnerability or CVE article → `Security` (always `Security`, even when a defect is filed); a filed defect → `Defects`; a filed enhancement → `Enhancement`; otherwise the
 dominant topic (install/upgrade → `Installation`; licence keys → `Licensing`; slowness, memory,
 throughput → `Performance`; authentication, SAML/OAuth, certificates, roles → `Security`; XQuery,
 JavaScript, REST/Java/Node client code → `Programming`; configuration and administration →
@@ -178,6 +182,9 @@ if implemented, the release it was implemented in. There is no template text.
 - Give the command being used when the issue occurs or needed to resolve it.
 - Refer to the product documentation for additional information where it applies.
 - One complete answer to one problem or goal.
+- Never write the word "breach" (breach, breached, breaches, breaching) in an article: Legal must
+  approve any such language. Describe the event neutrally (for example "unauthorized access" or
+  "security incident"). The renderer rejects it.
 - Setting/field/command/error names in backticks; UI labels in **bold**; UI paths with `→`; bold for
   emphasis. Code and commands in fenced blocks, one per step, with `example.com` hosts; say what to
   substitute.
@@ -216,7 +223,7 @@ Review an article written by someone else against everything above, then group f
   Category missing or with an invalid value; Defect/Enhancement Number not `MLE-<number>`/`N/A`; Internal
   Comments or Admin Ticket ID filled in; hotfix numbers in the article; wrong or missing standard
   statement for an unknown cause or a defect; unconfirmed Cause stated as fact; security/CVE content
-  without the `INTERNAL` prefix; alert-type content; commands that cannot run as written; claims
+  without the `INTERNAL` prefix or without Area of Interest `Security`; the word "breach" in any form; alert-type content; commands that cannot run as written; claims
   contradicted by the skill's reference files.
 - **should-fix** — hurts findability, clarity or style: Title over 70 characters (the renderer will not
   render it); Summary over 160 characters (over 250 is likewise not rendered); personal pronouns or
