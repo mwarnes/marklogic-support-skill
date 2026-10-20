@@ -22,9 +22,15 @@ class RenderTest(unittest.TestCase):
         assert r.returncode == 0, r.stderr
         cls.html = (cls.out / (FIXTURE.stem + ".html")).read_text()
 
-    def test_html_has_18_headings_in_order(self):
+    def test_html_has_all_headings_in_order(self):
         heads = re.findall(r"<h2[^>]*>(.*?)</h2>", self.html)
         self.assertEqual(heads, kcs_render.FIELDS)
+
+    def test_field_list_is_the_20_scs_fields(self):
+        self.assertEqual(len(kcs_render.FIELDS), 20)
+        self.assertEqual(kcs_render.FIELDS[:4], ["Title", "URL Name", "Summary", "Validation Status"])
+        self.assertEqual(kcs_render.FIELDS[-4:],
+                         ["Internal Comments", "Article Category", "Keyword Phrase", "Admin Ticket ID"])
 
     def test_html_inline_styles(self):
         self.assertIn("Verdana", self.html)
@@ -161,7 +167,7 @@ class ImportTest(unittest.TestCase):
         self.assertIn("not found", r.stderr)
 
     @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
-    def test_html_and_docx_round_trip_to_18_headings(self):
+    def test_html_and_docx_round_trip_to_all_headings(self):
         d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
         for ext in (".html", ".docx"):
             md = kcs_render.import_markdown(d / (FIXTURE.stem + ext))

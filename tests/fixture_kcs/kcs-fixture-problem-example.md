@@ -4,16 +4,16 @@ Paste each section below into the matching Salesforce field.
 -->
 
 ## Title
-MarkLogic OAuth 2.0 Authorization Code flow returns "request is otherwise malformed" from the Identity Provider
+MarkLogic OAuth: request is otherwise malformed
 
 ## URL Name
-marklogic-oauth-2-0-authorization-code-request-otherwise-malformed
-
-## Validation Status
-Unverified
+marklogic-oauth-request-is-otherwise-malformed
 
 ## Summary
-With the MarkLogic 12.1 OAuth 2.0 Authorization Code flow, the Identity Provider (IdP) rejects MarkLogic's authorization request with `invalid_request` / "The request is otherwise malformed" instead of showing its sign-in page. The cause is the IdP client registration: the `authorization_code` grant type is not enabled for the client that MarkLogic uses.
+MarkLogic OAuth 2.0 Authorization Code login returns `invalid_request` "The request is otherwise malformed" before the IdP sign-in page appears.
+
+## Validation Status
+Verified
 
 ## Article Number
 *(assigned by Salesforce on save)*
@@ -75,9 +75,21 @@ N/A — enabling the grant type on the IdP client is the fix.
 ## Notes
 When an Authorization Code configuration fails before the IdP sign-in page appears, check the IdP client registration (enabled grant types, redirect URI, client ID) and the IdP's log before changing MarkLogic settings.
 
-**Related articles:**
+References to Other Documentation:
+
+MarkLogic Server Security Guide
+https://docs.marklogic.com/guide/security
+
+MarkLogic article(s):
 - How to configure MarkLogic OAuth 2.0 Authorization Code flow
 - MarkLogic OAuth 2.0 Authorization Code login redirects in a loop and never completes
+
+## Internal Comments
+*(manual entry)*
+
+## Article Category
+Product Group: MarkLogic\
+Area of Interest: Security
 
 ## Keyword Phrase
 MarkLogic OAuth2 Authorization Code invalid_request "request is otherwise malformed" grant type authorization_code IdP client registration redirect URI Authentik

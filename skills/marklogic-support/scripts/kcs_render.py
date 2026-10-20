@@ -6,15 +6,16 @@ Usage: kcs_render.py ARTICLE.md [--outdir DIR]     (default DIR = the .md's dire
        kcs_render.py --to-md SRC                  (prints SRC (.html/.docx/.md) as Markdown)
 Tables are kept in .docx but become bullet lists in .html.
 Writes: <stem>.docx  <stem>.html   next to (or in DIR beside) the .md.
-Requires pandoc on PATH. The .md must contain the 18 KCS field headings (## ...) in order.
+Requires pandoc on PATH. The .md must contain the 20 KCS field headings (## ...) in order.
 """
 import argparse, html, re, shutil, subprocess, sys
 from pathlib import Path
 
-FIELDS = ["Title", "URL Name", "Validation Status", "Summary", "Article Number", "Environment",
+FIELDS = ["Title", "URL Name", "Summary", "Validation Status", "Article Number", "Environment",
           "Question/Problem Description", "Steps to Reproduce", "Clarifying Information",
           "Error Message", "Defect Number", "Enhancement Number", "Cause", "Resolution",
-          "Workaround", "Notes", "Keyword Phrase", "Admin Ticket ID"]
+          "Workaround", "Notes", "Internal Comments", "Article Category", "Keyword Phrase",
+          "Admin Ticket ID"]
 
 FONT = "font-family:Verdana,Geneva,sans-serif;font-size:14px;"
 MONO = "font-family:'Courier New',Courier,monospace;font-size:14px;"
@@ -34,7 +35,7 @@ def check_headings(md):
     found = re.findall(r"^## (.+?)\s*$", md, re.M)
     if found != FIELDS:
         missing = [f for f in FIELDS if f not in found]
-        sys.exit("kcs_render: the 18 KCS headings must appear exactly once, in order. "
+        sys.exit("kcs_render: the 20 KCS headings must appear exactly once, in order. "
                  f"Missing: {missing or 'none'}; found {len(found)}: {found}")
 
 
