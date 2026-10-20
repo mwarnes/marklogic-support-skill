@@ -137,7 +137,10 @@ article and ticket: a filed defect → `Defects`; a filed enhancement → `Enhan
 dominant topic (install/upgrade → `Installation`; licence keys → `Licensing`; slowness, memory,
 throughput → `Performance`; authentication, SAML/OAuth, certificates, roles → `Security`; XQuery,
 JavaScript, REST/Java/Node client code → `Programming`; configuration and administration →
-`Admin/Config`). When in doubt leave the value empty (`Area of Interest:`); the field is optional to the engineer.
+`Admin/Config`). A defect closed as "not a bug" or "rejected" is not `Defects`: derive the category from the topic
+instead (its id goes in Internal Comments, entered by the engineer). Area of Interest is mandatory in
+Salesforce, so when in doubt leave the value empty (`Area of Interest:` — the renderer accepts an empty
+value) and the engineer sets it in Salesforce.
 
 ## Standard statements
 
@@ -207,7 +210,7 @@ placeholders; `kcs_render.py` reports no errors and no unexplained warnings.
 
 Review an article written by someone else against everything above, then group findings:
 
-- **must-fix** — breaks the standard or leaks data: missing/misordered/extra headings; Environment not
+- **must-fix** — breaks the standard or leaks data: missing/misordered/extra headings (except the known 18-field format, below); Environment not
   exactly the four standard lines; unsanitised customer data (names, hosts, IPs, IDs, secrets) or the
   ticket number anywhere; URL Name not derived from the Title; cause or resolution in Summary; Article
   Category missing or with an invalid value; Defect/Enhancement Number not `MLE-<number>`/`N/A`; Internal
@@ -230,5 +233,6 @@ Checks that cannot be settled from the article and the references (a version num
 claim, whether a defect exists) are reported as "could not verify" — never silently changed. An imported
 article whose headings differ from the 20 fields is mapped only where the match is unambiguous (e.g.
 `Problem` → `Question/Problem Description`); otherwise the field is reported missing. An article in the
-earlier 18-field format is missing Internal Comments and Article Category: add them as the placeholder
-and a derived category, and report that you did.
+earlier 18-field format (no Internal Comments or Article Category, Summary after Validation Status) is a
+**should-fix**, not a must-fix: add the Internal Comments (`*(manual entry)*`) and Article Category
+(derived) placeholders, move Summary above Validation Status, and report that you did.

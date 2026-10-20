@@ -84,7 +84,7 @@ def check_environment(md):
 
 AREAS = ["Admin/Config", "Defects", "Enhancement", "Installation", "Licensing", "Performance",
          "Programming", "Security"]
-PRONOUNS = re.compile(r"\b(you|your|yours|we|our|ours|us)\b", re.I)
+PRONOUNS = re.compile(r"\b(?:[Yy]ou|[Yy]our|[Yy]ours|[Ww]e|[Oo]ur|[Oo]urs|us)\b")
 ID_LIST = re.compile(r"MLE-\d+(\s*,\s*MLE-\d+)*")
 
 
@@ -122,12 +122,12 @@ def content_issues(md):
         if body != "N/A" and not ID_LIST.fullmatch(body):
             errors.append(f"{f} must be N/A or comma-separated MLE-<number> ids; found '{body}'.")
     cat = [l.rstrip("\\ ").strip() for l in section(md, "Article Category").splitlines() if l.strip()]
-    labels = [l.split(":", 1)[0] for l in cat]
+    labels = [l.partition(":")[0] if ":" in l else l + " (no colon)" for l in cat]
     if labels != ["Product Group", "Area of Interest"]:
         errors.append("Article Category must be the two lines 'Product Group: MarkLogic' and "
                       f"'Area of Interest: <value or empty>'; found {cat}.")
     else:
-        group, area = (l.split(":", 1)[1].strip() for l in cat)
+        group, area = (l.partition(":")[2].strip() for l in cat)
         if group != "MarkLogic":
             errors.append(f"Article Category: Product Group must be MarkLogic; found '{group}'.")
         if area and area not in AREAS:
@@ -139,7 +139,7 @@ def content_issues(md):
                           "(a line starting '*(') instead of filling it in.")
     current, fenced, seen = None, False, set()
     for line in re.sub(r"\A\s*<!--.*?-->", "", md, count=1, flags=re.S).splitlines():
-        if line.startswith("```"):
+        if line.lstrip().startswith(("```", "~~~")):
             fenced = not fenced
         elif fenced:
             continue

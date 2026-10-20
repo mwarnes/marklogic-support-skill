@@ -246,6 +246,22 @@ class ContentTest(unittest.TestCase):
         e, _ = issues("Product Group: MarkLogic\\\nArea of Interest: Security", "Product Group: MarkLogic")
         self.assertTrue(has(e, "Article Category"))
 
+    def test_category_without_colon_is_clean_error(self):
+        e, _ = issues("Product Group: MarkLogic\\\nArea of Interest: Security",
+                      "Product Group: MarkLogic\\\nArea of Interest")
+        self.assertTrue(has(e, "Article Category"))
+
+    def test_pronoun_us_only_lowercase(self):
+        _, w = issues("Other IdPs have an equivalent", "The US-region IdPs have an equivalent")
+        self.assertFalse(any("pronoun" in m for m in w))
+        _, w = issues("Other IdPs have an equivalent", "Other IdPs give us an equivalent")
+        self.assertTrue(has(w, "Cause"))
+
+    def test_pronoun_in_indented_fence_ignored(self):
+        _, w = issues("Other IdPs have an equivalent",
+                      "Other IdPs have an equivalent\n\n1. Step\n\n   ```\n   we saw your request\n   ```")
+        self.assertFalse(any("pronoun" in m for m in w))
+
     def test_manual_fields_must_be_placeholders(self):
         e, _ = issues("## Admin Ticket ID\n*(fill in if applicable)*", "## Admin Ticket ID\n12345")
         self.assertTrue(has(e, "Admin Ticket ID"))
@@ -271,6 +287,7 @@ class ContentCliTest(unittest.TestCase):
         self.assertIn("Defect Number", r.stderr)
         self.assertFalse((d / "kcs-t-problem-x.html").exists())
 
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
     def test_warnings_do_not_block(self):
         d = Path(tempfile.mkdtemp()); p = d / "kcs-t-problem-x.md"
         p.write_text(FIX.replace("Other IdPs have an equivalent", "You can set an equivalent; other IdPs have an equivalent"))
