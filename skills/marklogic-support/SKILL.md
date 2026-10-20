@@ -13,6 +13,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    - Direct question → **Q&A mode**
    - A support dump (a file path, or pasted text starting `Report Time:`) → **Dump mode**
    - Log files (ErrorLog*, messages*, AccessLog, AuditLog — loose or in a dump analysis) → **Log mode**
+   - Linux SAR/sysstat output (a `sar -A` text file, a binary `sa##` file, or a folder of them) → **SAR mode**
    - Unclear → ask which.
 3. **Security check (before any analysis).** Read `references/security-vulnerability-handling.md`
    ("Detect") whenever the ticket, a pasted symptom, a dump or a log request mentions a CVE/CVSS,
@@ -22,7 +23,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    or log and draft no log request until the engineer clears it. The gate stays open for the whole
    ticket, in every mode and in later sessions, until `audit-trail/Timeline.md` contains a "Security
    incident gate cleared" line after the "Security incident gate raised" line. Before running
-   `parse_dump.py` or `analyse_logs.py` or drafting a log request, check `Timeline.md` for a "Security
+   `parse_dump.py`, `analyse_logs.py` or `analyse_sar.py` or drafting a log request, check `Timeline.md` for a "Security
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 
@@ -39,6 +40,8 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    **Doc links** — from the reference's `## Sources` / `references/sources.md`.
 
 For a security vulnerability ticket, print the banner and checklist from `references/security-vulnerability-handling.md` first, then this format.
+
+For a performance or resource-pressure ticket with no host-level data (no SAR, iostat, vmstat or mpstat output), put a request from `references/performance-data-requests.md` in "Questions to ask the customer" — the SAR export or live capture, the host metrics, and, only when the customer runs on a cloud provider (for example AWS), its cloud signals. Ask for kernel/OOM messages on memory symptoms and thread dumps/`pmap` only for hangs.
 
 Rules: never assert a root cause without at least one confirming check. Quote error codes exactly. If the reference row is marked `[unverified — confirm]`, say so.
 
@@ -72,11 +75,21 @@ Check the security incident gate first (Always first, step 3).
 4. If a dump analysis exists, cross-reference its `findings.md` (e.g. cache-vs-ram ↔ Memory low; failover-no-replica ↔ database unavailable during restart).
 5. Then update the audit trail per the **Audit trail** section below.
 
+## SAR mode
+
+Check the security incident gate first (Always first, step 3): SAR output is a customer-supplied file.
+
+1. Run `scripts/analyse_sar.py <files or dirs> --out sar-analysis/<name>`, resolving `scripts/` relative to THIS skill's own directory (see Dump mode step 1). Never read a raw SAR file wholesale. If it reports a binary `sa##` file it cannot convert, ask the customer for text output using the "SAR export" request in `references/performance-data-requests.md`.
+2. Read `references/sar-analysis.md`, then `<out>/SUMMARY.md`. Open `<out>/series-<host>.csv` only for a specific window and `findings.json` for exact values.
+3. Output: **Host timeline** — per host the window, interval, restarts and gaps (SAR not collecting); **Findings** — each ranked finding (likely causes first) with what it means for MarkLogic and the confirming check from `sar-analysis.md`; then the Triage-mode format. Align SAR times with the ErrorLog timezone before correlating (Log mode `TIMELINE.md`), and say what SAR cannot show.
+4. If the data does not cover the incident window, or lacks a section a finding needs (for example no `-d` disk data), say so and request it from `references/performance-data-requests.md`.
+5. Then update the audit trail per the **Audit trail** section below; a data request is a `Required-Diagnostics.md` entry.
+
 ## Audit trail
 
 If `audit-trail/` exists in the current working directory (created by `/ticket`), read
-`references/ticket-auditing.md` once per session, then after producing output in Triage, Dump, or
-Log mode (never Q&A mode — a one-off question is not ticket work):
+`references/ticket-auditing.md` once per session, then after producing output in Triage, Dump,
+Log, or SAR mode (never Q&A mode — a one-off question is not ticket work):
 
 - Append one `Timeline.md` line for what just happened.
 - A new ranked cause → append a `Problems.md` entry, status `Open`, unless evidence already in
@@ -118,6 +131,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 | If the ticket mentions… | Read |
 | --- | --- |
 | CVE, CVSS, vulnerability, exploit, scanner output, security scan, security incident, security event, malware, virus, ransomware, compromise, intrusion | `references/security-vulnerability-handling.md` (read first, before any other reference) |
+| sar, sysstat, sadf, iostat, vmstat, mpstat, pidstat, %iowait, await, %util, run queue, load average, %steal, swap in/out, slow disk, OOM killer, performance data | `references/sar-analysis.md` and `references/performance-data-requests.md` |
 | quorum, host offline, XDQP, XDMP-HOSTOFFLINE, join/leave cluster, hostname, group, upgrade/effective version, NTP/clock | `references/cluster-hosts-groups.md` |
 | forest, stand, merge, disk space, XDMP-FORESTNOSPACE, reindex, index, rebalancer, assignment policy, directory creation, fragment, locking | `references/databases-forests.md` |
 | port, app server, HTTP/XDBC/ODBC/WebDAV, modules, XDMP-MODNOTFOUND, SVC-SOCBIND, timeout, XDMP-EXTIME, threads, authentication (app-server level), SSL/TLS, log level, 8000/8001/8002 | `references/app-servers.md` |
