@@ -84,5 +84,49 @@ class ValidateTest(unittest.TestCase):
         self.assertIn("Workaround", r.stderr)
 
 
+class NamingTest(unittest.TestCase):
+    def test_slugify(self):
+        self.assertEqual(kcs_render.slugify("SAML: Redirect Loop (Okta) / Login!"), "saml-redirect-loop-okta-login")
+        self.assertEqual(kcs_render.slugify("  ---  "), "article")
+
+    def test_slugify_truncates_on_word_boundary(self):
+        s = kcs_render.slugify("alpha " * 30)
+        self.assertLessEqual(len(s), 60)
+        self.assertFalse(s.endswith("-"))
+        self.assertTrue(set(s.split("-")) == {"alpha"})
+
+    def test_title_of(self):
+        md = "## Title\n\nHow to renew a certificate\n\n## URL Name\n\nx\n"
+        self.assertEqual(kcs_render.title_of(md), "How to renew a certificate")
+        self.assertIsNone(kcs_render.title_of("## Summary\n\nx\n"))
+
+    def test_output_dir(self):
+        d = Path(tempfile.mkdtemp())
+        self.assertEqual(kcs_render.output_dir(d), d)
+        (d / "kcs-drafts").mkdir()
+        self.assertEqual(kcs_render.output_dir(d), d / "kcs-drafts")
+
+    def test_unique_stem_suffixes_on_any_existing_format(self):
+        d = Path(tempfile.mkdtemp())
+        self.assertEqual(kcs_render.unique_stem(d, "foo"), "kcs-foo")
+        (d / "kcs-foo.docx").write_text("x")
+        self.assertEqual(kcs_render.unique_stem(d, "foo"), "kcs-foo-2")
+        (d / "kcs-foo-2.html").write_text("x")
+        self.assertEqual(kcs_render.unique_stem(d, "foo"), "kcs-foo-3")
+
+    def test_cli_target_prefers_kcs_drafts(self):
+        d = Path(tempfile.mkdtemp()); (d / "kcs-drafts").mkdir()
+        r = subprocess.run([sys.executable, str(SCRIPT), "--target", "My Title!", "--cwd", str(d)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout.strip(), str(d / "kcs-drafts" / "kcs-my-title"))
+
+    def test_cli_target_falls_back_to_cwd(self):
+        d = Path(tempfile.mkdtemp())
+        r = subprocess.run([sys.executable, str(SCRIPT), "--target", "My Title!", "--cwd", str(d)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.stdout.strip(), str(d / "kcs-my-title"))
+
+
 if __name__ == "__main__":
     unittest.main()
