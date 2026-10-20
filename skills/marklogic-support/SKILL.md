@@ -1,6 +1,6 @@
 ---
 name: marklogic-support
-description: Triages MarkLogic support tickets across configuration (clusters, hosts, groups, forests, databases, app servers, security, memory/caches, backup/failover), monitoring, query performance/tuning, DR/scaling, server-side code review (XQuery/JS/REST extensions), and client-side tooling (XCC, Java Client API, mlcp, ml-gradle, CoRB2), from distilled reference notes. Use for any MarkLogic ticket, symptom, error code, or admin question. MarkLogic 11/12. Also splits and analyses support dumps (config/status/logs, findings) and ErrorLog/var-log-messages into incident timelines.
+description: Triages MarkLogic support tickets across configuration (clusters, hosts, groups, forests, databases, app servers, security, memory/caches, backup/failover), monitoring, query performance/tuning, DR/scaling, server-side code review (XQuery/JS/REST extensions), and client-side tooling (XCC, Java Client API, mlcp, ml-gradle, CoRB2), from distilled reference notes. Use for any MarkLogic ticket, symptom, error code, or admin question. MarkLogic 11/12. Also splits and analyses support dumps (config/status/logs, findings) and ErrorLog/var-log-messages into incident timelines. Also gates security-incident tickets and applies the organisation's security-vulnerability process.
 ---
 
 # MarkLogic Support (Phase 1: configuration issues)
@@ -14,6 +14,12 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    - A support dump (a file path, or pasted text starting `Report Time:`) → **Dump mode**
    - Log files (ErrorLog*, messages*, AccessLog, AuditLog — loose or in a dump analysis) → **Log mode**
    - Unclear → ask which.
+3. **Security check (before any analysis).** Read `references/security-vulnerability-handling.md`
+   ("Detect") whenever the ticket, a pasted symptom, a dump or a log request mentions a CVE/CVSS,
+   scanner output, a vulnerability or exploit, or a security incident, malware, virus or compromise.
+   An incident stops work at the **incident gate** described there — analyse no customer-supplied dump
+   or log until the engineer clears it. A vulnerability prints the banner and checklist first. Never
+   write the word "breach".
 
 ## Triage mode
 
@@ -26,6 +32,8 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    **What to check** — for each: Admin UI path, REST Management API (`GET /manage/v2/...`), or XQuery (`xdmp:*`, `admin:*`) — whichever the reference gives.
    **Best-practice recommendation** — the fix, plus how to prevent recurrence.
    **Doc links** — from the reference's `## Sources` / `references/sources.md`.
+
+For a security vulnerability ticket, print the banner and checklist from `references/security-vulnerability-handling.md` first, then this format.
 
 Rules: never assert a root cause without at least one confirming check. Quote error codes exactly. If the reference row is marked `[unverified — confirm]`, say so.
 
@@ -72,6 +80,10 @@ Log mode (never Q&A mode — a one-off question is not ticket work):
   stage-tagged (`[Identification]`/`[Diagnosis]`/`[Escalation]`/`[Resolution]`/`[Closure]`), citing
   the `Problems.md`/`Required-Diagnostics.md` entry numbers it relates to.
 
+On a security ticket follow "Audit trail on security tickets" in
+`references/security-vulnerability-handling.md`: record the process steps and `Details recorded in
+<secure location>`, never exploit specifics or the word "breach".
+
 **Never auto-write without the engineer's explicit go-ahead in the conversation:** a `Problems.md`
 entry moving to `Confirmed`, `Root-Cause.md` itself, an `[Escalation]` entry, or a `[Closure]`
 entry. These are assertions, not triage output — propose them, then write only once the engineer
@@ -96,6 +108,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 
 | If the ticket mentions… | Read |
 | --- | --- |
+| CVE, CVSS, vulnerability, exploit, scanner output, security scan, security incident, malware, virus, ransomware, compromise | `references/security-vulnerability-handling.md` (read first, before any other reference) |
 | quorum, host offline, XDQP, XDMP-HOSTOFFLINE, join/leave cluster, hostname, group, upgrade/effective version, NTP/clock | `references/cluster-hosts-groups.md` |
 | forest, stand, merge, disk space, XDMP-FORESTNOSPACE, reindex, index, rebalancer, assignment policy, directory creation, fragment, locking | `references/databases-forests.md` |
 | port, app server, HTTP/XDBC/ODBC/WebDAV, modules, XDMP-MODNOTFOUND, SVC-SOCBIND, timeout, XDMP-EXTIME, threads, authentication (app-server level), SSL/TLS, log level, 8000/8001/8002 | `references/app-servers.md` |

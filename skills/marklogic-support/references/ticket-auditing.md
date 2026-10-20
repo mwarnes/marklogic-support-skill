@@ -161,3 +161,11 @@ note explaining what changed.
 - A Problem moving to `Confirmed`, Root-Cause.md being written, an Escalation entry, or a Closure
   entry each require the engineer's explicit go-ahead in the conversation first — these are
   assertions, not triage output, and are never auto-committed to the permanent record.
+
+## Security tickets
+
+Tickets that involve a security vulnerability or incident follow `security-vulnerability-handling.md`
+("Audit trail on security tickets"): the five files record that it is a security ticket, the CVE/CVSS
+and the process steps taken, never exploit specifics or proof-of-concept detail — write `Details
+recorded in <secure location>` (location named by the engineer) — and never use the word "breach". A
+raised incident gate and its clearance each get a `Timeline.md` line.
