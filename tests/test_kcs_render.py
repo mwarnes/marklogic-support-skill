@@ -128,5 +128,38 @@ class NamingTest(unittest.TestCase):
         self.assertEqual(r.stdout.strip(), str(d / "kcs-my-title"))
 
 
+class ImportTest(unittest.TestCase):
+    def test_md_passthrough_needs_no_pandoc(self):
+        self.assertEqual(kcs_render.import_markdown(FIXTURE), FIXTURE.read_text())
+
+    def test_unsupported_extension_rejected(self):
+        d = Path(tempfile.mkdtemp()); p = d / "a.pdf"; p.write_text("x")
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", str(p)], capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn(".docx", r.stderr)
+
+    def test_missing_file_rejected(self):
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", "/nonexistent/a.md"],
+                           capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("not found", r.stderr)
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_html_and_docx_round_trip_to_18_headings(self):
+        d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
+        for ext in (".html", ".docx"):
+            md = kcs_render.import_markdown(d / (FIXTURE.stem + ext))
+            self.assertEqual(re.findall(r"^## (.+?)\s*$", md, re.M), kcs_render.FIELDS, ext)
+
+    @unittest.skipUnless(shutil.which("pandoc"), "pandoc not installed")
+    def test_imported_html_can_be_rendered_again(self):
+        d = Path(tempfile.mkdtemp()); self.assertEqual(run(FIXTURE, d).returncode, 0)
+        r = subprocess.run([sys.executable, str(SCRIPT), "--to-md", str(d / (FIXTURE.stem + ".html"))],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        again = d / "again.md"; again.write_text(r.stdout)
+        self.assertEqual(run(again, d / "out").returncode, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

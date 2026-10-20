@@ -3,6 +3,7 @@
 
 Usage: kcs_render.py ARTICLE.md [--outdir DIR]     (default DIR = the .md's directory)
        kcs_render.py --target TITLE [--cwd DIR]    (prints the output path for a reviewed article)
+       kcs_render.py --to-md SRC                  (prints SRC (.html/.docx/.md) as Markdown)
 Tables are kept in .docx but become bullet lists in .html.
 Writes: <stem>.docx  <stem>.html   next to (or in DIR beside) the .md.
 Requires pandoc on PATH. The .md must contain the 18 KCS field headings (## ...) in order.
@@ -112,6 +113,26 @@ def pandoc(*args, stdin=None):
     return r.stdout
 
 
+def require_pandoc():
+    if not shutil.which("pandoc"):
+        sys.exit("kcs_render: pandoc not found on PATH (install: https://pandoc.org/installing.html). "
+                 "The Markdown article is complete; only the .docx/.html rendering needs pandoc.")
+
+
+def import_markdown(src):
+    src = Path(src)
+    if not src.is_file():
+        sys.exit(f"kcs_render: file not found: {src}")
+    ext = src.suffix.lower()
+    if ext in (".md", ".markdown"):
+        return src.read_text()
+    fmt = {".html": "html", ".htm": "html", ".docx": "docx"}.get(ext)
+    if not fmt:
+        sys.exit(f"kcs_render: unsupported file type '{ext}' (use .md, .html or .docx)")
+    require_pandoc()
+    return pandoc("-f", fmt, "-t", "gfm", "--wrap=none", str(src))
+
+
 def style_html(fragment):
     # Protect <pre> blocks so the inline-code style is not applied inside them.
     pres = []
@@ -133,16 +154,19 @@ def main():
     ap.add_argument("--target", metavar="TITLE",
                     help="print the output path (no extension) for an article with this title, then exit")
     ap.add_argument("--cwd", type=Path, default=None, help="directory --target resolves against (default: current)")
+    ap.add_argument("--to-md", type=Path, metavar="SRC",
+                    help="convert an .html/.docx/.md article to Markdown on stdout, then exit")
     a = ap.parse_args()
     if a.target:
         d = output_dir(a.cwd or Path.cwd())
         print(d / unique_stem(d, slugify(a.target)))
         return
+    if a.to_md:
+        sys.stdout.write(import_markdown(a.to_md))
+        return
     if a.article is None:
         ap.error("ARTICLE.md is required unless --target is given")
-    if not shutil.which("pandoc"):
-        sys.exit("kcs_render: pandoc not found on PATH (install: https://pandoc.org/installing.html). "
-                 "The Markdown article is complete; only the .docx/.html rendering needs pandoc.")
+    require_pandoc()
     md = a.article.read_text()
     check_headings(md)
     check_environment(md)
