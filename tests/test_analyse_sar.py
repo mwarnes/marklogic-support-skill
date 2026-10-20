@@ -149,6 +149,38 @@ class RolloverTest(unittest.TestCase):
                          ["2026-10-20 23:50:00", "2026-10-21 00:10:00", "2026-10-21 00:20:00"])
         self.assertEqual([str(t) for h, t in restarts], ["2026-10-21 00:10:00"])
 
+    def _sections(self, first, second):
+        text = HDR.format(host="h1", cpu="4 CPU") + "\n"
+        text += f"{first[0]} {CPUH}\n"
+        for t in first:
+            text += cpu_row(t)
+        text += f"\n{second[0]} pswpin/s pswpout/s\n"
+        for t in second:
+            text += f"{t} 0.00 0.00\n"
+        rows, _ = analyse_sar.parse(text, "x", set())
+        return rows
+
+    def test_sar_A_second_section_starting_later_than_first_stays_on_base_date(self):
+        first = [f"{h:02d}:{m:02d}:01" for h in range(24) for m in range(0, 60, 10)][:-1]   # 00:00:01 .. 23:50:01
+        rows = self._sections(first, ["00:10:01", "00:20:01", "00:30:01"])
+        self.assertEqual({str(r["ts"])[:10] for r in rows}, {"2026-10-20"})
+        self.assertEqual(len(rows), len(first) + 3)
+
+    def test_sar_A_half_day_first_section_then_later_start(self):
+        first = [f"{h:02d}:{m:02d}:00" for h in range(0, 12) for m in (0, 30)] + ["12:00:00"]
+        rows = self._sections(first, ["00:10:00", "00:40:00"])
+        swap = [str(r["ts"]) for r in rows if "pswpin/s" in r["m"]]
+        self.assertEqual(swap, ["2026-10-20 00:10:00", "2026-10-20 00:40:00"])
+
+    def test_live_layout_without_midnight_stays_on_base_date(self):
+        text = HDR.format(host="h1", cpu="4 CPU") + "\n"
+        for t in ("10:00:00", "10:00:05", "10:00:10"):
+            text += f"{t} {CPUH}\n" + cpu_row(t) + "\n"
+            text += f"{t} pswpin/s pswpout/s\n{t} 0.00 0.00\n\n"
+        rows, _ = analyse_sar.parse(text, "x", set())
+        self.assertEqual({str(r["ts"])[:10] for r in rows}, {"2026-10-20"})
+        self.assertEqual(len(rows), 6)
+
 
 class DedupeAndRunsTest(unittest.TestCase):
     def test_fixture_copied_twice_gives_identical_findings(self):

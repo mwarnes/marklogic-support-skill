@@ -142,7 +142,7 @@ def binary_to_text(path):
 def parse(text, fallback_host, notes):
     """Yield sample dicts and restart markers from one sar text output."""
     host, ncpu, base, day, prev, cols, keyed = fallback_host, None, None, None, None, None, False
-    first_hdr = None                      # time of day of the first column header: a `sar -A` section starts again there
+    seen = set()                          # distinct sample times in the current block (since the last header/blank)
     rows, restarts = [], []
     for line in text.splitlines():
         h = HEADER_RE.match(line)
@@ -152,10 +152,13 @@ def parse(text, fallback_host, notes):
             day = base
             if amb:
                 notes.add(f"{host}: date '{h[3]}' is ambiguous; read as MM/DD/YYYY (ask for S_TIME_FORMAT=ISO output)")
-            prev, cols, first_hdr = None, None, None
+            prev, cols, seen = None, None, set()
             continue
         if not line.strip():
-            cols = None                                            # blank lines do not move the clock (live captures)
+            cols = None
+            if len(seen) > 1:
+                day, prev = base, None                             # a full `sar -A` section ended: next one restarts the clock
+            seen = set()                                           # one-sample blocks (live captures) keep rollover tracking
             continue
         m = TIME_RE.match(line)
         if not m or day is None:
@@ -165,10 +168,10 @@ def parse(text, fallback_host, notes):
             hh = hh % 12 + (12 if ap == "PM" else 0)
         secs = hh * 3600 + mm * 60 + ss
         header = not any(is_num(t) for t in rest) and rest[:2] != ["LINUX", "RESTART"]
-        if header and first_hdr is None:
-            first_hdr = secs
-        if header and secs == first_hdr:
-            prev, day = None, base                                 # new `sar -A` section: restarts at the first sample time
+        if header:
+            if len(seen) > 1:
+                day, prev = base, None                             # header after a full section (no blank line between)
+            seen = set()
         if prev is not None and secs < prev - 3600:
             day += timedelta(days=1)
         prev = secs
@@ -182,6 +185,7 @@ def parse(text, fallback_host, notes):
             continue
         if cols is None:
             continue
+        seen.add(secs)
         key, vals = (rest[0], rest[1:]) if keyed else ("", rest)
         if len(vals) != len(cols) or not all(is_num(v) for v in vals):
             continue
