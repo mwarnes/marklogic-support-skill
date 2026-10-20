@@ -86,6 +86,7 @@ AREAS = ["Admin/Config", "Defects", "Enhancement", "Installation", "Licensing", 
          "Programming", "Security"]
 PRONOUNS = re.compile(r"\b(?:[Yy]ou|[Yy]our|[Yy]ours|[Ww]e|[Oo]ur|[Oo]urs|us)\b")
 ID_LIST = re.compile(r"MLE-\d+(\s*,\s*MLE-\d+)*")
+BREACH = re.compile(r"(?<![A-Za-z])breach\w*", re.I)
 
 
 def section(md, name):
@@ -151,6 +152,12 @@ def content_issues(md):
                     seen.add((current, w.lower()))
                     warnings.append(f"{current}: personal pronoun '{w}'; write impersonally "
                                     "in present tense (SCS style).")
+    for n, line in enumerate(md.splitlines(), 1):
+        m = BREACH.search(line)
+        if m:
+            errors.append(f"Wording: the word '{m.group(0)}' (line {n}) must not appear in any article "
+                          "unless Legal has approved the language; describe the event neutrally "
+                          "(for example 'unauthorized access' or 'security incident').")
     return errors, warnings
 
 

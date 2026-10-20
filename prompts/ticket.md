@@ -35,4 +35,4 @@ Ticket number: $1
 
 3. Check whether this message already contains the ticket's problem description (pasted text, an error log, a dump path, etc.) beyond just the ticket number.
 
-4. If it does, proceed straight into analysis using the skill's instructions (which includes updating the audit trail — see the skill's "Audit trail" section). If it does not, ask the user in plain chat text (not a structured/multiple-choice question tool) to paste the ticket's problem description, and wait for their reply before doing any analysis.
+4. If it does, proceed straight into analysis using the skill's instructions (which includes updating the audit trail — see the skill's "Audit trail" section). If it does not, ask the user in plain chat text (not a structured/multiple-choice question tool) to paste the ticket's problem description, and wait for their reply before doing any analysis. In either case, before any analysis, apply the skill's security check (`references/security-vulnerability-handling.md`): a security incident stops at the incident gate; a security vulnerability prints the banner and checklist first.
