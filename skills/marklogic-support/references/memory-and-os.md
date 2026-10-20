@@ -37,7 +37,7 @@
 
 7. **Separate groups for different host sizes**: When adding hosts with different memory configurations, create separate groups with appropriately sized caches rather than using one group for all.
 
-8. **Monitor memory usage**: Track cache hit ratios, swap usage (`swapon -s`), and range index page-in rates. Set up alerts for memory warnings in ErrorLog.txt. SAR history (`sar -r -S -B`) shows swap and reclaim pressure over time — see `sar-analysis.md`.
+8. **Monitor memory usage**: Track cache hit ratios, swap usage (`swapon -s`), and range index page-in rates. Set up alerts for memory warnings in ErrorLog.txt. SAR history (`sar -r -S -W -B`) shows swap and reclaim pressure over time — see `sar-analysis.md`.
 
 ## Common mistakes & symptoms
 

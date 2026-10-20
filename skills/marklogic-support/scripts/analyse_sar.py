@@ -3,10 +3,13 @@
 
 Usage: analyse_sar.py PATH... [--out DIR] [--min-samples N]
 Inputs: `sar -A` / `sar -u -r -d ...` text output (files or directories, recursed); a binary sa## file is
-        converted with the local `sar -A -f` when sysstat is installed (otherwise ask the customer for the
-        text output: LC_ALL=C S_TIME_FORMAT=ISO sar -A -f /var/log/sa/saDD > saDD.txt).
+        converted with the local `sar -A -f` when sysstat is installed, otherwise it is skipped with a note in
+        SUMMARY.md (ask the customer for text: LC_ALL=C S_TIME_FORMAT=ISO sar -A -f /var/log/sa/saDD > saDD.txt).
+        Compressed (.gz/.xz/.bz2) and UTF-16 files are skipped with a note; a UTF-8 BOM is accepted.
+        Only English-locale output is supported (no decimal commas or dotted dates). Duplicate samples are dropped.
 Writes: SUMMARY.md findings.json series-<host>.csv
-Thresholds are the RULES table below; a finding needs --min-samples (default 2) consecutive samples.
+Thresholds are the RULES table below; a finding needs --min-samples (default 2, minimum 1) consecutive samples.
+A run ends at a gap longer than 3x the host's median interval or at a LINUX RESTART.
 """
 import argparse, csv, json, os, re, shutil, statistics, subprocess, sys
 from collections import defaultdict, namedtuple
@@ -42,7 +45,8 @@ def _swap(m, k, n):
 
 def _mem_avail(m, k, n):
     if all(c in m for c in ("kbavail", "kbmemfree", "kbmemused")):
-        total = m["kbmemfree"] + m["kbmemused"]
+        pct = m.get("%memused")
+        total = m["kbmemused"] * 100.0 / pct if pct else m["kbmemfree"] + m["kbmemused"]
         return 100.0 * m["kbavail"] / total if total else None
     return None
 
@@ -97,33 +101,48 @@ def parse_date(s):
     return datetime(y, a, b), b <= 12 and a != b
 
 
+class ConvertError(Exception):
+    pass
+
+
+COMPRESSED = ((b"\x1f\x8b", ".gz"), (b"\xfd7zXZ\x00", ".xz"), (b"BZh", ".bz2"))
+
+
 def sniff(path):
+    """-> 'text', 'binary', 'compressed' (also UTF-16) or None (not SAR output / unreadable)."""
     try:
-        raw = path.read_bytes()[:4096]
+        with path.open("rb") as fh:
+            raw = fh.read(4096)
     except OSError:
         return None
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return "compressed"
+    if any(raw.startswith(magic) for magic, _ in COMPRESSED) or path.suffix.lower() in {x for _, x in COMPRESSED}:
+        return "compressed"
     if b"\0" in raw:
         return "binary"
-    text = raw.decode("utf-8", "replace")
+    text = raw.decode("utf-8-sig", "replace")
     return "text" if re.search(r"^Linux \S+ \(", text, re.M) and re.search(TIME_RE.pattern, text, re.M) else None
 
 
 def binary_to_text(path):
     sar = shutil.which("sar")
     if not sar:
-        sys.exit(f"analyse_sar: {path} is a binary sa file and sysstat's `sar` is not installed here. Ask the customer "
-                 "for text output: LC_ALL=C S_TIME_FORMAT=ISO sar -A -f /var/log/sa/saDD > saDD.txt")
+        raise ConvertError("sysstat not installed; ask for text output: "
+                           "LC_ALL=C S_TIME_FORMAT=ISO sar -A -f /var/log/sa/saDD > saDD.txt")
     env = dict(os.environ, LC_ALL="C", S_TIME_FORMAT="ISO")
     r = subprocess.run([sar, "-A", "-f", str(path)], capture_output=True, text=True, env=env)
     if r.returncode or not r.stdout.strip():
-        sys.exit(f"analyse_sar: `sar -A -f {path}` failed ({r.stderr.strip() or 'no output'}); the file was probably "
-                 "written by a different sysstat version. Ask the customer for text output (see --help).")
+        raise ConvertError(f"`sar -A -f` failed ({r.stderr.strip() or 'no output'}); probably written by a different "
+                           "sysstat version; ask for text output: LC_ALL=C S_TIME_FORMAT=ISO sar -A -f "
+                           "/var/log/sa/saDD > saDD.txt")
     return r.stdout
 
 
 def parse(text, fallback_host, notes):
     """Yield sample dicts and restart markers from one sar text output."""
     host, ncpu, base, day, prev, cols, keyed = fallback_host, None, None, None, None, None, False
+    first_hdr = None                      # time of day of the first column header: a `sar -A` section starts again there
     rows, restarts = [], []
     for line in text.splitlines():
         h = HEADER_RE.match(line)
@@ -133,10 +152,10 @@ def parse(text, fallback_host, notes):
             day = base
             if amb:
                 notes.add(f"{host}: date '{h[3]}' is ambiguous; read as MM/DD/YYYY (ask for S_TIME_FORMAT=ISO output)")
-            prev, cols = None, None
+            prev, cols, first_hdr = None, None, None
             continue
         if not line.strip():
-            cols, prev, day = None, None, base                    # each sar section restarts at the first sample time
+            cols = None                                            # blank lines do not move the clock (live captures)
             continue
         m = TIME_RE.match(line)
         if not m or day is None:
@@ -145,6 +164,11 @@ def parse(text, fallback_host, notes):
         if ap:
             hh = hh % 12 + (12 if ap == "PM" else 0)
         secs = hh * 3600 + mm * 60 + ss
+        header = not any(is_num(t) for t in rest) and rest[:2] != ["LINUX", "RESTART"]
+        if header and first_hdr is None:
+            first_hdr = secs
+        if header and secs == first_hdr:
+            prev, day = None, base                                 # new `sar -A` section: restarts at the first sample time
         if prev is not None and secs < prev - 3600:
             day += timedelta(days=1)
         prev = secs
@@ -152,10 +176,9 @@ def parse(text, fallback_host, notes):
         if rest[:2] == ["LINUX", "RESTART"]:
             restarts.append((host, ts)); cols = None
             continue
-        if not any(is_num(t) for t in rest):                       # a column-header line
+        if header:
             keyed = rest[0] in KEYED
             cols = [ALIAS.get(c, c) for c in (rest[1:] if keyed else rest)]
-            prev, day = None, base
             continue
         if cols is None:
             continue
@@ -166,8 +189,16 @@ def parse(text, fallback_host, notes):
     return rows, restarts
 
 
-def find(rows, min_samples):
+def find(rows, min_samples, restarts=()):
     runs, out = {}, []
+    stamps = defaultdict(set)
+    for r in rows:
+        stamps[r["host"]].add(r["ts"])
+    limit = {}                                                     # host -> longest tolerated gap inside a run
+    for host, st in stamps.items():
+        st = sorted(st)
+        if len(st) > 1:
+            limit[host] = 3 * statistics.median((b - a).total_seconds() for a, b in zip(st, st[1:]))
 
     def close(k):
         run = runs.pop(k, None)
@@ -187,6 +218,10 @@ def find(rows, min_samples):
                 continue
             k = (r["host"], rule.name, r["key"])
             if (v > rule.threshold) if rule.op == ">" else (v < rule.threshold):
+                run = runs.get(k)
+                if run and ((r["ts"] - run[-1][0]).total_seconds() > limit.get(r["host"], float("inf")) or
+                            any(h == r["host"] and run[-1][0] < t <= r["ts"] for h, t in restarts)):
+                    close(k)                                       # do not bridge a gap or a restart
                 runs.setdefault(k, []).append((r["ts"], v))
             else:
                 close(k)
@@ -206,8 +241,15 @@ def inventory(rows, restarts):
         interval = statistics.median(deltas) if deltas else None
         gaps = [(a, b) for a, b in zip(stamps, stamps[1:]) if interval and (b - a).total_seconds() > 3 * interval]
         inv[host] = {"ncpu": rs[0]["ncpu"], "start": stamps[0], "end": stamps[-1], "samples": len(stamps),
-                     "interval": interval, "gaps": gaps, "restarts": [t for h, t in restarts if h == host]}
+                     "interval": interval, "gaps": gaps, "restarts": sorted({t for h, t in restarts if h == host})}
     return inv
+
+
+RULE = {r.name: r for r in RULES}
+
+
+def safe_name(host):
+    return re.sub(r"[^A-Za-z0-9._-]", "_", host)
 
 
 def write_series(rows, out):
@@ -219,8 +261,8 @@ def write_series(rows, out):
             v = _cpu_busy(m, k, n) if name == "cpu_busy" else (m.get(col) if col else None)
             if v is not None and (k in ("all", "") or name == "cpu_busy"):
                 d[name] = v
-        for rule, name in ((RULES[3], "swap_io"), (RULES[4], "mem_avail_pct")):
-            v = rule.value(m, k, n)
+        for rname, name in (("swap_io", "swap_io"), ("mem_available", "mem_avail_pct")):
+            v = RULE[rname].value(m, k, n)
             if v is not None:
                 d[name] = v
         for col, name in (("%util", "disk_util_max"), ("await", "disk_await_max")):
@@ -232,7 +274,7 @@ def write_series(rows, out):
     cols = ["cpu_busy", "iowait", "steal", "runq", "ldavg1", "swap_io", "mem_avail_pct", "pgscand",
             "disk_util_max", "disk_await_max", "net_err"]
     for host, series in by.items():
-        with (out / f"series-{host}.csv").open("w", newline="") as fh:
+        with (out / f"series-{safe_name(host)}.csv").open("w", newline="") as fh:
             w = csv.writer(fh)
             w.writerow(["time"] + cols)
             for ts in sorted(series):
@@ -269,19 +311,41 @@ def write_summary(inv, findings, notes, out):
 
 
 def load(paths, notes):
-    rows, restarts = [], []
-    files = []
+    rows, restarts, files, other, used = [], set(), [], [], 0
     for p in map(Path, paths):
         files += sorted(f for f in p.rglob("*") if f.is_file()) if p.is_dir() else [p]
-    used = 0
     for f in files:
         kind = sniff(f)
         if kind is None:
+            other.append(f.name)
             continue
-        text = binary_to_text(f) if kind == "binary" else f.read_text(errors="replace")
+        if kind == "compressed":
+            notes.add(f"compressed/UTF-16 file {f}: decompress/re-save as UTF-8 text and run again")
+            continue
+        try:
+            text = binary_to_text(f) if kind == "binary" else f.read_bytes().decode("utf-8-sig", errors="replace")
+        except ConvertError as e:
+            notes.add(f"skipped binary file {f}: {e}")
+            continue
         r, rs = parse(text, f.stem, notes)
-        rows += r; restarts += rs; used += 1
-    return rows, restarts, used
+        rows += r; restarts.update(rs); used += 1
+    if other:
+        notes.add("not SAR output, skipped: " + ", ".join(other[:10]) + (f" and {len(other) - 10} more" if len(other) > 10 else ""))
+    seen, uniq = set(), []                                         # the same sample twice must not count twice
+    for r in rows:
+        k = (r["host"], r["ts"], r["key"], tuple(sorted(r["m"].items())))
+        if k not in seen:
+            seen.add(k); uniq.append(r)
+    return uniq, restarts, used
+
+
+def rule_notes(rows, notes):
+    for host in sorted({r["host"] for r in rows}):
+        hr = [r for r in rows if r["host"] == host]
+        if any("kbmemused" in r["m"] for r in hr) and not any("kbavail" in r["m"] for r in hr):
+            notes.add(f"{host}: mem_available not evaluated: kbavail missing, older sysstat")
+        if any("runq-sz" in r["m"] for r in hr) and not any(r["ncpu"] for r in hr):
+            notes.add(f"{host}: run_queue not evaluated: CPU count unknown")
 
 
 def main(argv=None):
@@ -290,13 +354,21 @@ def main(argv=None):
     ap.add_argument("--out")
     ap.add_argument("--min-samples", type=int, default=2)
     a = ap.parse_args(argv)
+    if a.min_samples < 1:
+        ap.error("--min-samples must be at least 1")
+    for p in a.paths:
+        if not os.path.exists(p):
+            sys.exit(f"analyse_sar: path not found: {p}")
     notes = set()
     rows, restarts, used = load(a.paths, notes)
     if not rows:
-        sys.exit("analyse_sar: no SAR data found (expected `sar -A` text output with a 'Linux ... (N CPU)' header).")
+        sys.exit("analyse_sar: no SAR data found (expected `sar -A` text output with a 'Linux ... (N CPU)' header). "
+                 "Non-English locales (decimal commas, dotted dates) are unsupported: redo the capture with "
+                 "`LC_ALL=C S_TIME_FORMAT=ISO`." + "".join(f"\n  {n}" for n in sorted(notes)))
+    rule_notes(rows, notes)
     out = Path(a.out) if a.out else Path("sar-analysis") / Path(a.paths[0]).stem
     out.mkdir(parents=True, exist_ok=True)
-    findings, inv = find(rows, a.min_samples), inventory(rows, restarts)
+    findings, inv = find(rows, a.min_samples, restarts), inventory(rows, restarts)
     (out / "findings.json").write_text(json.dumps(findings, indent=2) + "\n")
     write_series(rows, out)
     write_summary(inv, findings, notes, out)

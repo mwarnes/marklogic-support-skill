@@ -16,7 +16,7 @@ Customer request:
 
 Engineer notes:
 - Run `scripts/analyse_sar.py` on the text files (`sar-analysis.md`, procedure 1). Binary files convert only on a host with a compatible sysstat; `sadf -c` converts older formats only.
-- Default retention is 28 days on Red Hat (`HISTORY` in `/etc/sysconfig/sysstat`); ask early on older incidents.
+- Retention is set by `HISTORY` (Red Hat's example in `/etc/sysconfig/sysstat` sets 28 days; the page does not state a default); check the actual retention and ask early on older incidents.
 - Verified: file locations and retention (Red Hat solution 276533, thomas-krenn, `sar(1)`); `-f`, `-s`, `-e` defaults and `S_TIME_FORMAT=ISO` (`sar(1)`). `LC_ALL=C` effect is `[unverified — confirm]`.
 
 ## If SAR is not running
@@ -30,7 +30,7 @@ Customer request:
 > 1. Install sysstat: `sudo dnf install sysstat` (Red Hat 8/9; `yum` on Red Hat 7) or `sudo apt-get install sysstat` (Debian-family). It records CPU, memory, disk and network usage over time.
 > 2. Turn on collection: `sudo systemctl enable --now sysstat` (Red Hat-family; on Red Hat 7 use `systemctl enable sysstat` then `systemctl start sysstat`). On Ubuntu run `sudo dpkg-reconfigure sysstat` and answer "Yes". Without this nothing is recorded.
 > 3. By default it records one sample every 10 minutes. While the problem can still be reproduced, please shorten this to 1 minute (tell us your operating system and version and we will send the exact steps), because 10-minute averages hide short stalls.
-> 4. While the problem is happening, run this once per host and send the file: `sar -u -q -r -S -W -B -d -n DEV,EDEV 5 120 > sar-live-<host>.txt`. It takes 10 minutes and records CPU, run queue, memory, swap space and swapping, paging, disks and network every 5 seconds.
+> 4. While the problem is happening, run this once per host and send the file: `LC_ALL=C S_TIME_FORMAT=ISO sar -u -q -r -S -W -B -d -n DEV,EDEV 5 120 > sar-live-<host>.txt`. It takes 10 minutes and records CPU, run queue, memory, swap space and swapping, paging, disks and network every 5 seconds.
 
 Engineer notes:
 - Interval on Red Hat 7: edit `/etc/cron.d/sysstat`, change `*/10` to `*/1` (Red Hat solution 276533). On Red Hat 8/9 timers are used; the timer names (`sysstat-collect.timer`) and the override steps are `[unverified — confirm]` (the Red Hat article points to solution 5115491, not read). Debian-family: `ENABLED` in `/etc/default/sysstat`; interval setting `[unverified — confirm]`.

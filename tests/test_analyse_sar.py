@@ -1,4 +1,4 @@
-import csv, json, subprocess, sys, tempfile, unittest
+import csv, gzip, json, shutil, subprocess, sys, tempfile, unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,6 +8,12 @@ sys.path.insert(0, str(SCRIPT.parent))
 import analyse_sar
 
 
+def tmpdir(test):
+    d = tempfile.TemporaryDirectory()
+    test.addCleanup(d.cleanup)
+    return Path(d.name)
+
+
 def run(*args, env=None):
     return subprocess.run([sys.executable, str(SCRIPT), *map(str, args)], capture_output=True, text=True, env=env)
 
@@ -15,7 +21,9 @@ def run(*args, env=None):
 class AnalyseSarTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.out = Path(tempfile.mkdtemp()) / "out"
+        tmp = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(tmp.cleanup)
+        cls.out = Path(tmp.name) / "out"
         r = run(FIX, "--out", cls.out)
         assert r.returncode == 0, r.stderr
         cls.stdout = r.stdout
@@ -63,7 +71,7 @@ class AnalyseSarTest(unittest.TestCase):
                          ("2026-10-20 00:30:01", 35.0, 180.0))
 
     def test_min_samples_filters_short_runs(self):
-        out = Path(tempfile.mkdtemp())
+        out = tmpdir(self)
         self.assertEqual(run(FIX, "--out", out, "--min-samples", 4).returncode, 0)
         rules = {f["rule"] for f in json.loads((out / "findings.json").read_text())}
         self.assertEqual(rules, {"mem_available"})              # the only 4-sample run
@@ -103,16 +111,185 @@ class ParseTest(unittest.TestCase):
         self.assertFalse(notes)
 
 
+HDR = "Linux 5.14.0 ({host})\t2026-10-20\t_x86_64_\t({cpu})\n"
+CPUH = "CPU %user %nice %system %iowait %steal %idle"
+
+
+def cpu_row(t, io=0.0, busy=0.0):
+    return f"{t} all {busy:.2f} 0.00 0.00 {io:.2f} 0.00 {100 - busy - io:.2f}\n"
+
+
+def runm(test, text, *extra, name="sar.txt", env=None):
+    d = tmpdir(test)
+    (d / name).write_text(text)
+    r = run(d, "--out", d / "o", *extra, env=env)
+    return r, d / "o"
+
+
+class RolloverTest(unittest.TestCase):
+    def test_live_layout_rolls_over_midnight(self):
+        text = HDR.format(host="h1", cpu="4 CPU") + "\n"
+        for t in ("11:59:50 PM", "11:59:55 PM", "12:00:00 AM", "12:00:05 AM"):
+            text += f"{t} {CPUH}\n" + cpu_row(t, busy=95.0) + "\n"
+            text += f"{t} pswpin/s pswpout/s\n{t} 0.00 0.00\n\n"
+        rows, _ = analyse_sar.parse(text, "x", set())
+        cpu = [str(r["ts"]) for r in rows if "%user" in r["m"]]
+        self.assertEqual(cpu, ["2026-10-20 23:59:50", "2026-10-20 23:59:55", "2026-10-21 00:00:00", "2026-10-21 00:00:05"])
+        swap = [str(r["ts"]) for r in rows if "pswpin/s" in r["m"]]
+        self.assertEqual(swap[-1], "2026-10-21 00:00:05")
+        f = analyse_sar.find(rows, 2)
+        self.assertEqual((f[0]["start"], f[0]["end"], f[0]["samples"]),
+                         ("2026-10-20 23:59:50", "2026-10-21 00:00:05", 4))
+
+    def test_restart_after_midnight_keeps_advanced_date(self):
+        text = (HDR.format(host="h1", cpu="4 CPU") + f"\n23:50:00 {CPUH}\n" + cpu_row("23:50:00") +
+                "00:10:00 LINUX RESTART (4 CPU)\n\n" + f"00:10:00 {CPUH}\n" + cpu_row("00:10:00") + cpu_row("00:20:00"))
+        rows, restarts = analyse_sar.parse(text, "x", set())
+        self.assertEqual([str(r["ts"]) for r in rows],
+                         ["2026-10-20 23:50:00", "2026-10-21 00:10:00", "2026-10-21 00:20:00"])
+        self.assertEqual([str(t) for h, t in restarts], ["2026-10-21 00:10:00"])
+
+
+class DedupeAndRunsTest(unittest.TestCase):
+    def test_fixture_copied_twice_gives_identical_findings(self):
+        d = tmpdir(self)
+        for n in ("a", "b"):
+            shutil.copytree(FIX, d / "in" / n)
+        one, two = d / "one", d / "two"
+        self.assertEqual(run(FIX, "--out", one).returncode, 0)
+        self.assertEqual(run(d / "in", "--out", two).returncode, 0)
+        self.assertEqual((one / "findings.json").read_text(), (two / "findings.json").read_text())
+
+    def test_identical_block_concatenated_is_not_two_samples(self):
+        block = HDR.format(host="h1", cpu="4 CPU") + f"\n10:00:00 {CPUH}\n" + cpu_row("10:00:00", busy=95.0) + \
+            cpu_row("10:10:00") + cpu_row("10:20:00")
+        r, out = runm(self, block + "\n" + block)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(json.loads((out / "findings.json").read_text()), [])
+
+    def test_restart_listed_once_across_sections(self):
+        sec1 = f"00:00:00 {CPUH}\n" + cpu_row("00:00:00") + "00:05:00 LINUX RESTART (4 CPU)\n\n" + \
+            f"00:05:00 {CPUH}\n" + cpu_row("00:05:00") + cpu_row("00:10:00")
+        sec2 = "\n00:00:00 pswpin/s pswpout/s\n00:00:00 0.00 0.00\n00:05:00 LINUX RESTART (4 CPU)\n\n" + \
+            "00:05:00 pswpin/s pswpout/s\n00:05:00 0.00 0.00\n"
+        r, out = runm(self, HDR.format(host="h1", cpu="4 CPU") + "\n" + sec1 + sec2)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual((out / "SUMMARY.md").read_text().count("2026-10-20 00:05:00"), 1)
+
+    def test_runs_do_not_bridge_gaps_or_restarts(self):
+        text = (HDR.format(host="h1", cpu="4 CPU") + f"\n10:00:00 {CPUH}\n" + cpu_row("10:00:00") +
+                cpu_row("10:10:00", io=40.0) + "18:15:00 LINUX RESTART (4 CPU)\n\n" + f"18:15:00 {CPUH}\n" +
+                cpu_row("18:20:00", io=40.0) + cpu_row("18:30:00") + cpu_row("18:40:00"))
+        rows, restarts = analyse_sar.parse(text, "x", set())
+        self.assertEqual(analyse_sar.find(rows, 2, restarts), [])
+        self.assertEqual(analyse_sar.find(rows, 2), [])            # the gap alone also closes the run
+        self.assertEqual(len(analyse_sar.find(rows, 1, restarts)), 2)
+
+
+class RuleDetailTest(unittest.TestCase):
+    def test_mem_available_total_from_percent_memused(self):
+        m = {"kbmemfree": 10000.0, "kbavail": 95000.0, "kbmemused": 905000.0, "%memused": 90.5}
+        self.assertAlmostEqual(analyse_sar._mem_avail(m, "", 4), 9.5)
+        del m["%memused"]
+        self.assertAlmostEqual(analyse_sar._mem_avail(m, "", 4), 100.0 * 95000 / 915000)
+
+    def test_notes_when_rules_cannot_fire(self):
+        text = ("Linux 5.14.0 (h1)\t2026-10-20\t_x86_64_\n\n10:00:00 kbmemfree kbmemused %memused\n"
+                "10:00:00 1000 9000 90.0\n\n10:00:00 runq-sz plist-sz ldavg-1\n10:00:00 9 100 1.0\n")
+        r, out = runm(self, text)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        s = (out / "SUMMARY.md").read_text()
+        self.assertIn("mem_available not evaluated: kbavail missing, older sysstat", s)
+        self.assertIn("run_queue not evaluated: CPU count unknown", s)
+
+
+class InputHandlingTest(unittest.TestCase):
+    GOOD = HDR.format(host="h1", cpu="4 CPU") + f"\n10:00:00 {CPUH}\n" + cpu_row("10:00:00", io=40.0) + \
+        cpu_row("10:10:00", io=40.0)
+
+    def test_binary_next_to_text_is_skipped_with_note(self):
+        d = tmpdir(self)
+        shutil.copy(FIX / "sar-d1.txt", d / "sar-d1.txt")
+        (d / "sa20").write_bytes(b"\x00\x01\x02binary")
+        r = run(d, "--out", d / "o", env={"PATH": str(tmpdir(self))})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(json.loads((d / "o/findings.json").read_text()))
+        s = (d / "o/SUMMARY.md").read_text()
+        self.assertIn("skipped binary file", s)
+        self.assertIn("sysstat not installed", s)
+
+    def test_no_sar_data_mentions_locale(self):
+        d = tmpdir(self); (d / "n.txt").write_text("hello\n")
+        r = run(d, "--out", d / "o")
+        self.assertIn("no SAR data", r.stderr)
+        self.assertIn("LC_ALL=C S_TIME_FORMAT=ISO", r.stderr)
+        self.assertIn("locale", r.stderr)
+
+    def test_utf8_bom_is_stripped(self):
+        d = tmpdir(self); (d / "b.txt").write_bytes(b"\xef\xbb\xbf" + self.GOOD.encode())
+        r = run(d, "--out", d / "o")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(json.loads((d / "o/findings.json").read_text())[0]["rule"], "cpu_iowait")
+
+    def test_compressed_and_utf16_get_specific_note(self):
+        d = tmpdir(self)
+        (d / "ok.txt").write_text(self.GOOD)
+        (d / "sar.gz").write_bytes(gzip.compress(self.GOOD.encode()))
+        (d / "u16.txt").write_bytes(self.GOOD.encode("utf-16"))
+        r = run(d, "--out", d / "o")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        s = (d / "o/SUMMARY.md").read_text()
+        self.assertIn("compressed/UTF-16 file", s)
+        self.assertIn("sar.gz", s)
+        self.assertIn("u16.txt", s)
+        self.assertNotIn("sysstat not installed", s)
+        solo = tmpdir(self); (solo / "sar.gz").write_bytes(gzip.compress(b"x"))
+        r = run(solo, "--out", solo / "o")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("decompress", r.stderr)
+        self.assertNotIn("not installed", r.stderr)
+
+    def test_hostile_host_name_stays_inside_out_dir(self):
+        d = tmpdir(self)
+        (d / "in").mkdir(); (d / "in/s.txt").write_text(self.GOOD.replace("(h1)", "(../../x)"))
+        out = d / "a" / "b" / "out"
+        r = run(d / "in", "--out", out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual([p.name for p in out.glob("series-*.csv")], ["series-.._.._x.csv"])
+        self.assertFalse(list(d.glob("series-*")) or list((d / "a").glob("series-*")))
+        self.assertIn("../../x", (out / "SUMMARY.md").read_text())
+
+    def test_cli_validation(self):
+        d = tmpdir(self); (d / "s.txt").write_text(self.GOOD)
+        r = run(d, "--min-samples", 0)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("--min-samples", r.stderr)
+        r = run(d / "missing", "--out", d / "o")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("path not found", r.stderr)
+
+    def test_skipped_non_sar_files_listed_capped(self):
+        d = tmpdir(self); (d / "s.txt").write_text(self.GOOD)
+        for i in range(12):
+            (d / f"n{i:02}.log").write_text("not sar\n")
+        r = run(d, "--out", d / "o")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        s = (d / "o/SUMMARY.md").read_text()
+        self.assertIn("n00.log", s)
+        self.assertNotIn("n11.log", s)
+        self.assertIn("and 2 more", s)
+
+
 class InputErrorTest(unittest.TestCase):
     def test_binary_file_without_sar_asks_for_text_output(self):
-        d = Path(tempfile.mkdtemp()); p = d / "sa20"; p.write_bytes(b"\x00\x01\x02binary")
-        r = run(p, "--out", d / "o", env={"PATH": tempfile.mkdtemp()})
+        d = tmpdir(self); p = d / "sa20"; p.write_bytes(b"\x00\x01\x02binary")
+        r = run(p, "--out", d / "o", env={"PATH": str(tmpdir(self))})
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("sar -A", r.stderr)
         self.assertIn("S_TIME_FORMAT=ISO", r.stderr)
 
     def test_no_sar_data_is_an_error(self):
-        d = Path(tempfile.mkdtemp()); (d / "notes.txt").write_text("just some text\n")
+        d = tmpdir(self); (d / "notes.txt").write_text("just some text\n")
         r = run(d, "--out", d / "o")
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("no SAR data", r.stderr)
