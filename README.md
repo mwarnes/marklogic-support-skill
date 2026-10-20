@@ -37,8 +37,13 @@ routing table and output format.
 
 After a ticket is worked (`/ticket <n>`), `/kcs` (in the same session) or `/kcs <n>` (any existing
 ticket folder) drafts a compliant KCS article from the ticket's audit trail and writes
-`<n>/kcs/kcs-<n>-<problem|howto>-<slug>.{md,docx,html}` — Markdown (canonical), Word, and
+`<n>/kcs/kcs-<n>-<problem|howto|troubleshoot>-<slug>.{md,docx,html}` — Markdown (canonical), Word, and
 Salesforce-paste-ready HTML. Needs [pandoc](https://pandoc.org) for the Word/HTML renders.
+
+Articles follow the company Solution Content Standard (`KCS_SolutionContentStandard.txt`): 20 fields,
+title ≤ 55 characters (70 max), URL derived from the title, short symptom-only summary, standard
+Cause/Resolution statements. `kcs_render.py` checks these and prints warnings; Internal Comments and
+Admin Ticket ID are always left for manual entry in Salesforce.
 
 ### Reviewing a KCS article
 
