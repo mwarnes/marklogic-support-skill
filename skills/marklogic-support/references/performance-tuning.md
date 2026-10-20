@@ -28,6 +28,8 @@
 
 6. **Analyze cache statistics**: In `xdmp:query-meters` output, high cache miss ratios indicate disk I/O bottlenecks; cross-reference with cache sizing in `memory-and-os.md`.
 
+7. **Check host-level saturation first when queries are slow across the board**: if slowness is not specific to one query, look at the host (CPU, disk latency, swap, steal) with SAR before tuning queries — see `sar-analysis.md`; request the data with `performance-data-requests.md`.
+
 ## Common mistakes & symptoms
 
 | Mistake | Symptom seen by customer | How to confirm | Fix / best practice | Source |
