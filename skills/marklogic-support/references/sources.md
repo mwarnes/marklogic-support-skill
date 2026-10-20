@@ -109,6 +109,23 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/introduction/guidelines-for-configuring-your-monitoring-tools/establish-a-performance-baseline.html> — baseline of normal performance
 - <https://docs.marklogic.com/admin-help/group> — background I/O limit: MB/s a host may use for merge, backup, restore
 
+## performance-data-requests.md
+
+- <https://man7.org/linux/man-pages/man1/sar.1.html> — `sar(1)`: `-u -q -r -S -W -B -d -n`, `-f`/`-s`/`-e`, `S_TIME_FORMAT`, `%steal`
+- <https://man7.org/linux/man-pages/man1/iostat.1.html> — `iostat(1)`: `-x`, `-z`, first report is average since boot
+- <https://man7.org/linux/man-pages/man8/vmstat.8.html> — `vmstat(8)`: `-t`, `r`/`b`/`si`/`so`/`wa`/`st` columns
+- <https://man7.org/linux/man-pages/man1/mpstat.1.html> — `mpstat(1)`: `-P ALL`, `%iowait`, `%steal`
+- <https://man7.org/linux/man-pages/man1/pidstat.1.html> — `pidstat(1)`: `-u -r -d`, active-only report when no task is selected, `-p ALL`, `-t`
+- <https://man7.org/linux/man-pages/man1/dmesg.1.html> — `dmesg(1)`: `-T` timestamp caveats
+- <https://man7.org/linux/man-pages/man1/journalctl.1.html> — `journalctl(1)`: `-k`, `--since`/`--until`
+- <https://man7.org/linux/man-pages/man1/pmap.1.html> — `pmap(1)`: `-x` extended format
+- <https://access.redhat.com/solutions/276533> — sysstat file locations, retention, 10-minute interval change
+- <https://github.com/marklogic-community/mlstat> — community pstack/pmap/iostat/vmstat loop script (not official guidance)
+- <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using_cloudwatch_ebs.html> — EBS volume and Nitro instance CloudWatch metrics, exceeded-check caveats (Multi-Attach, Outposts, Local Zones, Wavelength Zones)
+- <https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html> — EBS volume type maximum IOPS and throughput
+- <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html> — EC2 instance metrics, 5-minute default period
+- <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-credits-baseline-concepts.html> — T-series CPU credit metrics, Unlimited mode
+
 ## monitoring.md
 
 - <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/introduction.html>
