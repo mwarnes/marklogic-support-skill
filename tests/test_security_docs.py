@@ -44,6 +44,41 @@ class SecurityDocsTest(unittest.TestCase):
         self.assertIn("breach", r)
         self.assertIn("Security", r)
 
+    def test_incident_terms_consistent_everywhere(self):
+        ref = REF.read_text()
+        detect = ref.split("## Detect")[1].split("## Incident gate")[0].lower().replace("\n", " ")
+        text = (SKILL / "SKILL.md").read_text().lower()
+        always = text.split("## triage mode")[0].replace("\n", " ")
+        row = [l for l in text.splitlines() if l.startswith("| cve")][0]
+        for t in ("security incident", "security event", "malware", "virus", "ransomware",
+                  "compromise", "intrusion"):
+            self.assertIn(t, detect, t)
+            self.assertIn(t, always, t)
+            self.assertIn(t, row, t)
+
+    def test_gate_wording_and_persistence_documented(self):
+        for p in (SKILL / "SKILL.md", REF, ROOT / "prompts/kcs.md"):
+            self.assertIn("Security incident gate raised", p.read_text(), p.name)
+        for p in (SKILL / "SKILL.md", REF):
+            self.assertIn("Security incident gate cleared", p.read_text(), p.name)
+        text = (SKILL / "SKILL.md").read_text()
+        for mode in ("## Dump mode", "## Log mode"):
+            sec = text.split(mode)[1].split("\n## ")[0]
+            self.assertIn("incident gate", sec, mode)
+
+    def test_ticket_auditing_and_audit_paragraph(self):
+        self.assertIn("## Security tickets", (SKILL / "references/ticket-auditing.md").read_text())
+        self.assertIn("security vulnerability or incident ticket", (SKILL / "SKILL.md").read_text())
+
+    def test_kcs_review_security_terms(self):
+        r = (ROOT / "prompts/kcs-review.md").read_text()
+        for t in ("INTERNAL", "Area of Interest", "breach"):
+            self.assertIn(t, r)
+
+    def test_ticket_prompt_security_check_applies_in_either_case(self):
+        t = (ROOT / "prompts/ticket.md").read_text()
+        self.assertGreater(t.index("In either case"), t.index("If it does not"))
+
 
 if __name__ == "__main__":
     unittest.main()

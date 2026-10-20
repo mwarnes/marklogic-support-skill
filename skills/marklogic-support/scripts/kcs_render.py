@@ -86,7 +86,7 @@ AREAS = ["Admin/Config", "Defects", "Enhancement", "Installation", "Licensing", 
          "Programming", "Security"]
 PRONOUNS = re.compile(r"\b(?:[Yy]ou|[Yy]our|[Yy]ours|[Ww]e|[Oo]ur|[Oo]urs|us)\b")
 ID_LIST = re.compile(r"MLE-\d+(\s*,\s*MLE-\d+)*")
-BREACH = re.compile(r"\bbreach(?:es|ed|ing)?\b", re.I)
+BREACH = re.compile(r"(?<![A-Za-z])breach\w*", re.I)
 
 
 def section(md, name):

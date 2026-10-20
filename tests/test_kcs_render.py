@@ -278,7 +278,8 @@ class ContentTest(unittest.TestCase):
         self.assertFalse(any("pronoun" in m for m in w))
 
     def test_word_breach_is_an_error_in_any_form_and_place(self):
-        for bad in ("A breach of the policy", "The data was breached.", "BREACHES occur", "Breaching it"):
+        for bad in ("A breach of the policy", "The data was breached.", "BREACHES occur", "Breaching it",
+                    "breach_x", "breach2", "data_breach_log", "Breacher", "breachable"):
             e, _ = issues("Other IdPs have an equivalent", bad + "; other IdPs have an equivalent")
             self.assertTrue(has(e, "Wording"), bad)
         e, _ = issues("Invalid grant_type for provider", "a breach in the log")      # inside a code block

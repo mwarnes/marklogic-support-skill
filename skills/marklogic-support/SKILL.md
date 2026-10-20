@@ -16,10 +16,15 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    - Unclear → ask which.
 3. **Security check (before any analysis).** Read `references/security-vulnerability-handling.md`
    ("Detect") whenever the ticket, a pasted symptom, a dump or a log request mentions a CVE/CVSS,
-   scanner output, a vulnerability or exploit, or a security incident, malware, virus or compromise.
+   scanner output, a vulnerability or exploit, or a security incident, security event, malware, virus,
+   ransomware, compromise or intrusion.
    An incident stops work at the **incident gate** described there — analyse no customer-supplied dump
-   or log until the engineer clears it. A vulnerability prints the banner and checklist first. Never
-   write the word "breach".
+   or log and draft no log request until the engineer clears it. The gate stays open for the whole
+   ticket, in every mode and in later sessions, until `audit-trail/Timeline.md` contains a "Security
+   incident gate cleared" line after the "Security incident gate raised" line. Before running
+   `parse_dump.py` or `analyse_logs.py` or drafting a log request, check `Timeline.md` for a "Security
+   incident gate raised" line without a later "Security incident gate cleared" line and, if open,
+   stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 
 ## Triage mode
 
@@ -45,6 +50,8 @@ Answer from the references; cite the reference file and the source URL. If the a
 
 ## Dump mode
 
+Check the security incident gate first (Always first, step 3).
+
 1. If the dump was pasted, save it to a file first. Run `scripts/parse_dump.py <dump> --out dump-analysis/<dump-basename>`, resolving `scripts/` relative to THIS skill's own directory (the directory this SKILL.md lives in — not the project's working directory). If unsure of the skill directory's absolute path, `ls` around this file first, then invoke e.g. `python3 /abs/path/to/this/skill/scripts/parse_dump.py <dump> --out dump-analysis/<dump-basename>`. Never guess or hardcode a path from a previous project.
 2. Read `references/supportdump-anatomy.md`, then `<out>/summary.md` and `<out>/findings.md`. Do not read the raw dump.
 2b. If `<out>/logs/` exists, also run `scripts/analyse_logs.py <out>/logs --out <out>/log-analysis` (same skill-relative resolution as step 1) and read its `TIMELINE.md` and `PATTERNS.md` — the dump's own logs cover the report day.
@@ -56,6 +63,8 @@ Answer from the references; cite the reference file and the source URL. If the a
 6. Then update the audit trail per the **Audit trail** section below.
 
 ## Log mode
+
+Check the security incident gate first (Always first, step 3).
 
 1. Run `scripts/analyse_logs.py <files or dirs> --out log-analysis/<name>`, resolving `scripts/` relative to THIS skill's own directory (see Dump mode step 1 for how to find it) — add `--host <host>` for a loose ErrorLog whose host you know; add `--topology dump-analysis/<x>/topology.json` when a dump analysis exists. Never read a raw log wholesale.
 2. Read `references/log-anatomy.md`, then `<out>/INVENTORY.md`, `<out>/TIMELINE.md`, `<out>/PATTERNS.md`. Open `ACCESS.md` only for access/availability tickets and `AUDIT.md` only for security tickets. For a specific code or minute, grep `events.jsonl` or the split log — never paste whole logs.
@@ -80,7 +89,7 @@ Log mode (never Q&A mode — a one-off question is not ticket work):
   stage-tagged (`[Identification]`/`[Diagnosis]`/`[Escalation]`/`[Resolution]`/`[Closure]`), citing
   the `Problems.md`/`Required-Diagnostics.md` entry numbers it relates to.
 
-On a security ticket follow "Audit trail on security tickets" in
+On a security vulnerability or incident ticket follow "Audit trail on security tickets" in
 `references/security-vulnerability-handling.md`: record the process steps and `Details recorded in
 <secure location>`, never exploit specifics or the word "breach".
 
@@ -108,7 +117,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 
 | If the ticket mentions… | Read |
 | --- | --- |
-| CVE, CVSS, vulnerability, exploit, scanner output, security scan, security incident, malware, virus, ransomware, compromise | `references/security-vulnerability-handling.md` (read first, before any other reference) |
+| CVE, CVSS, vulnerability, exploit, scanner output, security scan, security incident, security event, malware, virus, ransomware, compromise, intrusion | `references/security-vulnerability-handling.md` (read first, before any other reference) |
 | quorum, host offline, XDQP, XDMP-HOSTOFFLINE, join/leave cluster, hostname, group, upgrade/effective version, NTP/clock | `references/cluster-hosts-groups.md` |
 | forest, stand, merge, disk space, XDMP-FORESTNOSPACE, reindex, index, rebalancer, assignment policy, directory creation, fragment, locking | `references/databases-forests.md` |
 | port, app server, HTTP/XDBC/ODBC/WebDAV, modules, XDMP-MODNOTFOUND, SVC-SOCBIND, timeout, XDMP-EXTIME, threads, authentication (app-server level), SSL/TLS, log level, 8000/8001/8002 | `references/app-servers.md` |
