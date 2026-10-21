@@ -9,8 +9,12 @@ What they do:
 
 - **Triage** MarkLogic tickets: configuration, security, performance/tuning, monitoring, DR/scaling,
   server-side code (XQuery/JS/REST extensions) and client tooling (XCC, Java Client API, mlcp, ml-gradle, CoRB2).
-- **Analyse** MarkLogic support dumps, logs (ErrorLog, messages, AccessLog, AuditLog) and Linux SAR data into
-  incident timelines and ranked findings, and ask the customer for the right host-level data when it is missing.
+- **Analyse** MarkLogic support dumps, logs (ErrorLog, messages, AccessLog, AuditLog), Linux SAR data, pstack movies
+  and `perf` reports into incident timelines and ranked findings, and ask the customer for the right host-level data
+  (SAR, pstack, perf, Meters export, request and server status) when it is missing.
+- **Check scope and severity**: flag a ticket that goes far beyond the scope of support, and raise doubts when the
+  ticket's severity does not fit the support-guide definitions, so the engineer can take it to the customer's Client
+  Success Manager. `/ticket` asks for the severity if the description does not give it.
 - **Write and review KCS articles** that follow the company Solution Content Standard.
 - **Follow the Progress security process** for vulnerability and security-incident tickets.
 
@@ -39,12 +43,45 @@ listed by `./install.sh status` and moved aside by `./install.sh update --clean-
 
 ## Requirements
 
-- **Python 3** — the analysis, rendering and ticket scripts use the standard library only. On Windows the agent
-  may need `python` or `py -3` where the skills say `python3`.
-- **git** — to install and update.
-- **[pandoc](https://pandoc.org/installing.html)** (optional) — Word and HTML output for `kcs`, and `.html`/`.docx`
-  input for `kcs-review`. Everything else works without it.
-- One of the four agents above.
+### What you need on your own machine (every agent)
+
+| Need | For | Notes |
+| --- | --- | --- |
+| One of the four agents | everything | Per-agent and per-platform needs are in the table below |
+| **Python 3** | all analysis, rendering and ticket scripts | Standard library only, nothing to `pip install`. On Windows the agent may need `python` or `py -3` where the skills say `python3`. The scripts are tested on one Python version (3.15); a parse check finds no syntax newer than Python 3.6, but older versions are untested `[unverified — confirm]` |
+| **git** | install, update, and finding the ticket folder's root | The repository is private: git needs credentials that work non-interactively |
+| **A shell the agent can run commands in** | the skills tell the agent to run `python3 ...`, `cd` and similar | Every supported agent provides one (see table) |
+| **[pandoc](https://pandoc.org/installing.html)** (optional) | Word and HTML output of `kcs`; `.html` / `.docx` input of `kcs-review` | Everything else works without it |
+| **`sar`** from sysstat (optional, Linux only) | `analyse_sar.py` on a *binary* `saDD` file | Not needed for the text output (`sar -A`) the customer is asked for; without `sar` the script says how to ask for text |
+| **`perf`** (optional, Linux only) | `analyse_perf.py --convert` on a raw `perf.data` | Not needed for `perf report --stdio` text, which the analyser reads directly; raw `perf.data` is otherwise only inventoried (host, kernel, CPUs, command) |
+
+Nothing else is needed: the analysers read zips (also zips in zips) and folders directly and never extract to disk.
+
+### Per agent and platform
+
+Agent requirements below come from each vendor's documentation as read on 2026-10-21; check the linked pages for current versions.
+
+| Agent | macOS | Linux | Windows | Account / extras |
+| --- | --- | --- | --- | --- |
+| **Claude Code** ([setup](https://code.claude.com/docs/en/setup)) | macOS 13.0+. Shell: zsh or bash | Ubuntu 20.04+, Debian 10+, Alpine 3.19+. Shell: bash or zsh. Alpine also needs `bash`, `curl`, `libgcc`, `libstdc++`, `ripgrep` | Windows 10 1809+ / Server 2019+, native or WSL. Without Git for Windows commands run through PowerShell; with it, Git Bash. Use `install.ps1` for native, `install.sh` inside WSL | Pro, Max, Team, Enterprise or Console account. Node.js is not needed with the native installer (npm install: Node.js 22+) |
+| **pi** ([README](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent)) | Node.js 22.19+ (the installer can install it) | Node.js 22.19+ | Node.js 22.19+; PowerShell installer. The docs state no shell requirement `[unverified — confirm]` | Install as a pi package (`pi install git:...`) or with the script |
+| **Codex** ([repo](https://github.com/openai/codex)) | arm64 and x86_64 | x86_64 and arm64 | PowerShell installer provided; the page does not list Windows or WSL as supported `[unverified — confirm]` | Node.js is not stated as required (npm is one install method) |
+| **GitHub Copilot** | VS Code agent mode, or the Copilot CLI | VS Code agent mode, or the Copilot CLI | VS Code agent mode, or the Copilot CLI (needs PowerShell 6+ per the CLI docs) | An active Copilot plan and not disabled by organisation policy. CLI via npm needs Node.js 22+. The cloud agent runs on GitHub and cannot see a personal install; use `.github/skills/` in a repository |
+
+Which installer: macOS and Linux use `install.sh` (bash 3.2 or newer, which is what macOS ships, plus `git`, `ln` and `readlink`); Windows uses `install.ps1` in Windows PowerShell with directory junctions (no administrator rights). Run the installer in the same environment as the agent: skills installed inside WSL are not seen by an agent running on Windows, and the reverse.
+
+### What the customer needs (when you send them a request)
+
+These run on the customer's MarkLogic host, not on yours. Each request in `references/performance-data-requests.md` states them; in summary:
+
+| Customer task | Needs on the customer's host |
+| --- | --- |
+| `pstack.sh` (pstack movie, KB 000266816) | Linux, root, `pstack`, `gdb`, `sysstat`, `psutils` and `zip`; MarkLogic 11.3.1 or later on RHEL 9 for the script's default line (older versions use `service MarkLogic pstack`, see `assets/support-scripts/README.md`) |
+| `perf` report (KB 000268341) | Linux, root or sudo, `perf` installed |
+| SAR / host metrics | Linux, `sysstat` (`sar`) collecting, or the live `sar`, `iostat`, `vmstat` commands |
+| Meters export (KB 000266887) | `exportMeters.xqy` runs in Query Console with the content database set to `Meters`; `get-raw.sh` needs MLCP installed and an XDBC server on the port |
+| Request and server status | Query Console or Admin access to run the `xdmp:` functions in `monitoring.md` |
+| Support dump | MarkLogic Admin UI (Config, Support tab) |
 
 ## Install
 
@@ -170,11 +207,11 @@ for the routing table and output formats.
 ErrorLog, messages, AccessLog and AuditLog into an incident timeline; `analyse_sar.py` reads `sar -A` text output
 and ranks saturation (iowait, disk latency, swap, memory, run queue, steal, network errors).
 `performance-data-requests.md` holds ready-to-paste customer requests for SAR, iostat/vmstat/mpstat/pidstat,
-kernel and OOM messages, the pstack movie and perf requests (from the Progress KB articles; the customer script is vendored at `skills/marklogic-support/assets/support-scripts/pstack.sh`) and, on cloud-hosted customers only, steal and EBS signals.
+kernel and OOM messages, the pstack movie and perf requests (from the Progress KB articles; the customer scripts are vendored in `skills/marklogic-support/assets/support-scripts/`: `pstack.sh`, and `exportMeters.xqy` with `get-raw.sh` for the Meters export; `monitoring.md` also covers logs, status screens and monitoring functions) and, on cloud-hosted customers only, steal and EBS signals.
 `analyse_pstack.py` reads a pstack movie (`pstack.log`, its zip or a folder; the shared `diag_inputs.py` opens zips in zips, one zip per host, skips macOS junk, special files and duplicate copies, cleans untrusted names and extracts nothing to disk; several hosts get an overview table): per snapshot the waiting, lock-wait
 and running threads, allocator and lock patterns, threads that stay in the same stack and thread churn.
 `analyse_perf.py` reads `perf report --stdio` text reports (files, folders or zips, one per node; raw `perf.data` files get a header inventory of host, kernel, CPUs and capture command, and `--convert` runs a local `perf` on them): kernel versus user time, time under a user-space
-wrapper, unresolved kernel symbols and the top symbols. `pstack-analysis.md` is the reading guide for both. Raw `perf.data` needs `perf` on a Linux host (`--convert`, or convert manually) or a re-request of the text report — see the section "Raw perf.data received: convert or re-request" in `performance-data-requests.md`. `customer-diagnostics-guide.md` is a paraphrased digest of the KB article customers are sent (hosts/<hostname>/ folder layout, support dump, Meters, cloud, backups); it is reference only, never mandatory, and the analysers read that layout and note when environments are mixed. `support-scope.md` holds the severity, priority and business impact definitions and the (still empty) scope criteria used to flag tickets far beyond the scope of support.
+wrapper, unresolved kernel symbols and the top symbols. `pstack-analysis.md` is the reading guide for both. Raw `perf.data` needs `perf` on a Linux host (`--convert`, or convert manually) or a re-request of the text report — see the section "Raw perf.data received: convert or re-request" in `performance-data-requests.md`. `customer-diagnostics-guide.md` is a paraphrased digest of the KB article customers are sent (hosts/<hostname>/ folder layout, support dump, Meters, cloud, backups); it is reference only, never mandatory, and the analysers read that layout and note when environments are mixed. `support-scope.md` holds the Scope of Support lists (covered and not covered), the severity levels with their response and resolution objectives, and the business-impact definitions. The skill uses it to flag tickets far beyond scope ("Scope flag") and to raise a "Severity query" when the ticket's severity does not fit the definitions. Engineers cannot change severity: the query is for raising with the Client Success Manager. `/ticket` asks for the severity when the description does not give it, and every ticket's Timeline records it.
 
 ### Security tickets
 
@@ -227,7 +264,8 @@ install.sh  install.ps1          install / update / status / uninstall (macOS+Li
 skills/
 ├── marklogic-support/           triage method, routing table, dump / log / SAR / pstack-perf modes
 │   ├── SKILL.md
-│   ├── assets/support-scripts/pstack.sh   customer script from KB 000266816 (verbatim)
+│   ├── assets/support-scripts/pstack.sh   customer script from KB 000266816 (INTERVAL=5 instead of 3), hash-pinned
+│   │   also exportMeters.xqy and get-raw.sh (KB 000266887, verbatim, hash-pinned) and README.md
 │   ├── scripts/
 │   │   ├── parse_dump.py        splits a support dump into config/status/logs + findings
 │   │   ├── analyse_logs.py      ErrorLog/messages/AccessLog/AuditLog -> incident timeline + patterns

@@ -73,6 +73,21 @@ class ReadmeTest(unittest.TestCase):
                        "MIT — see the LICENSE file"):
             self.assertIn(needle, README, needle)
 
+    def test_dependencies_per_agent_and_platform(self):
+        for h in ("### What you need on your own machine (every agent)", "### Per agent and platform",
+                  "### What the customer needs (when you send them a request)"):
+            self.assertIn(h + "\n", README, h)
+        for needle in ("Python 3", "pandoc", "sysstat", "`perf`", "Node.js 22.19+", "Git for Windows", "PowerShell 6+",
+                       "exportMeters.xqy", "get-raw.sh", "mlcp".upper(), "KB 000266816", "KB 000268341", "KB 000266887"):
+            self.assertIn(needle, README, needle)
+        for agent in ("**Claude Code**", "**pi**", "**Codex**", "**GitHub Copilot**"):
+            self.assertIn("| " + agent, README, agent)
+
+    def test_no_stale_scope_text_and_new_diagnostics_are_covered(self):
+        self.assertNotIn("still empty", README)
+        for needle in ("Severity query", "Client Success Manager", "Meters export", "assets/support-scripts/"):
+            self.assertIn(needle, README, needle)
+
     def test_local_links_and_paths_in_the_readme_exist(self):
         for rel in re.findall(r"`((?:skills|tools|tests)/[\w./-]+)`", README):
             if "<" in rel or rel.endswith("/"):
