@@ -49,10 +49,10 @@ For how each activity (ingest, merges, queries, reindexing) uses memory, cache p
 | Huge pages not configured / THP enabled | Slow, erratic latency, `Linux Huge Pages` warning in ErrorLog at startup; memory pressure escalates to a stall/OOM faster because MarkLogic's memory structures fall back to ordinary swappable pages | ErrorLog "Linux Huge Pages: detected 0, recommended N"; `cat /sys/kernel/mm/transparent_hugepage/enabled` | Set `vm.nr_hugepages` per ErrorLog recommendation (≈3/8 of physical RAM); disable THP | <https://help.marklogic.com/Knowledgebase/Article/View/16/0/linux-huge-pages> |
 | No/too little swap | Process killed instead of degrading; `memory-process-swap-size` in Host Status far below expected sizing | `swapon -s`; Host Status `memory-process-swap-size` | Swap ≈ (physical RAM − Huge Pages size), capped at 32 GB | <https://help.marklogic.com/knowledgebase/article/View/21/19/swap-space-requirements> |
 | Too many forests for host RAM/vCPU | Performance degradation when guidelines greatly exceeded | Count forests per host vs 2 vCPU + 8 GB per forest rule | Reduce forests or add hosts | <https://docs.progress.com/bundle/marklogic-server-configure-scal-avail-perf-12/page/topics/scalability.html> |
-| Expanded tree cache too small for large docs | `XDMP-EXPNTREECACHEFULL` | Error text; group setting | Raise expanded tree cache size / partitions; reduce result size | [unverified — confirm] |
+| Raising the expanded tree cache first when `XDMP-EXPNTREECACHEFULL` appears | `XDMP-EXPNTREECACHEFULL` | Error text; group setting | The book says the error usually means the query pulls in too much data: rewrite the query to return less; raise the cache or reduce partitions only if memory allows (see `resource-consumption.md`) | Inside MarkLogic p.49 (footnote 11) |
 | List cache too small | `XDMP-LISTCACHEFULL`, slow queries | Error text; cache hit rates in `xdmp:host-status` / Monitoring | Raise list cache size; check index selectivity | <https://docs.marklogic.com/admin-help/group> |
 | Low `ulimit -n` | `XDMP-TOOMANYOPENFILES` / forest mount failures | `ulimit -n` for the daemon user | Set per install guide | [unverified — confirm] |
-| Wrong I/O scheduler on Red Hat Linux | Poor I/O performance, operations starve/never complete | `cat /sys/block/[device]/queue/scheduler` | Set deadline scheduler with kernel parameter (required on Red Hat Linux) | Inside MarkLogic p.119 |
+| Wrong I/O scheduler on Red Hat Linux | Poor I/O performance, operations starve/never complete | `cat /sys/block/[device]/queue/scheduler` | Set deadline scheduler with kernel parameter (required on Red Hat Linux) | Inside MarkLogic p.120 |
 | Mixed E-node and D-node cache settings | Cache thrash on D-nodes, wasted memory on E-nodes | Cache hit ratios, memory utilization per node role | Use automatic enode/dnode cache sizing or separate groups | [unverified — confirm] |
 
 ### Cache behavior notes
@@ -65,7 +65,7 @@ For how each activity (ingest, merges, queries, reindexing) uses memory, cache p
 
 ## Sources
 
-- Inside MarkLogic Server (PDF) p.119 — Linux Huge Pages, swap space, deadline I/O scheduler recommendations
+- Inside MarkLogic Server (PDF) p.119-120 — Linux Huge Pages (3/8 of RAM, not Transparent Huge Pages), swap space, deadline I/O scheduler
 - <https://help.marklogic.com/Knowledgebase/Article/View/16/0/linux-huge-pages> — Linux Huge Pages and Transparent Huge Pages
 - <https://help.marklogic.com/knowledgebase/article/View/21/19/swap-space-requirements> — Swap Space Requirements
 - <https://docs.marklogic.com/admin-help/group> — cache sizing methods and configuration

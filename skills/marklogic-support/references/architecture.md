@@ -48,16 +48,16 @@
 
 | Mistake | Symptom seen by customer | How to confirm | Fix / best practice | Source |
 | --------- | ------------------------- | ---------------- | ------------------- | --------- |
-| Index change on large DB during peak hours | Queries slow/timeout during reindex | Check reindexing status, forest timestamps | Schedule index changes during maintenance windows | Inside MarkLogic p.22 |
-| Cache sizes sum exceeds available RAM | Out of memory errors, swap thrashing | Check cache settings vs RAM, OS memory usage | Size caches to leave 30%+ RAM for OS and range indexes | Inside MarkLogic p.48 |
-| Single forest for huge database | Ingestion bottleneck, merge delays | Forest count vs data volume, merge activity | Use multiple forests per database for parallel I/O | Inside MarkLogic p.36 |
-| Modules stored on filesystem in multi-host group | Module changes not reflected on all hosts | Module deployment inconsistency | Store modules in database for cluster consistency | Inside MarkLogic p.102 |
-| Even host count without proper quorum consideration | Failover fails, split-brain scenario | Quorum calculation, failover testing | Maintain >50% hosts for quorum, odd numbers preferred | Inside MarkLogic p.104 |
-| Insufficient disk space for merges | Merge failures, disk full errors | Free disk space vs largest forest size | Maintain 1.5-2× largest forest size as free space | Inside MarkLogic p.36 |
-| D-node cache settings on E-node group | Poor query performance, cache misses | Cache hit rates, E-node vs D-node config | Optimize cache sizes per node role (E vs D) | Inside MarkLogic p.48 |
-| No journal archiving setup | Point-in-time recovery unavailable | Journal archive configuration | Enable journal archiving for disaster recovery | Inside MarkLogic p.104 |
+| Index change on large DB during peak hours | Queries slow/timeout during reindex | Check reindexing status, forest timestamps | Reindexing runs in the background and does not stop queries, but a new index cannot be used until it finishes; lower the reindexer throttle (5 most eager to 1) or pause it, and schedule big index changes off-peak (the book does not state the scheduling advice `[unverified — confirm]`) | Inside MarkLogic p.19 |
+| Cache sizes sum exceeds available RAM | Out of memory errors, swap thrashing | Check cache settings vs RAM, OS memory usage | Size caches to leave room for the OS and range indexes; the "30%+ RAM" figure is not in the book `[unverified — confirm]` | [unverified — confirm]; cache roles Inside MarkLogic p.48-49 |
+| Single forest for huge database | Ingestion bottleneck, merge delays | Forest count vs data volume, merge activity | Use multiple forests per database for parallel I/O | Inside MarkLogic p.34, p.37, p.120 |
+| Modules stored on filesystem in multi-host group | Module changes not reflected on all hosts | Module deployment inconsistency | Store modules in database for cluster consistency | Inside MarkLogic p.59 |
+| Even host count without proper quorum consideration | Failover fails, split-brain scenario | Quorum calculation, failover testing | Failover needs a quorum of more than 50% of hosts, so at least 3 hosts; odd counts are a rule of thumb, not stated in the book `[unverified — confirm]` | Inside MarkLogic p.105 |
+| Insufficient disk space for merges | Merge failures, disk full errors | Free disk space vs largest forest size | Keep free space for merges: the book (MarkLogic 8, merge max size 32 GB) says about 50% of the forest size (0.5 TB per 1 TB); `resource-consumption.md` has the whitepaper rule (indexed size + 64 GB per forest); confirm for 11/12 `[unverified — confirm]` | Inside MarkLogic p.36 (footnote 7) |
+| D-node cache settings on E-node group | Poor query performance, cache misses | Cache hit rates, E-node vs D-node config | Optimize cache sizes per node role (E vs D) | Inside MarkLogic p.48-49 |
+| No journal archiving setup | Point-in-time recovery unavailable | Journal archive configuration | Enable journal archiving for disaster recovery | Inside MarkLogic p.102-103 |
 
 ## Sources
 
-- Inside MarkLogic Server (PDF, 127 pp.) — ch. 1-2 overview (p.7-11), indexing (p.12-22), clustering & caching (p.47-52), forests/stands/merges (p.35-38), MVCC (p.38-39), failover (p.104-110)
+- Inside MarkLogic Server (PDF, 127 pp., 3rd edition, MarkLogic 8, April 2016; printed page numbers) — what it is (p.5-11), indexing (p.12-22), data management and MVCC (p.33-45), clustering and caching (p.47-56), backups (p.101-104), failover and replication (p.104-110), rebalancing (p.110-113), low-level system control (p.119-120)
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/introduction/architecture-overview.html>

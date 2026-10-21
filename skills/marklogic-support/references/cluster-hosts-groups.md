@@ -39,7 +39,7 @@
 | Mistake | Symptom seen by customer | How to confirm | Fix / best practice | Source |
 | --- | --- | --- | --- | --- |
 | Even number of hosts / 2-node cluster, one host down | Cluster loses quorum, all forests unmounted | Host count vs online hosts; ErrorLog "quorum" messages | Use ≥3 hosts (or arbiter-style extra host); >50% needed | <https://help.marklogic.com/Knowledgebase/Article/View/start-up-quorum-and-forest-level-failover> |
-| XDQP ports blocked between hosts / firewall change | Hosts flap offline, `XDMP-HOSTOFFLINE`, XDQP timeouts | `nc -z host 7999` both directions; ErrorLog XDQP errors | Open 7997–7999 TCP bidirectionally between all hosts | Inside MarkLogic p.11 |
+| XDQP ports blocked between hosts / firewall change | Hosts flap offline, `XDMP-HOSTOFFLINE`, XDQP timeouts | `nc -z host 7999` both directions; ErrorLog XDQP errors | Open 7997–7999 TCP bidirectionally between all hosts | Inside MarkLogic p.48 (XDQP port 7999), p.107 (database replication port 7998); 7997 is not covered by the book `[unverified — confirm]` |
 | Clock skew between hosts | Auth failures (digest), replication lag, odd timestamps | ErrorLog time warnings; `chronyc sources`/`ntpq -p` | Configure NTP on all hosts; monitor synchronization | <https://help.marklogic.com/Knowledgebase/Article/View/24/0/synchronizing-system-clocks-in-a-cluster> |
 | Version mismatch during rolling upgrade held too long | "effective version" stuck, features unavailable | Admin UI › Clusters shows effective version vs individual host versions | Complete upgrade on all hosts to unlock new features | <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/clusters.html> |
 | Removing a host that still owns forests | Forests offline, data unavailable | Forest host assignment in Admin Interface | Migrate/replicate forests to other hosts first | <https://help.marklogic.com/Knowledgebase/Article/View/removing-hosts-from-a-marklogic-cluster-minimizing-downtime> |
@@ -48,12 +48,12 @@
 | Host timeout too low on slow network | Spurious host offline events, false failovers | Group › host timeout setting vs network latency | Raise host timeout cautiously; fix underlying network issues | <https://help.marklogic.com/knowledgebase/article/View/248/0/what-is-xdmp-xdqpver-and-what-should-be-done-about-it> |
 | XDQP timeout too low on busy cluster | Query failures during high load | XDQP timeout in group settings vs query patterns | Increase XDQP timeout to prevent premature disconnection | <https://help.marklogic.com/Knowledgebase/Article/View/60/0/how-to-handle-xdqp-timeout-on-a-busy-cluster> |
 | Insufficient foreign cluster permissions | Cross-cluster replication fails | Foreign cluster authentication settings | Configure proper cross-cluster authentication and permissions | [unverified — confirm] |
-| Mixed MarkLogic versions in cluster | Unpredictable behavior, feature conflicts | Check version consistency across all hosts | Ensure all hosts run identical MarkLogic version | Inside MarkLogic p.5 |
+| Mixed MarkLogic versions in cluster | Unpredictable behavior, feature conflicts | Check version consistency across all hosts | Finish upgrades on all hosts (rolling upgrades legitimately run mixed versions for a while) | [unverified — confirm] |
 | Hosts added without license capacity | License violations, reduced functionality | License status in Admin Interface vs host count | Acquire additional licenses before adding hosts | [unverified — confirm] |
 
 ## Sources
 
-- Inside MarkLogic Server (PDF) — clustering overview (p.5, 10-11), failover and clustering (p.47, 104)
+- Inside MarkLogic Server (PDF) — clustering overview (p.10-11), clustering and caching (p.47-56), failover and quorum (p.104-105)
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/clusters.html>
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/hosts.html>  
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/groups.html>

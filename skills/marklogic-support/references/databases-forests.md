@@ -6,7 +6,7 @@
 
 - **Stands and merges**: Forests contain stands. In-memory stand holds new/changed documents until checkpointed to on-disk stand (sequential names: 00000000, 00000001...). Merges combine stands to optimize performance, remove deleted fragments, create larger stands up to merge max size (default 32GB).
 
-- **Forest sizing rule of thumb**: Keep forests below ~512GB for manageable merge times and restart performance. Split large forests across multiple hosts rather than growing single forests too large.
+- **Forest sizing rule of thumb**: Keep forests below ~512GB for manageable merge times and restart performance. Split large forests across multiple hosts rather than growing single forests too large. The book (MarkLogic 8) gives examples: about 8 million documents and 100 GB per forest for a high-performance search site, about 150 million documents and 500 GB for a high-capacity analytical one, six primary forests per server as a starting point (Inside MarkLogic p.34).
 
 - **Directory storage**: Data directory (main storage), fast data directory (SSD for journals/stands, spills to data directory when full), large data directory (for large objects).
 
@@ -44,7 +44,7 @@ For merge mechanics, the 64-stand limit, merge disk-space and I/O behaviour, jou
 | Rebalancer disabled after adding forests | New forests empty while others overloaded, uneven query performance | Compare forest document counts; check rebalancer enable setting | Enable rebalancer; verify assignment policy matches use case | <https://docs.marklogic.com/admin-help/database> |
 | Directory creation set to `automatic` for high-volume ingest | Many directory fragments created, lock contention, slower ingest | Check database directory creation setting | Set to `manual` unless WebDAV access required | [unverified — confirm] |
 | Fragment root/parent defined without justification | Excessive fragmentation, complex query semantics | Check database fragment settings against query patterns | Remove fragment settings unless specific query optimization needed | [unverified — confirm] |
-| Single forest for large database (no parallelism) | Ingest and query bottleneck on single host | Forest count vs data size; single host handling all load | Create multiple forests per host (≤ vCPU/2 guidance); distribute across hosts | Inside MarkLogic p.36 |
+| Single forest for large database (no parallelism) | Ingest and query bottleneck on single host | Forest count vs data size; single host handling all load | Create several forests per host (the book suggests six primary forests per server as a starting point; the 2 vCPU + 8 GB per forest rule is in `memory-and-os.md`); distribute across hosts | Inside MarkLogic p.34, p.120 |
 | Deleting forest still attached to database | Data loss, `XDMP-FORESTNOT` errors on queries | Check database forest attachments before deletion | Detach forest → verify queries work → optionally delete forest data | [unverified — confirm] |
 | Merge blackout set as permanent/too wide | Stand count balloons, query performance degrades | Check merge policy blackout windows; forest stand counts | Limit blackout to genuine maintenance windows only | [unverified — confirm] |
 | Locking set to `off` on frequently updated database | Inconsistent reads, lost updates, duplicate URIs | Check database locking setting | Keep locking `strict` unless bulk-loading new documents only | <https://docs.marklogic.com/admin-help/database> |
@@ -64,4 +64,4 @@ For merge mechanics, the 64-stand limit, merge disk-space and I/O behaviour, jou
 - <https://help.marklogic.com/Knowledgebase/Article/View/10/0/how-does-the-number-of-stands-impact-performance-and-how-does-merging-help>
 - <https://help.marklogic.com/Knowledgebase/Article/View/291/0/emergency-stand-has-n-fragments-message>
 - <https://help.marklogic.com/knowledgebase/article/View/18/15/how-reindexing-works-and-its-impact-on-performance>
-- Inside MarkLogic p.35-38
+- Inside MarkLogic p.34-38, p.120

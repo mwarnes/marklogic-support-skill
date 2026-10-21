@@ -96,4 +96,4 @@ Use for any performance, tuning, capacity or "what is using the disk, CPU, memor
 - https://docs.marklogic.com/xdmp:cache-status — `xdmp:cache-status` fields and privilege (checked 2026-10-21).
 - https://docs.marklogic.com/admin:group-set-background-io-limit — background I/O limit (checked 2026-10-21; the page states no default).
 - The paper's own further reading: Monitoring MarkLogic Server, Query Performance and Tuning Guide, Scalability, Availability, and Failover Guide, Inside MarkLogic Server.
-- Related notes in this skill: `performance-tuning.md`, `memory-and-os.md`, `databases-forests.md`, `monitoring.md`, `sar-analysis.md`.
+- Related notes in this skill: `internals.md` (how it works under the hood), `performance-tuning.md`, `memory-and-os.md`, `databases-forests.md`, `monitoring.md`, `sar-analysis.md`.
