@@ -1,0 +1,483 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+# Samples: 95K of event 'cpu-clock'
+# Event count (approx.): 959999990400
+#
+# Children      Self    Command                 Shared Object                                                                                                 
+# ........  ........  .........  ............................  .............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    66.49%     0.01%  MarkLogic  libc-2.12.so                  [.] madvise
+            |
+            --- madvise
+               |
+               |--3.94%-- 0x7f535a7b6318
+               |          |
+               |          |--99.84%-- 0x0
+               |           --0.16%-- [...]
+               |
+
+    39.16%    39.16%  MarkLogic  [kernel.kallsyms]             [k] 0xffffffff81036c36
+            |
+            --- 0xffffffff81036c36
+               |
+               |--99.55%-- madvise
+               |          |
+               |          |--7.92%-- 0x7f535a7b6318
+               |          |          0x0
+               |          |
+
+    33.84%     0.00%  MarkLogic  [unknown]                     [.] 0000000000000000
+            |
+            --- (nil)
+
+
+    15.19%    15.19%  MarkLogic  [kernel.kallsyms]             [k] 0xffffffff8153b9ee
+            |
+            --- 0xffffffff8153b9ee
+               |
+               |--99.43%-- madvise
+               |          |
+               |          |--7.74%-- 0x7f535a700f18
+               |          |          |
+               |          |          |--99.82%-- 0x0
+
+    14.61%    14.61%       init  [kernel.kallsyms]             [k] 0xffffffff8104301b
+                 |
+                 --- 0xffffffff8104301b
+
+
+    10.35%    10.35%  MarkLogic  [kernel.kallsyms]             [k] 0xffffffff8153b9ec
+            |
+            --- 0xffffffff8153b9ec
+               |
+               |--99.53%-- madvise
+               |          |
+               |          |--7.75%-- 0x7f535a7b6318
+               |          |          |
+               |          |          |--99.20%-- 0x0
+
+     2.62%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a7b6318
+            |
+            --- 0x7f535a7b6318
+               |
+               |--99.84%-- 0x0
+                --0.16%-- [...]
+
+
+     2.61%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a700f18
+            |
+            --- 0x7f535a700f18
+               |
+               |--99.88%-- 0x0
+                --0.12%-- [...]
+
+
+     2.57%     2.57%  MarkLogic  MarkLogic                     [.] xdmp::CacheListPostingIterator::_skip(unsigned int, bool)
+            |
+            --- xdmp::CacheListPostingIterator::_skip(unsigned int, bool)
+
+
+     1.66%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a740618
+            |
+            --- 0x7f535a740618
+               |
+               |--99.75%-- 0x0
+                --0.25%-- [...]
+
+
+     1.61%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a725318
+            |
+            --- 0x7f535a725318
+               |
+               |--99.93%-- 0x0
+                --0.07%-- [...]
+
+
+     1.60%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a7e3818
+            |
+            --- 0x7f535a7e3818
+                (nil)
+
+
+     1.59%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a737518
+            |
+            --- 0x7f535a737518
+               |
+               |--99.93%-- 0x0
+                --0.07%-- [...]
+
+
+     1.58%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f524d8507d8
+            |
+            --- 0x7f524d8507d8
+                (nil)
+
+
+     1.47%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a791f18
+            |
+            --- 0x7f535a791f18
+                (nil)
+
+
+     1.42%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a7feb18
+            |
+            --- 0x7f535a7feb18
+               |
+               |--99.93%-- 0x0
+                --0.07%-- [...]
+
+
+     1.42%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a630818
+            |
+            --- 0x7f535a630818
+               |
+               |--99.93%-- 0x0
+                --0.07%-- [...]
+
+
+     1.34%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f524d8629d8
+            |
+            --- 0x7f524d8629d8
+                (nil)
+
+
+     1.26%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f524d8354d8
+            |
+            --- 0x7f524d8354d8
+               |
+               |--99.83%-- 0x0
+                --0.17%-- [...]
+
+
+     1.25%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a71c218
+            |
+            --- 0x7f535a71c218
+                (nil)
+
+
+     1.23%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a776c18
+            |
+            --- 0x7f535a776c18
+                (nil)
+
+
+     1.07%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a7da718
+            |
+            --- 0x7f535a7da718
+                (nil)
+
+
+     1.05%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a749718
+            |
+            --- 0x7f535a749718
+                (nil)
+
+
+     0.84%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a7a4118
+            |
+            --- 0x7f535a7a4118
+                (nil)
+
+
+     0.84%     0.84%  MarkLogic  [kernel.kallsyms]             [k] 0xffffffff8105435a
+            |
+            --- 0xffffffff8105435a
+               |
+               |--99.50%-- madvise
+               |          |
+               |          |--8.10%-- 0x7f535a700f18
+               |          |          0x0
+               |          |
+
+     0.81%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a666e18
+            |
+            --- 0x7f535a666e18
+               |
+               |--99.74%-- 0x0
+                --0.26%-- [...]
+
+
+     0.75%     0.75%    swapper  [kernel.kallsyms]             [k] 0xffffffff8104301b
+              |
+              --- 0xffffffff8104301b
+
+
+     0.72%     0.00%  MarkLogic  libpthread-2.12.so            [.] start_thread
+            |
+            --- start_thread
+
+
+     0.72%     0.00%  MarkLogic  MarkLogic                     [.] runThread
+            |
+            --- runThread
+                start_thread
+
+
+     0.72%     0.00%  MarkLogic  MarkLogic                     [.] svc::Thread::top()
+            |
+            --- svc::Thread::top()
+                runThread
+                start_thread
+
+
+     0.70%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a6af618
+            |
+            --- 0x7f535a6af618
+                (nil)
+
+
+     0.69%     0.01%  MarkLogic  MarkLogic                     [.] svc::PooledThread::run()
+            |
+            --- svc::PooledThread::run()
+               |
+               |--99.24%-- svc::Thread::top()
+               |          runThread
+               |          start_thread
+                --0.76%-- [...]
+
+
+     0.66%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a679018
+            |
+            --- 0x7f535a679018
+               |
+               |--99.84%-- 0x0
+                --0.16%-- [...]
+
+
+     0.60%     0.60%  MarkLogic  [kernel.kallsyms]             [k] 0xffffffff81054358
+            |
+            --- 0xffffffff81054358
+                madvise
+               |
+               |--4.03%-- 0x7f535a7b6318
+               |          0x0
+               |
+               |--3.85%-- 0x7f535a700f18
+
+     0.59%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a68b218
+            |
+            --- 0x7f535a68b218
+                (nil)
+
+
+     0.53%     0.52%  MarkLogic  libjemalloc.so.1              [.] free
+            |
+            --- free
+               |
+               |--0.20%-- 0x7f5227c0a000
+               |          0x7f5227c0a000
+               |          0x7f5227c0a000
+               |          0x7f5227c0a000
+               |          0x7f5227c0a000
+
+     0.52%     0.11%  MarkLogic  MarkLogic                     [.] xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |
+               |--31.11%-- xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const
+               |          |
+               |          |--83.12%-- xdmp::FLWORExpr::evalTail(xdmp::DynamicEnv&, xdmp::ValueAccumulator&, svc::Handle<xdmp::TailCall>&) const
+               |          |          xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |          xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const
+
+     0.51%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a72e418
+            |
+            --- 0x7f535a72e418
+                (nil)
+
+
+     0.49%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a76db18
+            |
+            --- 0x7f535a76db18
+                (nil)
+
+
+     0.49%     0.08%  MarkLogic  MarkLogic                     [.] xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const
+            |
+            --- xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const
+               |
+               |--40.52%-- xdmp::FLWORExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |
+               |          |--65.96%-- xdmp::Expr::evalCompletely(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |          xdmp::TryCatchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |          xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+
+     0.45%     0.44%  MarkLogic  libjemalloc.so.1              [.] malloc
+            |
+            --- malloc
+
+
+     0.44%     0.04%  MarkLogic  MarkLogic                     [.] xdmp::FLWORExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::FLWORExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |
+               |--64.68%-- xdmp::Expr::evalCompletely(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::TryCatchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |
+               |          |--52.77%-- xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+
+     0.43%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::AppRequestTask::handleRequest(svc::Handle<xdmp::AppRequest>&)
+            |
+            --- xdmp::AppRequestTask::handleRequest(svc::Handle<xdmp::AppRequest>&)
+               |
+               |--99.51%-- xdmp::AppRequestTask::run()
+               |          svc::PooledThread::run()
+               |          svc::Thread::top()
+               |          runThread
+               |          start_thread
+
+     0.43%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::AppRequestTask::run()
+            |
+            --- xdmp::AppRequestTask::run()
+                svc::PooledThread::run()
+                svc::Thread::top()
+                runThread
+                start_thread
+
+
+     0.42%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f535a6a6518
+            |
+            --- 0x7f535a6a6518
+                (nil)
+
+
+     0.42%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::AppRequestTask::handleEval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+            |
+            --- xdmp::AppRequestTask::handleEval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |
+               |--97.73%-- xdmp::AppRequestTask::handleGeneric(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool)
+               |          xdmp::AppRequestTask::handleRequest(svc::Handle<xdmp::AppRequest>&)
+               |          xdmp::AppRequestTask::run()
+               |          svc::PooledThread::run()
+               |          svc::Thread::top()
+
+     0.42%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+            |
+            --- xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |
+               |--99.49%-- xdmp::AppRequestTask::handleEval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |          |
+               |          |--97.71%-- xdmp::AppRequestTask::handleGeneric(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool)
+               |          |          xdmp::AppRequestTask::handleRequest(svc::Handle<xdmp::AppRequest>&)
+               |          |          xdmp::AppRequestTask::run()
+
+     0.41%     0.01%  MarkLogic  MarkLogic                     [.] xdmp::FunctionTailCall::evalTail(xdmp::DynamicEnv&, xdmp::ValueAccumulator&, svc::Handle<xdmp::TailCall>&)
+            |
+            --- xdmp::FunctionTailCall::evalTail(xdmp::DynamicEnv&, xdmp::ValueAccumulator&, svc::Handle<xdmp::TailCall>&)
+               |
+               |--84.73%-- xdmp::StatementExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::MainModule::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::Statement::_eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, xdmp::Bool&, bool) const
+               |          xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+               |          xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+
+     0.41%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::AppRequestTask::handleGeneric(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool)
+            |
+            --- xdmp::AppRequestTask::handleGeneric(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool)
+               |
+               |--99.74%-- xdmp::AppRequestTask::handleRequest(svc::Handle<xdmp::AppRequest>&)
+               |          xdmp::AppRequestTask::run()
+               |          svc::PooledThread::run()
+               |          svc::Thread::top()
+               |          runThread
+
+     0.41%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::Statement::_eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, xdmp::Bool&, bool) const
+            |
+            --- xdmp::Statement::_eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, xdmp::Bool&, bool) const
+               |
+               |--99.74%-- xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+               |          xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+               |          |
+               |          |--86.60%-- xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |          |          xdmp::AppRequestTask::handleEval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+
+     0.41%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+            |
+            --- xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+               |
+               |--86.60%-- xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |          xdmp::AppRequestTask::handleEval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |          |
+               |          |--97.32%-- xdmp::AppRequestTask::handleGeneric(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool)
+               |          |          xdmp::AppRequestTask::handleRequest(svc::Handle<xdmp::AppRequest>&)
+
+     0.41%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+            |
+            --- xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+                xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+               |
+               |--86.60%-- xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |          xdmp::AppRequestTask::handleEval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+               |          |
+               |          |--97.32%-- xdmp::AppRequestTask::handleGeneric(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool)
+
+     0.41%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::MainModule::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::MainModule::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |
+               |--99.74%-- xdmp::Statement::_eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, xdmp::Bool&, bool) const
+               |          xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+               |          xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+               |          |
+               |          |--87.56%-- xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+
+     0.41%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::StatementExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::StatementExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+                xdmp::MainModule::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+                xdmp::Statement::_eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, xdmp::Bool&, bool) const
+                xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+                xdmp::Program::eval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, char const*, bool, bool, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*) const
+               |
+               |--87.56%-- xdmp::AppRequestTask::handleEvalLocked(xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv>&, svc::Handle<xdmp::AppRequest>&, std::string const&, unsigned long, bool, std::vector<svc::Handle<xdmp::Result>, std::allocator<svc::Handle<xdmp::Result> > >*)
+
+     0.40%     0.01%  MarkLogic  MarkLogic                     [.] xdmp::TryCatchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::TryCatchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |
+               |--98.69%-- xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |
+               |          |--65.96%-- xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |          |
+               |          |          |--99.19%-- xdmp::EvalFLWOREnv::evalReturn(xdmp::LocationInfo const&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::Expr> const&)
+
+     0.40%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::Expr::evalCompletely(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::Expr::evalCompletely(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |
+               |--99.21%-- xdmp::TryCatchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |
+               |          |--65.96%-- xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          |          |
+
+     0.40%     0.00%  MarkLogic  MarkLogic                     [.] xdmp::FLWORExpr::evalTail(xdmp::DynamicEnv&, xdmp::ValueAccumulator&, svc::Handle<xdmp::TailCall>&) const
+            |
+            --- xdmp::FLWORExpr::evalTail(xdmp::DynamicEnv&, xdmp::ValueAccumulator&, svc::Handle<xdmp::TailCall>&) const
+               |
+               |--59.57%-- xdmp::FunctionTailCall::evalTail(xdmp::DynamicEnv&, xdmp::ValueAccumulator&, svc::Handle<xdmp::TailCall>&)
+               |          xdmp::StatementExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::MainModule::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::Statement::_eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, xdmp::Bool&, bool) const
+               |          xdmp::Statement::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::XSLTEnv> const&, xdmp::SPARQLEnv*, char const*, bool, bool) const
+
+     0.39%     0.00%  MarkLogic  [unknown]                     [.] 0x00007f524d8110d8
+            |
+            --- 0x7f524d8110d8
+                (nil)
+
+
+     0.39%     0.14%  MarkLogic  MarkLogic                     [.] xdmp::BuiltinExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+            |
+            --- xdmp::BuiltinExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |
+               |--33.42%-- xdmp::BuiltinExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::IfExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::TypeSwitchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+               |          xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const
+
+     0.36%     0.36%  MarkLogic  libjemalloc.so.1              [.] arena_dalloc_bin_locked
+            |
+            --- arena_dalloc_bin_locked
