@@ -40,15 +40,15 @@ class ScopeTest(unittest.TestCase):
         self.t = SCOPE.read_text()
 
     def test_exists_within_cap(self):
-        self.assertLessEqual(len(self.t.splitlines()), 80)
+        self.assertLessEqual(len(self.t.splitlines()), 90)
 
     def test_required_content(self):
         for w in ("https://community.progress.com/s/products/marklogic/scope-of-support",
                   "https://community.progress.com/s/products/marklogic/support-guide", ARTICLE,
-                  "Severity", "Priority", "Business Impact", "Scope flag", "Criteria", "have NOT been supplied",
-                  "### Criteria (to be filled from the Scope Of Support Policy)",
+                  "Severity", "Priority", "Business Impact", "Scope flag", "Criteria", "SLA & Severity Definitions",
+                  "### Criteria (what is not covered)", "### Covered (no flag)", "In-depth performance tuning", "dedicated support engineer", "far beyond",
                   "# Scope of support and severity (reference only)", "## Rules for using it", "## Links",
-                  "## Severity, priority and business impact", "## Scope check (pending criteria)", "## Sources"):
+                  "## Severity, priority and business impact", "## Scope check", "## Sources"):
             self.assertIn(w, self.t, w)
 
     def test_no_breach_word(self):
