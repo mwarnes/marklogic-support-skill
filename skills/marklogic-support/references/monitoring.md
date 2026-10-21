@@ -56,6 +56,7 @@
 9. **Check disk space on the Logs filesystem** when MarkLogic aborts or will not start: confirm free space on the device holding the Logs directory → free space, then restart
 10. **Open the relevant status screen**: System Status (cluster), Group Status, Host Status, App Server Status, Task Server Status, Database Status or Forest Status for the resource in question
 11. **Script reports with the monitoring functions**: build reports or feed site-wide monitoring from `xdmp:server-status`, `xdmp:host-status`, `xdmp:forest-status`, `xdmp:request-status` etc.; take syntax from "Server Monitoring functions" in the MarkLogic XQuery and XSLT Function Reference
+12. **Get Monitoring History data for a past incident (support)**: check Telemetry first, otherwise export the Meters data (KB 000266887) using `exportMeters.xqy` or `get-raw.sh` as set out in `references/performance-data-requests.md`
 
 ## Common mistakes & symptoms
 
@@ -96,3 +97,4 @@
 - <https://docs.marklogic.com/xdmp:forest-status>
 - <https://docs.marklogic.com/xdmp:request-cancel>
 - <https://docs.marklogic.com/xdmp:forest-counts>
+- <https://community.progress.com/s/article/exporting-metering-data> — KB 000266887, exporting metering data (maintainer-supplied copy; URL built from the URL Name, not confirmed; community pages cannot be fetched)

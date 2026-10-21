@@ -122,6 +122,8 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://access.redhat.com/solutions/276533> — sysstat file locations, retention, 10-minute interval change
 - <https://community.progress.com/s/article/creating-a-pstack-movie-for-support> — KB 000266816, pstack movie procedure and `pstack.sh` (maintainer-supplied copy; community pages cannot be fetched)
 - <https://community.progress.com/s/article/using-perf-to-understand-performance> — KB 000268341, perf procedure (maintainer-supplied copy; community pages cannot be fetched)
+- <https://community.progress.com/s/article/exporting-metering-data> — KB 000266887, exporting metering data: Telemetry, Monitoring History, `exportMeters.xqy`, `get-raw.sh` (maintainer-supplied copy; URL built from the URL Name, not confirmed; community pages cannot be fetched)
+- <https://docs.progress.com/bundle/marklogic-server-use-mlcp-12/page/topics/exporting-content-from-marklogic-server/export-command-line-options.html> — MLCP 12 export options (`-mode`, `-output_type`, `-copy_permissions`, `-port`, `-output_file_path`); <https://docs.marklogic.com/xdmp:save>, <https://docs.marklogic.com/xdmp:zip-create>, <https://docs.marklogic.com/xdmp:invoke-function> (privileges)
 - <https://man7.org/linux/man-pages/man1/perf-record.1.html> — `perf-record(1)`: `-F`, `-a`, `-g`, `-- command`, `perf.data`
 - <https://man7.org/linux/man-pages/man1/perf-report.1.html> — `perf-report(1)`: `--header`, `-I` (`--show-info`), `--stdio`
 - <https://man7.org/linux/man-pages/man1/perf-script.1.html> — `perf-script(1)`: displays the recorded trace
@@ -161,6 +163,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.marklogic.com/xdmp:forest-status>
 - <https://docs.marklogic.com/xdmp:request-cancel>
 - <https://docs.marklogic.com/xdmp:forest-counts>
+- <https://community.progress.com/s/article/exporting-metering-data> — KB 000266887, exporting metering data: Telemetry, Monitoring History, `exportMeters.xqy`, `get-raw.sh` (maintainer-supplied copy; URL built from the URL Name, not confirmed; community pages cannot be fetched)
 
 ## dr-scaling.md
 

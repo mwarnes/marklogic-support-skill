@@ -23,7 +23,7 @@ class StatusCaptureDocsTest(unittest.TestCase):
         heads = [l[3:] for l in REQ.read_text().splitlines() if l.startswith("## ")]
         i = heads.index("Running requests: request and server status")
         self.assertEqual(heads[i - 1], "Kernel and OOM messages")
-        self.assertEqual(heads[i + 1], "Stack samples: pstack movie")
+        self.assertEqual(heads[i + 1], "Monitoring History data: export the Meters data")
 
     def test_section_content(self):
         s = section()
