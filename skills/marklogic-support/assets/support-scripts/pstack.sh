@@ -15,7 +15,7 @@ fi
 
 # global vars
 TSTAMP=`date +"%H%M%S-%m-%d-%Y"`
-INTERVAL=3 TIME=$1
+INTERVAL=5 TIME=$1
 
 # main
 echo Support script started at: $TSTAMP - running for $TIME seconds with a sample every $INTERVAL seconds

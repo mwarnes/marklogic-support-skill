@@ -78,7 +78,7 @@ Use for a hang, an unresponsive period, or a query that behaves unexpectedly. So
 
 Customer request:
 
-> 1. We need to see what the MarkLogic server threads are doing over a short time while the problem is happening. A script from Support records a stack trace of the MarkLogic process every 3 seconds and zips the result.
+> 1. We need to see what the MarkLogic server threads are doing over a short time while the problem is happening. A script from Support records a stack trace of the MarkLogic process every 5 seconds and zips the result.
 > 2. Someone with root access on the MarkLogic host runs these steps. First install the tools if they are missing: `yum -y install pstack sysstat psutils gdb` (RHEL/CentOS).
 > 3. Copy the attached `pstack.sh` to the host and make it executable: `chmod +x pstack.sh`.
 > 4. While the problem is happening, run it for 60 seconds: `sudo ./pstack.sh 60`.
@@ -87,9 +87,9 @@ Customer request:
 > 7. MarkLogic older than 11.3.1, or an 11.3.x build not based on RHEL 9: open `pstack.sh` and replace the line `/etc/MarkLogic/proc-util.sh pstack >> /tmp/$TSTAMP/pstack.log` with `service MarkLogic pstack >> /tmp/$TSTAMP/pstack.log` (the script contains this as a comment).
 
 Engineer notes:
-- The script is `<skill-dir>/assets/support-scripts/pstack.sh`, vendored verbatim from the KB article; give the customer that file.
-- The article text says 5-second samples but the script uses 3 (`INTERVAL=3`).
-- The article's `ml-support-dump.sh` listing is identical to `pstack.sh`, so ask for OS-level data with the SAR and host-metrics requests.
+- The script is `<skill-dir>/assets/support-scripts/pstack.sh`, vendored from the KB article with one change (the interval); give the customer that file.
+- The copy in this repository samples every 5 seconds (`INTERVAL=5`), changed from the KB script's 3 by the maintainer on 2026-10-21. The KB article text says 5 but its script uses 3, so a customer who downloads the KB copy gets 3-second samples.
+- The article's "longer script" (`ml-support-dump.sh`) is a duplicate of `pstack.sh` (confirmed, including the community site's copy), so ask for OS-level data with the SAR and host-metrics requests. Support dumps are usually produced separately or supplied via the telemetry link.
 - pstack pauses the process; for sustained high CPU prefer the perf request below.
 - Apply the security incident gate before asking for the file.
 - `pstack.sh` runs `zip -9 -r ...`, but the article's prerequisite line does not install `zip`. If `zip` is missing the script still leaves the `/tmp/<HHMMSS-MM-DD-YYYY>` directory; ask the customer to send that directory instead (for example archived with `tar`) `[unverified — confirm]`.

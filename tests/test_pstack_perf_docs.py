@@ -25,7 +25,8 @@ class StackAndPerfRequestTest(unittest.TestCase):
                        "/etc/MarkLogic/proc-util.sh pstack", "service MarkLogic pstack", "11.3.1", "/tmp/",
                        "000266816", "creating-a-pstack-movie-for-support", "pauses", "while the problem is happening"):
             self.assertIn(needle, s, needle)
-        self.assertIn("3 seconds", s)
+        self.assertIn("5 seconds", s)
+        self.assertNotIn("3 seconds", s)
         self.assertIn("pauses the MarkLogic process while it records the threads, which has a performance impact", s)
         self.assertNotIn("briefly", s)
         self.assertNotIn("small performance", s)
