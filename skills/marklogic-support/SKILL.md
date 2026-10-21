@@ -27,7 +27,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    `parse_dump.py`, `analyse_logs.py`, `analyse_sar.py`, `analyse_pstack.py` or `analyse_perf.py` or drafting a log request, check `Timeline.md` for a "Security
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
-4. **Scope awareness.** Apply `references/support-scope.md`: if its Criteria list is empty, do nothing; if a ticket clearly goes
+4. **Scope awareness.** Apply `references/support-scope.md`: compare the ticket with its Covered and Criteria lists; if a ticket clearly goes
    far beyond the listed criteria, open the output with a "Scope flag" paragraph. The engineer decides.
 
 Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` is not available.
