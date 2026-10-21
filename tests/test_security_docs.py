@@ -17,7 +17,7 @@ class SecurityDocsTest(unittest.TestCase):
 
     def test_everything_points_at_the_reference(self):
         for p in (SKILL / "SKILL.md", SKILL / "references/ticket-auditing.md",
-                  ROOT / "prompts/ticket.md", ROOT / "prompts/kcs.md"):
+                  ROOT / "skills/ticket/SKILL.md", ROOT / "skills/kcs/SKILL.md"):
             self.assertIn(NAME, p.read_text(), p.name)
 
     def test_skill_routes_security_before_anything_else(self):
@@ -37,10 +37,10 @@ class SecurityDocsTest(unittest.TestCase):
         self.assertIn("Area of Interest to `Security`", w)
         self.assertIn('"breach"', w)
         self.assertIn("always `Security`", w)
-        k = (ROOT / "prompts/kcs.md").read_text()
+        k = (ROOT / "skills/kcs/SKILL.md").read_text()
         self.assertIn("incident gate", k)
         self.assertIn("Area of Interest", k)
-        r = (ROOT / "prompts/kcs-review.md").read_text()
+        r = (ROOT / "skills/kcs-review/SKILL.md").read_text()
         self.assertIn("breach", r)
         self.assertIn("Security", r)
 
@@ -57,7 +57,7 @@ class SecurityDocsTest(unittest.TestCase):
             self.assertIn(t, row, t)
 
     def test_gate_wording_and_persistence_documented(self):
-        for p in (SKILL / "SKILL.md", REF, ROOT / "prompts/kcs.md"):
+        for p in (SKILL / "SKILL.md", REF, ROOT / "skills/kcs/SKILL.md"):
             self.assertIn("Security incident gate raised", p.read_text(), p.name)
         for p in (SKILL / "SKILL.md", REF):
             self.assertIn("Security incident gate cleared", p.read_text(), p.name)
@@ -71,12 +71,12 @@ class SecurityDocsTest(unittest.TestCase):
         self.assertIn("security vulnerability or incident ticket", (SKILL / "SKILL.md").read_text())
 
     def test_kcs_review_security_terms(self):
-        r = (ROOT / "prompts/kcs-review.md").read_text()
+        r = (ROOT / "skills/kcs-review/SKILL.md").read_text()
         for t in ("INTERNAL", "Area of Interest", "breach"):
             self.assertIn(t, r)
 
     def test_ticket_prompt_security_check_applies_in_either_case(self):
-        t = (ROOT / "prompts/ticket.md").read_text()
+        t = (ROOT / "skills/ticket/SKILL.md").read_text()
         self.assertGreater(t.index("In either case"), t.index("If it does not"))
 
 

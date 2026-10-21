@@ -27,6 +27,8 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 
+Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` is not available.
+
 ## Triage mode
 
 1. Extract facts from the ticket (state what is missing): MarkLogic version; cluster size / host count; what changed recently (upgrade, new host, index change, config change); exact error text / codes; affected component (host, forest, database, app server, security).
@@ -87,7 +89,7 @@ Check the security incident gate first (Always first, step 3): SAR output is a c
 
 ## Audit trail
 
-If `audit-trail/` exists in the current working directory (created by `/ticket`), read
+If `audit-trail/` exists in the current working directory, or in the ticket directory set up by the `ticket` skill earlier in this session (`<project root>/<ticket>/audit-trail/`) (created by `/ticket`), read
 `references/ticket-auditing.md` once per session, then after producing output in Triage, Dump,
 Log, or SAR mode (never Q&A mode — a one-off question is not ticket work):
 
@@ -110,7 +112,7 @@ On a security vulnerability or incident ticket follow "Audit trail on security t
 entry moving to `Confirmed`, `Root-Cause.md` itself, an `[Escalation]` entry, or a `[Closure]`
 entry. These are assertions, not triage output — propose them, then write only once the engineer
 confirms (e.g. "confirmed", "write up root cause", "we escalated to X", "customer accepted, close
-it"). If `audit-trail/` does not exist, skip all of this silently.
+it"). If `audit-trail/` exists in neither place, skip all of this silently.
 
 **After a confirmed `[Closure]` entry is written**, offer once — in one sentence, no other action —
 to draft a KCS article with `/kcs` (or `/kcs <ticket>` in a later session). Skip the offer if
@@ -118,11 +120,11 @@ to draft a KCS article with `/kcs` (or `/kcs <ticket>` in a later session). Skip
 
 ## KCS articles
 
-On `/kcs` (see `prompts/kcs.md`) or a request to write a KCS article for a finished ticket, read
+On `/kcs` (the `kcs` skill) or a request to write a KCS article for a finished ticket, read
 `references/kcs-writing.md` and write from the ticket's `audit-trail/`; render with
 `scripts/kcs_render.py`. Never in Q&A mode without a ticket.
 
-On `/kcs-review` (see `prompts/kcs-review.md`) or a request to review someone else's KCS article,
+On `/kcs-review` (the `kcs-review` skill) or a request to review someone else's KCS article,
 read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 `scripts/kcs_render.py` (`--to-md`, `--target`). No ticket is involved.
 
