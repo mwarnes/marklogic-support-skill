@@ -36,7 +36,7 @@ class RequestTemplateTest(unittest.TestCase):
     def test_sections_and_key_commands(self):
         text = self.REQ.read_text()
         for h in ("SAR export", "If SAR is not running", "Host metrics (iostat, vmstat, mpstat, pidstat)",
-                  "Kernel and OOM messages", "Hangs: thread dumps and pmap", "Cloud-hosted customers"):
+                  "Kernel and OOM messages", "Stack samples: pstack movie", "CPU profile: perf", "Memory growth: pmap", "Cloud-hosted customers"):
             self.assertIn("## " + h, text)
         self.assertIn("LC_ALL=C S_TIME_FORMAT=ISO sar -A -f", text)
         self.assertIn("iostat -xz", text)

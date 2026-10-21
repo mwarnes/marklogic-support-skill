@@ -120,7 +120,14 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://man7.org/linux/man-pages/man1/journalctl.1.html> — `journalctl(1)`: `-k`, `--since`/`--until`
 - <https://man7.org/linux/man-pages/man1/pmap.1.html> — `pmap(1)`: `-x` extended format
 - <https://access.redhat.com/solutions/276533> — sysstat file locations, retention, 10-minute interval change
-- <https://github.com/marklogic-community/mlstat> — community pstack/pmap/iostat/vmstat loop script (not official guidance)
+- <https://community.progress.com/s/article/creating-a-pstack-movie-for-support> — KB 000266816, pstack movie procedure and `pstack.sh` (maintainer-supplied copy; community pages cannot be fetched)
+- <https://community.progress.com/s/article/using-perf-to-understand-performance> — KB 000268341, perf procedure (maintainer-supplied copy; community pages cannot be fetched)
+- <https://man7.org/linux/man-pages/man1/perf-record.1.html> — `perf-record(1)`: `-F`, `-a`, `-g`, `-- command`, `perf.data`
+- <https://man7.org/linux/man-pages/man1/perf-report.1.html> — `perf-report(1)`: `--header`, `-I` (`--show-info`), `--stdio`
+- <https://man7.org/linux/man-pages/man1/perf-script.1.html> — `perf-script(1)`: displays the recorded trace
+- <https://man7.org/linux/man-pages/man1/perf-top.1.html> — `perf-top(1)`: real-time profile
+- <https://man7.org/linux/man-pages/man1/date.1.html> — `date(1)`: `-I` ISO 8601 output
+- <https://github.com/marklogic-community/mlstat> — community pmap/iostat/vmstat loop script (not official guidance)
 - <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using_cloudwatch_ebs.html> — EBS volume and Nitro instance CloudWatch metrics, exceeded-check caveats (Multi-Attach, Outposts, Local Zones, Wavelength Zones)
 - <https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html> — EBS volume type maximum IOPS and throughput
 - <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html> — EC2 instance metrics, 5-minute default period
