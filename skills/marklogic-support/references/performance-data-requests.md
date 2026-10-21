@@ -160,6 +160,7 @@ Engineer notes:
 - Apply the security incident gate before asking for the files.
 - `date -Is` puts colons in the file names (fine on Linux; rename if copied to Windows).
 - The files hold function names and counts, not document content `[unverified — confirm]`.
+- Customers sometimes send the raw `perf.data` (even one per node in a zip) instead of the report. That gives the header only (host, kernel, CPUs, memory, capture command, window): `scripts/analyse_perf.py` reads it, but the samples need `perf report -i <file> --stdio` on a Linux host with the same perf (`--convert` runs the local perf). Ask for the `perf report --header -I --stdio` text and the `perf script` text, or have `perf archive` run and its output sent with the `perf.data` `[unverified — confirm]`.
 - Analyse the report with `scripts/analyse_perf.py` (see `references/pstack-analysis.md`); the `perf script` output is not analysed by a script.
 
 ## Memory growth: pmap

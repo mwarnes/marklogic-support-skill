@@ -36,6 +36,19 @@ class PstackPerfModeTest(unittest.TestCase):
             self.assertIn(w, s, w)
         self.assertLessEqual(len(ref.splitlines()), 160)
 
+    def test_mode_section_covers_raw_perf_data(self):
+        s = section(SKILL_MD, "## pstack and perf mode")
+        for w in ("perf.data", "--convert", "external tool on customer data", "header inventory", "text report", "not captured the same way"):
+            self.assertIn(w, s, w)
+        ref = (SKILL / "references/pstack-analysis.md").read_text()
+        self.assertIn("not captured the same way", section(ref, "## Several hosts"))
+        req = (SKILL / "references/performance-data-requests.md").read_text()
+        for w in ("raw `perf.data`", "perf archive", "perf report --header -I --stdio"):
+            self.assertIn(w, req, w)
+        readme = (ROOT / "README.md").read_text()
+        for w in ("raw `perf.data`", "--convert"):
+            self.assertIn(w, readme, w)
+
     def test_readme_describes_archive_input(self):
         readme = (ROOT / "README.md").read_text()
         self.assertIn("diag_inputs.py", readme)
