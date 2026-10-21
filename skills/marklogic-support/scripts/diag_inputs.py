@@ -68,7 +68,10 @@ RATIO_MIN_SIZE = 50 * 1024 * 1024
 RATIO = 200
 SEP = " > "
 JUNK_NAMES = {".ds_store", "thumbs.db", "desktop.ini"}
-GENERIC = {"pstack logs", "pstack", "perfdata", "perf", "logs", "tmp", "data", ""}
+GENERIC = {"pstack logs", "pstack", "perfdata", "perf", "logs", "tmp", "data", "",
+           # folder names of the customer diagnostics guide layout (hosts/<hostname>/pstack|perf|sar|OSLogs|Logs ...)
+           "hosts", "oslogs", "sar", "meters", "monitoring", "performance", "repro", "dump", "cloud", "backups"}
+ENV_NAMES = {"prod", "production", "qa", "uat", "stage", "staging", "dev", "test", "preprod", "dr"}
 TS_RE = re.compile(r"^\d{6}-\d\d-\d\d-\d{4}$")
 CHUNK = 1024 * 1024
 READ_ERRORS = (OSError, ValueError, zipfile.BadZipFile, zlib.error, EOFError, RuntimeError, NotImplementedError)
@@ -393,8 +396,8 @@ def _clean_stem(name):
     return re.sub(r"\.zip$", "", name.rsplit("/", 1)[-1], flags=re.I)
 
 
-def host_hint(source):
-    """Best-effort host name from the container names (see the module docstring), or None."""
+def _chain(source):
+    """Container names of a source, outermost first: folders, zip member folders and zip stems."""
     chain = []
     parts = source.parts
     for i, part in enumerate(parts):
@@ -402,10 +405,25 @@ def host_hint(source):
         chain += pieces[:-1]
         if i < len(parts) - 1:             # a zip member name: its stem is a component too
             chain.append(_clean_stem(pieces[-1]))
-    for comp in reversed(chain):
+    return chain
+
+
+def host_hint(source):
+    """Best-effort host name from the container names (see the module docstring), or None."""
+    for comp in reversed(_chain(source)):
         if comp.lower() not in GENERIC and not TS_RE.match(comp):
             return safe_label(comp)
     return None
+
+
+def environments(sources):
+    """Distinct environment-looking folder names (Prod, QA, Stage ...) in the sources' paths, first spelling, in order of appearance."""
+    seen = {}
+    for src in sources:
+        for comp in _chain(src):
+            if comp.lower() in ENV_NAMES:
+                seen.setdefault(comp.lower(), comp)
+    return list(seen.values())
 
 
 def dedupe(sources, notes):

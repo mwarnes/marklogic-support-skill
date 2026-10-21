@@ -2,6 +2,8 @@
 
 Use these blocks to build the "Questions to ask the customer" and `Required-Diagnostics.md` entries on performance tickets that have no host-level data. Copy a block, fill the `<...>` parts and paste it into Salesforce. Each customer block is numbered, says why each item is needed and is plain language. Apply the security incident gate (`security-vulnerability-handling.md`) before asking for any file from a customer who mentioned a security incident. How to read what comes back: `sar-analysis.md`. Cloud signals are requested only from cloud-hosted customers, never on-prem (see the last section). Commands are checked against the man7.org pages for `sar(1)`, `iostat(1)`, `vmstat(8)`, `mpstat(1)`, `pidstat(1)`, `dmesg(1)`, `journalctl(1)`, `perf-record(1)`, `perf-report(1)`, `perf-script(1)`, `perf-top(1)`, `date(1)`; anything not on a page read is marked `[unverified — confirm]`.
 
+Optional placement hints for where the customer can put each item (reference only, never mandatory) are in `customer-diagnostics-guide.md`; link the article only if the customer needs it.
+
 ## SAR export
 
 Customer request:

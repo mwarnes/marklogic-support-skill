@@ -496,6 +496,10 @@ def run(a, sources, notes):
     except diag_inputs.READ_ERRORS as e:
         notes.add(f"duplicate check failed ({type(e).__name__}); duplicates not removed")
     infos, sections, all_findings, csv_rows, used, raw = [], [], [], [], 0, 0
+    envs = diag_inputs.environments(keep)
+    if len(envs) > 1:
+        notes.add(f"inputs from more than one environment ({', '.join(S(e) for e in envs)}): "
+                  "the customer guide asks for environments not to be mixed; compare hosts within one environment only")
     for src in keep:
         try:
             data = src.read()
