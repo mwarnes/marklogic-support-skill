@@ -15,7 +15,7 @@ class StackAndPerfRequestTest(unittest.TestCase):
     def test_sections_exist_in_order_before_the_cloud_section(self):
         heads = [l[3:] for l in REQ.splitlines() if l.startswith("## ")]
         i = heads.index("Stack samples: pstack movie")
-        self.assertEqual(heads[i:i + 4], ["Stack samples: pstack movie", "CPU profile: perf",
+        self.assertEqual(heads[i:i + 5], ["Stack samples: pstack movie", "CPU profile: perf", "Raw perf.data received: convert or re-request",
                                           "Memory growth: pmap", "Cloud-hosted customers"])
         self.assertNotIn("Hangs: thread dumps and pmap", heads)
 

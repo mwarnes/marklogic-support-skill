@@ -40,7 +40,7 @@ class StatusCaptureDocsTest(unittest.TestCase):
         self.assertIn("Monitoring History", notes)
 
     def test_file_length(self):
-        self.assertLessEqual(len(REQ.read_text().splitlines()), 210)
+        self.assertLessEqual(len(REQ.read_text().splitlines()), 240)
 
     def test_monitoring_cites_pages(self):
         text = MON.read_text()

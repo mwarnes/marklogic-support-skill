@@ -387,11 +387,13 @@ def convert_with_perf(data, label, notes, roots=()):
 
 
 UNTRUSTED_PERF_NOTE = "perf found at a relative/untrusted PATH entry; not run"
-NO_PERF_NOTE = ("perf not installed here: raw perf.data cannot be analysed; run on a Linux host with the same perf: `perf report -i <file> --stdio`, "
-                "or ask for the text report from the request in references/performance-data-requests.md")
-RAW_NOTE = ("{n} raw perf.data file(s): only the file header is read here; the samples need `perf report -i <file> --stdio` run on a Linux host with the same perf "
-            "(kernel and MarkLogic symbols may not resolve on a different host from the one that recorded the data `[unverified — confirm]`), "
-            "or the text report from the request in references/performance-data-requests.md; `--convert` runs the local `perf` on customer data")
+SEE_SECTION = "see 'Raw perf.data received: convert or re-request' in references/performance-data-requests.md"
+NO_PERF_NOTE = ("perf not installed here: raw perf.data gives the header only; convert it on a Linux host with perf "
+                "(`perf report -i <file> --header -I --stdio > <host>.report`, then analyse the report) or ask the customer for the text report; " + SEE_SECTION)
+RAW_NOTE = ("{n} raw perf.data file(s): this gives the header only; either convert on a Linux host with perf "
+            "(`perf report -i <file> --header -I --stdio > <host>.report`, then analyse the report; or `--convert` where perf is installed, which runs the local `perf` on customer data) "
+            "or ask the customer for the text report; " + SEE_SECTION + " "
+            "(kernel and MarkLogic symbols may not resolve on a different host from the one that recorded the data `[unverified — confirm]`)")
 
 
 def fmt(r, key):
