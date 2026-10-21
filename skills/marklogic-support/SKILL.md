@@ -29,6 +29,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 4. **Scope awareness.** Apply `references/support-scope.md`: compare the ticket with its Covered and Criteria lists; if a ticket clearly goes
    far beyond the listed criteria, open the output with a "Scope flag" paragraph. The engineer decides.
+5. **Severity check.** Apply the "Severity check" in `references/support-scope.md`: record the ticket's stated severity in `Timeline.md`; if the facts do not fit the support-guide definitions, open the output with a "Severity query" paragraph. Engineers cannot change severity: the paragraph is for them to raise with the Client Success Manager.
 
 Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` is not available.
 
