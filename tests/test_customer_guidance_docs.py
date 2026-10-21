@@ -16,7 +16,7 @@ class GuideTest(unittest.TestCase):
         self.t = GUIDE.read_text()
 
     def test_exists_within_cap(self):
-        self.assertLessEqual(len(self.t.splitlines()), 110)
+        self.assertLessEqual(len(self.t.splitlines()), 120)
 
     def test_required_content(self):
         for w in (ARTICLE, "000299228", "reference only", "verbatim", "hosts/<hostname>/", "performance/meters/",
@@ -40,12 +40,12 @@ class ScopeTest(unittest.TestCase):
         self.t = SCOPE.read_text()
 
     def test_exists_within_cap(self):
-        self.assertLessEqual(len(self.t.splitlines()), 110)
+        self.assertLessEqual(len(self.t.splitlines()), 120)
 
     def test_required_content(self):
         for w in ("https://community.progress.com/s/products/marklogic/scope-of-support",
                   "https://community.progress.com/s/products/marklogic/support-guide", ARTICLE,
-                  "Severity", "Priority", "Business Impact", "Scope flag", "Criteria", "SLA & Severity Definitions", "### Severity levels", "12 business hours", "14 calendar days", "21 calendar days", "30 days", "security incident gate",
+                  "Severity", "Priority", "Business Impact", "Scope flag", "Criteria", "SLA & Severity Definitions", "### Severity levels", "### Severity check", "Severity query", "Client Success Manager", "Engineers cannot change", "12 business hours", "14 calendar days", "21 calendar days", "30 days", "security incident gate",
                   "### Criteria (what is not covered)", "### Covered (no flag)", "In-depth performance tuning", "dedicated support engineer", "far beyond",
                   "# Scope of support and severity (reference only)", "## Rules for using it", "## Links",
                   "## Severity, priority and business impact", "## Scope check", "## Sources"):
@@ -53,6 +53,14 @@ class ScopeTest(unittest.TestCase):
 
     def test_no_breach_word(self):
         self.assertNotIn("breach", self.t.lower())
+
+
+class TicketSeverityPromptTest(unittest.TestCase):
+    def test_ticket_skill_asks_for_missing_severity(self):
+        t = (ROOT / "skills/ticket/SKILL.md").read_text()
+        for w in ("the ticket's severity", "production system", "workaround", "business impact",
+                  "Client Success Manager", "Severity check", '"unknown" is an acceptable answer'):
+            self.assertIn(w, t, w)
 
 
 class WiringTest(unittest.TestCase):
@@ -64,6 +72,7 @@ class WiringTest(unittest.TestCase):
             self.assertIn(w, SKILL_MD, w)
         always = SKILL_MD.split("## Triage mode")[0]
         self.assertIn("4. **Scope awareness", always)
+        self.assertIn("5. **Severity check", always)
         row = [l for l in SKILL_MD.splitlines() if l.startswith("|") and "references/customer-diagnostics-guide.md" in l]
         self.assertTrue(row)
         triage = SKILL_MD.split("## Triage mode")[1].split("## Q&A mode")[0]

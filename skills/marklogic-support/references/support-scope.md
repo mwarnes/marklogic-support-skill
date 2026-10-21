@@ -40,7 +40,14 @@ The SLOs are internal guidelines, not commitments. Progress may change a severit
 - Severity 1 needs the customer reachable round the clock and the engineer working continuously until resolved or circumvented; Severity 2 needs the customer's documentation, system and people available. If that is not the case, the severity is re-evaluated.
 - A Severity 1 ticket notifies every support engineer and engineering management. On weekends Severity 1 cases should be opened by phone.
 - Severity 1 includes "security compromised": apply the security incident gate in `security-vulnerability-handling.md` before any data is requested or opened.
-- Check the stated severity against this table when triaging; if it looks wrong, say so to the engineer, who changes it and tells the customer.
+- Engineers cannot change a ticket's severity. Check the stated severity against this table; if it does not fit, raise the doubt (see "Severity check" below) so the engineer can take it to the customer's Client Success Manager. Never state that the severity "is wrong"; say what does not fit.
+
+### Severity check
+
+- Needs the stated severity (1, 2 or 3), whether the system is production, whether a workaround is in place, and the business impact. Missing facts are asked, never assumed.
+- Raise a doubt when the facts do not fit the stated level, in either direction. Examples: Severity 1 with no production outage, or with a workaround running (fits 2 or 3); Severity 3 for a hang, crash, data loss or a system that will not start in production (fits 1); Severity 2 or 1 for a how-to, configuration help or a cosmetic issue (fits 3); Severity 1 with a customer who cannot be reached round the clock.
+- Output: one short paragraph, "Severity query: ...", naming the stated level, the facts that do not fit, the level they would fit, and that the engineer can raise it with the Client Success Manager. Add one line to `Timeline.md`: "Severity recorded: N" always, and "Severity query raised: ..." when a doubt is raised.
+- A consistent severity gets no paragraph, only the Timeline line. An unknown severity is recorded as "unknown" and re-checked when the facts arrive.
 
 ### Case handling rules from the support guide (paraphrased)
 
