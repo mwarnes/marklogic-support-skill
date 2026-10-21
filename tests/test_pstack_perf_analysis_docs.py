@@ -24,6 +24,23 @@ class PstackPerfModeTest(unittest.TestCase):
                             "references/performance-data-requests.md", "[unverified — confirm]"):
             self.assertIn(w, s, w)
 
+    def test_mode_section_covers_zips_and_the_host_overview(self):
+        s = section(SKILL_MD, "## pstack and perf mode")
+        for w in ("one per host", "zips in zips", "nothing is extracted to disk", "duplicate", "hosts.csv", "overview table"):
+            self.assertIn(w, s, w)
+
+    def test_reference_has_several_hosts_section(self):
+        ref = (SKILL / "references/pstack-analysis.md").read_text()
+        s = section(ref, "## Several hosts")
+        for w in ("Host", "Span", "Top finding", "per host", "hosts.csv", "[unverified — confirm]"):
+            self.assertIn(w, s, w)
+        self.assertLessEqual(len(ref.splitlines()), 160)
+
+    def test_readme_describes_archive_input(self):
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn("diag_inputs.py", readme)
+        self.assertIn("zips in zips", readme)
+
     def test_classification_bullet(self):
         self.assertIn("- A pstack movie (a pstack.log, or the zip from pstack.sh) or a `perf report --stdio` "
                       "text report → **pstack and perf mode**", SKILL_MD)

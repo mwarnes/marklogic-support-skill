@@ -3,11 +3,14 @@
 
 Usage: analyse_pstack.py PATH... [--out DIR] [--min-samples N] [--min-threads N]
 Inputs: a pstack.log (or .txt) with gdb/pstack style blocks `Thread N (Thread 0x... (LWP n)):` / `#k  0x... in func () from lib`,
-        a .zip containing one, or a directory (recursed; binary files and files or zip members over 512 MB are skipped with a note).
+        a .zip containing one, or a directory (recursed). Zips in zips (one zip per host, say), macOS junk files and byte-identical
+        duplicate copies are handled by diag_inputs.py; nothing is extracted to disk. A file is a pstack input when its first 256 KB has a
+        `Thread N (` line; others are only counted in the Notes (binary files and files or zip members over 512 MB are skipped with a note).
+        With several inputs SUMMARY.md starts with a per-host overview table (also hosts.csv) and the per-input sections are compact.
         A date line (a line outside a thread block with a hh:mm:ss time and a 4-digit year, as written by pstack.sh) starts a snapshot
         and a dated snapshot ends only at the next date line; without date lines a new snapshot starts where the thread numbers restart.
         Text outside thread blocks (a MarkLogic banner, say) is ignored and only counted in the Notes.
-Writes: SUMMARY.md findings.json snapshots.csv   (never whole stacks: only counts and the top few signatures; all UTF-8)
+Writes: SUMMARY.md findings.json snapshots.csv (hosts.csv with several inputs)   (never whole stacks: only counts and the top few signatures; all UTF-8)
 Provenance: the maintainer notes (2026-10-21) supply only the three categories to look for (same place across snapshots; waiting in
 sleep/poll/synchronisation; identical internal stacks). The specific wait / lock function name lists and the allocator and
 CacheListStorage patterns below are the script author's heuristics, derived from one anonymised 2015 customer capture (glibc 2.12,
@@ -17,11 +20,17 @@ Wait / lock classification: frame names are normalised (`__GI_`, `__libc_`, lead
 the top frame is a lock name, or a lock name is the frame directly under a wait/futex frame (the wait called from the lock path);
 lock wins over waiting only in those two cases. Anything else is `running`.
 """
-import argparse, csv, json, re, sys, zipfile
+import argparse, csv, json, re, statistics, sys
 from collections import Counter, defaultdict
+from datetime import datetime
 from pathlib import Path
 
-MAX_BYTES = 512 * 1024 * 1024
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import diag_inputs
+
+SEP = diag_inputs.SEP
+PSTACK_SNIFF = 256 * 1024
+PSTACK_RE = re.compile(r"(?m)^Thread \d+ \(")
 THREAD_RE = re.compile(r"^Thread (\d+) \(.*?\bLWP (\d+)\b")
 FRAME_RE = re.compile(r"^#(\d+)\s+(?:0x[0-9a-fA-F]+ in )?(.*?)\s*$")
 TIME_RE = re.compile(r"(?<!\d)\d{1,2}:\d\d:\d\d(?!\d)")
@@ -123,44 +132,93 @@ def is_binary(head):
     return b"\0" in head
 
 
+MONTHS = {m: i for i, m in enumerate(("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), 1)}
+
+
+def parse_date(line):
+    """Best-effort datetime from a pstack.sh date line, ignoring the time-zone word; None if it cannot be parsed.
+    Handles `Mon Sep 21 08:33:44 GMT 2020`, `Tue 21 Oct 2026 10:00:01 UTC`, `Tue Oct 21 10:00:01 +03 2026` and an optional AM/PM."""
+    t = TIME_RE.search(line)
+    y = YEAR_RE.search(line)
+    if not t or not y:
+        return None
+    rest = line
+    for a, b in sorted([t.span(), y.span()], reverse=True):
+        rest = rest[:a] + " " + rest[b:]
+    ampm = re.match(r"\s*([AaPp])\.?[Mm]\b", line[t.end():])
+    mon = next((MONTHS[m.group(1).lower()] for m in re.finditer(r"(?<![A-Za-z])([A-Za-z]{3})[A-Za-z]*(?![A-Za-z])", rest)
+                if m.group(1).lower() in MONTHS), None)
+    day = re.search(r"(?<![\d+:-])(\d{1,2})(?!\d)", rest)
+    if mon is None or not day:
+        return None
+    hh, mm, ss = (int(x) for x in t.group().split(":"))
+    if ampm:
+        hh = hh % 12 + (12 if ampm.group(1).lower() == "p" else 0)
+    try:
+        return datetime(int(y.group()), mon, int(day.group(1)), hh, mm, ss)
+    except ValueError:
+        return None
+
+
+def format_span(seconds):
+    seconds = round(seconds)
+    if seconds < 120:
+        return f"{seconds} s"
+    return f"{round(seconds / 60)} min" if seconds < 7200 else f"{round(seconds / 3600)} h"
+
+
+def timing(snaps):
+    """(span seconds | None, median spacing seconds | None) from the parseable date lines, in snapshot order."""
+    ts = [d for d in (parse_date(s["date"]) for s in snaps if s["date"]) if d]
+    if len(ts) < 2:
+        return None, None
+    gaps = [(b - a).total_seconds() for a, b in zip(ts, ts[1:])]
+    return (max(ts) - min(ts)).total_seconds(), statistics.median(gaps)
+
+
+def pstack_sources(paths, notes):
+    """Walk the inputs, keep the pstack ones (a `Thread N (` line in the first 256 KB), drop duplicates -> list of diag_inputs.Source."""
+    try:
+        sources = diag_inputs.walk(paths, notes)
+    except FileNotFoundError as e:
+        sys.exit(f"analyse_pstack: path not found: {e.filename}")
+    keep, no_threads = [], 0
+    for src in sources:
+        try:
+            head = src.head(PSTACK_SNIFF)
+        except diag_inputs.READ_ERRORS as e:
+            notes.add(f"{src.label}: could not be read ({type(e).__name__})")
+            continue
+        if is_binary(head[:4096]):
+            notes.add(f"{src.label}: skipped, binary file")
+        elif PSTACK_RE.search(head.decode("utf-8", errors="replace")):
+            keep.append(src)
+        else:
+            no_threads += 1
+    if no_threads:
+        notes.add(f"{no_threads} file(s) skipped, no 'Thread N (...)' blocks")
+    try:
+        return diag_inputs.dedupe(keep, notes)
+    except diag_inputs.READ_ERRORS as e:
+        notes.add(f"duplicate check failed ({type(e).__name__}); duplicates not removed")
+        return keep
+
+
+def read_text(src, notes):
+    try:
+        return src.read().decode("utf-8", errors="replace")
+    except diag_inputs.READ_ERRORS as e:
+        notes.add(f"{src.label}: could not be read ({type(e).__name__})")
+        return None
+
+
 def read_inputs(paths, notes):
+    """-> [(label, text)] for the pstack inputs (kept for callers that want the text)."""
     out = []
-    for p in map(Path, paths):
-        if not p.exists():
-            sys.exit(f"analyse_pstack: path not found: {p}")
-        files = sorted(f for f in p.rglob("*") if f.is_file()) if p.is_dir() else [p]
-        for f in files:
-            try:
-                size = f.stat().st_size
-                if size > MAX_BYTES:
-                    notes.add(f"{f.name}: skipped, larger than {MAX_BYTES / 1048576:g} MB")
-                    continue
-                if f.suffix.lower() == ".zip":
-                    with zipfile.ZipFile(f) as z:
-                        for info in sorted(z.infolist(), key=lambda i: i.filename):
-                            name = info.filename
-                            if name.endswith("/") or Path(name).suffix.lower() not in (".log", ".txt"):
-                                continue
-                            if info.file_size > MAX_BYTES:
-                                notes.add(f"{f.name}:{name}: skipped, larger than {MAX_BYTES / 1048576:g} MB")
-                                continue
-                            data = z.read(name).decode("utf-8", errors="replace")
-                            if re.search(r"(?m)^Thread \d+ \(", data):
-                                out.append((f"{f.name}:{name}", data))
-                else:
-                    raw = f.read_bytes()
-                    if is_binary(raw[:4096]):
-                        notes.add(f"{f.name}: skipped, binary file")
-                        continue
-                    data = raw.decode("utf-8", errors="replace")
-                    if re.search(r"(?m)^Thread \d+ \(", data):
-                        out.append((f.name, data))
-                    else:
-                        notes.add(f"{f.name}: skipped, no 'Thread N (...)' blocks")
-            except zipfile.BadZipFile:
-                notes.add(f"{f.name}: not a readable zip file")
-            except OSError as e:
-                notes.add(f"{f.name}: could not be read ({type(e).__name__})")
+    for src in pstack_sources(paths, notes):
+        text = read_text(src, notes)
+        if text is not None:
+            out.append((src.label, text))
     return out
 
 
@@ -238,7 +296,65 @@ def run_kind(frames):
     return "(other)"
 
 
-def write_outputs(label_snaps, rows_all, findings_all, out, notes, min_samples, min_threads):
+def host_row(e):
+    """One overview row for an analysed input (dict with label, host, snaps, rows, findings)."""
+    span, _ = timing(e["snaps"])
+    f = e["findings"]
+    return {"host": e["host"], "snapshots": len(e["snaps"]), "span": format_span(span) if span is not None else "-",
+            "threads": max(r["threads"] for r in e["rows"]), "running": max(r["running"] for r in e["rows"]),
+            "lock_wait": max(r["lock"] for r in e["rows"]), "top_finding": f[0]["rule"] if f else "-",
+            "label": e["label"], "_sev0": any(x["severity"] == 0 for x in f)}
+
+
+HOST_COLS = ["host", "snapshots", "span", "threads", "running", "lock_wait", "top_finding", "label"]
+
+
+def input_section(e):
+    label, snaps, rows, findings = e["label"], e["snaps"], e["rows"], e["findings"]
+    _, gap = timing(snaps)
+    if gap is not None:
+        when = f"sample times from date lines, snapshots about {format_span(gap)} apart"
+    elif any(s["date"] for s in snaps):
+        when = "sample times from date lines"
+    else:
+        when = "no date lines: sample times and spacing unknown"
+    L = [f"## {label}", "", f"{len(snaps)} snapshot(s); threads per snapshot {[len(s['threads']) for s in snaps]}; {when}.", "",
+         "| Snapshot | Date | Threads | Waiting | Lock wait | Running | " + " | ".join(n for n, _, _ in PATTERNS) + " |",
+         "| --- | --- | --- | --- | --- | --- | " + " | ".join("---" for _ in PATTERNS) + " |"]
+    for r in rows:
+        L.append(f"| {r['snapshot']} | {r['date'] or '-'} | {r['threads']} | {r['waiting']} | {r['lock']} | {r['running']} | "
+                 + " | ".join(str(r[n]) for n, _, _ in PATTERNS) + " |")
+    L += ["", "### Findings (likely cause first)", ""]
+    if findings:
+        for f in findings:
+            extra = ""
+            if "threads_per_snapshot" in f:
+                extra = f" — snapshots {f['snapshots']} had {f['threads_per_snapshot']} thread(s)"
+            elif f.get("threads"):
+                extra = " — " + "; ".join(f"LWP {t['lwp']} x{t['snapshots']} ({t['top']})" for t in f["threads"][:5])
+            L.append(f"- **{f['rule']}**: {f['detail']}{extra}")
+    else:
+        L.append("- No pattern met its threshold.")
+    L.append("")
+    return L
+
+
+def detail_blocks(snaps):
+    run_tops, kinds = Counter(), Counter()
+    for s in snaps:
+        for t in s["threads"]:
+            kinds[run_kind(t["frames"])] += 1
+            if t["class"] == "running":
+                run_tops[(t["frames"][0] if t["frames"] else "??")] += 1
+    L = ["### Top frames of running (non-waiting) threads, all snapshots", ""]
+    L += [f"- {n} x `{f[:100]}`" for f, n in run_tops.most_common(8)] or ["- none"]
+    L += ["", "### Thread kinds (nearest `::run` frame), all snapshots", ""]
+    L += [f"- {n} x `{k[:100]}`" for k, n in kinds.most_common(8)]
+    L.append("")
+    return L
+
+
+def write_outputs(entries, rows_all, findings_all, out, notes, min_samples, min_threads):
     out.mkdir(parents=True, exist_ok=True)
     (out / "findings.json").write_text(json.dumps(findings_all, indent=2) + "\n", encoding="utf-8")
     cols = ["input", "snapshot", "date", "threads", "waiting", "lock", "running"] + [n for n, _, _ in PATTERNS]
@@ -247,37 +363,27 @@ def write_outputs(label_snaps, rows_all, findings_all, out, notes, min_samples, 
         for r in rows_all:
             w.writerow({c: r.get(c, "") for c in cols})
     L = ["# pstack analysis", ""]
-    for label, snaps, rows, findings in label_snaps:
-        L += [f"## {label}", "",
-              f"{len(snaps)} snapshot(s); threads per snapshot {[len(s['threads']) for s in snaps]}; "
-              f"{'sample times from date lines' if any(s['date'] for s in snaps) else 'no date lines: sample times and spacing unknown'}.", "",
-              "| Snapshot | Date | Threads | Waiting | Lock wait | Running | " + " | ".join(n for n, _, _ in PATTERNS) + " |",
-              "| --- | --- | --- | --- | --- | --- | " + " | ".join("---" for _ in PATTERNS) + " |"]
-        for r in rows:
-            L.append(f"| {r['snapshot']} | {r['date'] or '-'} | {r['threads']} | {r['waiting']} | {r['lock']} | {r['running']} | "
-                     + " | ".join(str(r[n]) for n, _, _ in PATTERNS) + " |")
-        L += ["", "### Findings (likely cause first)", ""]
-        if findings:
-            for f in findings:
-                extra = ""
-                if "threads_per_snapshot" in f:
-                    extra = f" — snapshots {f['snapshots']} had {f['threads_per_snapshot']} thread(s)"
-                elif f.get("threads"):
-                    extra = " — " + "; ".join(f"LWP {t['lwp']} x{t['snapshots']} ({t['top']})" for t in f["threads"][:5])
-                L.append(f"- **{f['rule']}**: {f['detail']}{extra}")
-        else:
-            L.append("- No pattern met its threshold.")
-        run_tops, kinds = Counter(), Counter()
-        for s in snaps:
-            for t in s["threads"]:
-                kinds[run_kind(t["frames"])] += 1
-                if t["class"] == "running":
-                    run_tops[(t["frames"][0] if t["frames"] else "??")] += 1
-        L += ["", "### Top frames of running (non-waiting) threads, all snapshots", ""]
-        L += [f"- {n} x `{f[:100]}`" for f, n in run_tops.most_common(8)] or ["- none"]
-        L += ["", "### Thread kinds (nearest `::run` frame), all snapshots", ""]
-        L += [f"- {n} x `{k[:100]}`" for k, n in kinds.most_common(8)]
-        L.append("")
+    many = len(entries) > 1
+    if many:
+        hosts = sorted((host_row(e) for e in entries), key=lambda h: (not h["_sev0"], h["host"].lower(), h["label"]))
+        with (out / "hosts.csv").open("w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=HOST_COLS); w.writeheader()
+            for h in hosts:
+                w.writerow({c: h[c] for c in HOST_COLS})
+        L += ["## Hosts", "",
+              "| Host | Snapshots | Span | Threads | Running | Lock wait | Top finding |", "| --- | --- | --- | --- | --- | --- | --- |"]
+        L += [f"| {h['host']} | {h['snapshots']} | {h['span']} | {h['threads']} | {h['running']} | {h['lock_wait']} | {h['top_finding']} |"
+              for h in hosts]
+        L += ["", "Threads, Running and Lock wait are the maximum in one snapshot. Hosts with a severity-0 finding come first. "
+                  "Snapshots from different hosts are not taken at the same instant `[unverified — confirm]`.", ""]
+    for e in entries:
+        L += input_section(e)
+    if many:
+        L += [f"## Details of {entries[0]['label']}", ""] + detail_blocks(entries[0]["snaps"])
+        L += ["Thread kinds and top frames of the other inputs are not repeated here; their per-snapshot counts and findings are in "
+              "snapshots.csv and findings.json.", ""]
+    else:
+        L += detail_blocks(entries[0]["snaps"])
     L += ["## How to read this", "",
           "- Waiting = a sleep/poll/accept/semaphore/condition/futex wait among the first 3 frames; Lock wait = a mutex wait at the top or directly under a wait frame, and `sched_yield` spins; Running = everything else. The three categories come from the maintainer notes (2026-10-21); the function name lists and allocator patterns are the script author's heuristics from one customer capture.",
           f"- Thresholds: a pattern is reported when {min_threads}+ threads match in a snapshot; the same-stack rule needs {min_samples}+ consecutive snapshots.",
@@ -297,21 +403,24 @@ def main(argv=None):
     if a.min_samples < 1 or a.min_threads < 1:
         ap.error("--min-samples and --min-threads must be at least 1")
     notes = set()
-    inputs = read_inputs(a.paths, notes)
-    if not inputs:
+    sources = pstack_sources(a.paths, notes)
+    if not sources:
         sys.exit("analyse_pstack: no pstack data found (expected blocks starting 'Thread N (Thread 0x... (LWP n)):').")
-    label_snaps, rows_all, findings_all = [], [], []
-    for label, text in inputs:
-        snaps = parse_text(text, label, notes)
+    entries, rows_all, findings_all = [], [], []
+    for src in sources:
+        label = src.label
+        text = read_text(src, notes)
+        snaps = parse_text(text, label, notes) if text is not None else []
         if not snaps:
             continue
         rows, findings, _ = analyse(snaps, a.min_samples, a.min_threads)
-        label_snaps.append((label, snaps, rows, findings))
+        host = diag_inputs.host_hint(src) or SEP.join(src.parts[-2:])
+        entries.append({"label": label, "host": host, "snaps": snaps, "rows": rows, "findings": findings})
         rows_all += [{**r, "input": label} for r in rows]
         findings_all += [{**f, "input": label} for f in findings]
     out = Path(a.out) if a.out else Path("pstack-analysis") / Path(a.paths[0]).stem
-    write_outputs(label_snaps, rows_all, findings_all, out, notes, a.min_samples, a.min_threads)
-    print(f"wrote {out}: {len(label_snaps)} input(s), {sum(len(x[1]) for x in label_snaps)} snapshot(s), {len(findings_all)} finding(s)")
+    write_outputs(entries, rows_all, findings_all, out, notes, a.min_samples, a.min_threads)
+    print(f"wrote {out}: {len(entries)} input(s), {sum(len(e['snaps']) for e in entries)} snapshot(s), {len(findings_all)} finding(s)")
     return 0
 
 

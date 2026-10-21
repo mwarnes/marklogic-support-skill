@@ -1,4 +1,4 @@
-import csv, json, os, subprocess, sys, tempfile, unittest, zipfile
+import csv, io, json, os, subprocess, sys, tempfile, unittest, zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -6,6 +6,8 @@ SCRIPT = ROOT / "skills/marklogic-support/scripts/analyse_pstack.py"
 FIX = Path(__file__).with_name("fixture_pstack") / "pstack-sample.log"
 sys.path.insert(0, str(SCRIPT.parent))
 import analyse_pstack as ap
+import diag_inputs as di
+from datetime import datetime
 
 
 def run(*args):
@@ -246,6 +248,126 @@ class FixtureTest(unittest.TestCase):
         self.assertIn("[unverified — confirm]", s)
 
 
+def dated_log(hour_min, secs, *threads_per_snap, fmt="Mon Sep 21 %s:%02d GMT 2020"):
+    """A pstack log with one snapshot per entry of threads_per_snap (each a list of thread blocks), `secs` apart."""
+    out = ""
+    for i, th in enumerate(threads_per_snap):
+        out += fmt % (hour_min, i * secs) + "\n" + "".join(th)
+    return out
+
+
+class DateTest(unittest.TestCase):
+    def test_parse_date_formats(self):
+        self.assertEqual(ap.parse_date("Mon Sep 21 08:33:44 GMT 2020"), datetime(2020, 9, 21, 8, 33, 44))
+        self.assertEqual(ap.parse_date("Tue 21 Oct 2026 10:00:01 UTC"), datetime(2026, 10, 21, 10, 0, 1))
+        self.assertEqual(ap.parse_date("Tue Oct 21 10:00:01 PM UTC 2026"), datetime(2026, 10, 21, 22, 0, 1))
+        self.assertEqual(ap.parse_date("Tue Oct 21 12:00:01 AM UTC 2026"), datetime(2026, 10, 21, 0, 0, 1))
+        self.assertEqual(ap.parse_date("Tue Oct 21 10:00:01 +03 2026"), datetime(2026, 10, 21, 10, 0, 1))
+        self.assertEqual(ap.parse_date("Tue 21 Oct 10:00:01 BST 2026"), datetime(2026, 10, 21, 10, 0, 1))
+
+    def test_unparseable_dates_are_none(self):
+        for d in ("", "10:00:01 2026", "Foo 99 Bar 10:00:01 2026", "Tue Feb 31 10:00:01 UTC 2026", "Tue Oct 21 25:00:01 UTC 2026"):
+            self.assertIsNone(ap.parse_date(d), d)
+
+    def test_format_span(self):
+        self.assertEqual(ap.format_span(26), "26 s")
+        self.assertEqual(ap.format_span(600), "10 min")
+        self.assertEqual(ap.format_span(7200), "2 h")
+
+
+class MultiHostTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup); self.d = Path(self.tmp.name)
+        idle = [thread(2, 1, *IDLE), thread(3, 2, *IDLE)]
+        busy = [thread(2, 1, *BUSY), thread(3, 2, *IDLE)]
+        self.idle_log = dated_log("08:33", 11, idle, idle, idle)
+        self.busy_log = dated_log("08:33", 11, busy, busy, busy, busy)
+        ts = "tmp/084321-09-21-2020/pstack.log"
+        def host_zip(log):
+            b = io.BytesIO()
+            with zipfile.ZipFile(b, "w") as z:
+                z.writestr(ts, log); z.writestr("tmp/.ICE-unix/", b"")
+            return b.getvalue()
+        self.outer = self.d / "PSTACK Logs.zip"
+        with zipfile.ZipFile(self.outer, "w") as z:
+            z.writestr("PSTACK Logs/host61.zip", host_zip(self.idle_log))
+            z.writestr("PSTACK Logs/host62.zip", host_zip(self.busy_log))
+            z.writestr("PSTACK Logs/" + ts, self.idle_log)          # loose copy of host61's log
+            z.writestr("PSTACK Logs/tmp 2/084321-09-21-2020/pstack.log", self.busy_log)   # loose copy of host62's log
+            z.writestr("__MACOSX/PSTACK Logs/._host61.zip", b"junk"); z.writestr("PSTACK Logs/.DS_Store", b"junk")
+        self.out = self.d / "out"
+        r = run(self.outer, "--out", self.out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.stdout = r.stdout
+        self.summary = (self.out / "SUMMARY.md").read_text()
+
+    def test_duplicates_junk_and_two_inputs(self):
+        self.assertIn("2 input(s), 7 snapshot(s)", self.stdout)
+        self.assertIn("duplicate copy(ies) of PSTACK Logs.zip > PSTACK Logs/host61.zip > tmp/084321-09-21-2020/pstack.log skipped", self.summary)
+        self.assertIn("2 macOS metadata file(s) skipped", self.summary)
+
+    def test_overview_table_before_the_input_sections_with_severity_zero_first(self):
+        head = "| Host | Snapshots | Span | Threads | Running | Lock wait | Top finding |"
+        self.assertIn(head, self.summary)
+        self.assertLess(self.summary.index(head), self.summary.index("## PSTACK Logs.zip"))
+        rows = [l for l in self.summary.splitlines() if l.startswith("| host6")]
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(rows[0].startswith("| host62 | 4 | 33 s | 2 | 1 | 0 | same_stack_across_snapshots |"), rows[0])
+        self.assertTrue(rows[1].startswith("| host61 | 3 | 22 s | 2 | 0 | 0 | - |"), rows[1])
+
+    def test_hosts_csv(self):
+        with (self.out / "hosts.csv").open() as fh:
+            rows = list(csv.DictReader(fh))
+        self.assertEqual(list(rows[0]), ["host", "snapshots", "span", "threads", "running", "lock_wait", "top_finding", "label"])
+        self.assertEqual([r["host"] for r in rows], ["host62", "host61"])
+        self.assertTrue(rows[1]["label"].endswith("host61.zip > tmp/084321-09-21-2020/pstack.log"))
+
+    def test_sections_are_compact_and_details_only_for_the_first_input(self):
+        self.assertEqual(self.summary.count("### Thread kinds"), 1)
+        self.assertEqual(self.summary.count("### Top frames"), 1)
+        self.assertIn("## Details of ", self.summary)
+        self.assertIn("snapshots.csv", self.summary.split("## Details of ")[1])
+        self.assertIn("snapshots about 11 s apart", self.summary)
+        self.assertEqual(self.summary.count("### Findings"), 2)
+
+    def test_single_input_has_no_overview(self):
+        one = self.d / "one.log"; one.write_text(self.busy_log)
+        r = run(one, "--out", self.d / "o1")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        s = (self.d / "o1" / "SUMMARY.md").read_text()
+        self.assertNotIn("| Host |", s)
+        self.assertNotIn("## Details of", s)
+        self.assertFalse((self.d / "o1" / "hosts.csv").exists())
+        self.assertIn("snapshots about 11 s apart", s)
+        self.assertNotIn("no date lines", s)
+
+    def test_host_falls_back_to_last_two_label_parts(self):
+        a = self.d / "a"; a.mkdir()
+        (a / "x.log").write_text(self.idle_log); (a / "y.log").write_text(self.busy_log)
+        r = run(a, "--out", self.d / "o2")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("| x.log |", (self.d / "o2" / "SUMMARY.md").read_text())
+
+    def test_unparseable_dates_give_dash_span(self):
+        a = self.d / "b"; a.mkdir()
+        bad = "Foo 99 Bar 10:00:01 2026\n" + thread(2, 1, *IDLE) + "Foo 99 Bar 10:00:02 2026\n" + thread(2, 1, *IDLE)
+        (a / "p.log").write_text(bad); (a / "q.log").write_text(self.idle_log)
+        r = run(a, "--out", self.d / "o3")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        s = (self.d / "o3" / "SUMMARY.md").read_text()
+        self.assertTrue(any(l.startswith("| p.log | 2 | - |") for l in s.splitlines()), s)
+
+    def test_non_pstack_zip_members_are_only_counted(self):
+        z = self.d / "m.zip"
+        with zipfile.ZipFile(z, "w") as zf:
+            zf.writestr("h/pstack.log", self.idle_log); zf.writestr("h/a.txt", "x"); zf.writestr("h/b.txt", "y")
+        r = run(z, "--out", self.d / "o4")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        s = (self.d / "o4" / "SUMMARY.md").read_text()
+        self.assertIn("2 file(s) skipped, no 'Thread N (...)' blocks", s)
+        self.assertNotIn("a.txt", s)
+
+
 class InputTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup); self.d = Path(self.tmp.name)
@@ -281,16 +403,16 @@ class InputTest(unittest.TestCase):
         (self.d / "big.log").write_text(FIX.read_text())
         with zipfile.ZipFile(self.d / "t.zip", "w") as zf:
             zf.writestr("in/pstack.log", FIX.read_text())
-        old = ap.MAX_BYTES
-        ap.MAX_BYTES = 1000
-        self.addCleanup(setattr, ap, "MAX_BYTES", old)
+        old = di.MAX_MEMBER
+        di.MAX_MEMBER = 1000
+        self.addCleanup(setattr, di, "MAX_MEMBER", old)
         notes = set()
         self.assertEqual(ap.read_inputs([self.d / "big.log"], notes), [])
         self.assertTrue(any("big.log" in n and "larger than" in n for n in notes), notes)
         zf_notes = set()
         with zipfile.ZipFile(self.d / "z2.zip", "w", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("in/pstack.log", FIX.read_text())
-        ap.MAX_BYTES = 20000
+        di.MAX_MEMBER = 20000
         self.assertEqual(len(FIX.read_bytes()) > 20000, True)
         self.assertEqual(ap.read_inputs([self.d / "z2.zip"], zf_notes), [])
         self.assertTrue(any("in/pstack.log" in n and "larger than" in n for n in zf_notes), zf_notes)

@@ -171,7 +171,7 @@ ErrorLog, messages, AccessLog and AuditLog into an incident timeline; `analyse_s
 and ranks saturation (iowait, disk latency, swap, memory, run queue, steal, network errors).
 `performance-data-requests.md` holds ready-to-paste customer requests for SAR, iostat/vmstat/mpstat/pidstat,
 kernel and OOM messages, the pstack movie and perf requests (from the Progress KB articles; the customer script is vendored at `skills/marklogic-support/assets/support-scripts/pstack.sh`) and, on cloud-hosted customers only, steal and EBS signals.
-`analyse_pstack.py` reads a pstack movie (`pstack.log`, its zip or a folder): per snapshot the waiting, lock-wait
+`analyse_pstack.py` reads a pstack movie (`pstack.log`, its zip or a folder; the shared `diag_inputs.py` opens zips in zips, one zip per host, skips macOS junk and duplicate copies and extracts nothing to disk; several hosts get an overview table): per snapshot the waiting, lock-wait
 and running threads, allocator and lock patterns, threads that stay in the same stack and thread churn.
 `analyse_perf.py` reads a `perf report --stdio` text report: kernel versus user time, time under a user-space
 wrapper, unresolved kernel symbols and the top symbols. `pstack-analysis.md` is the reading guide for both.
@@ -232,6 +232,7 @@ skills/
 │   │   ├── parse_dump.py        splits a support dump into config/status/logs + findings
 │   │   ├── analyse_logs.py      ErrorLog/messages/AccessLog/AuditLog -> incident timeline + patterns
 │   │   ├── analyse_sar.py       sar -A text -> ranked saturation findings + per-host series
+│   │   ├── diag_inputs.py       shared walker: folders, zips and zips in zips, junk and duplicates skipped, nothing extracted
 │   │   ├── analyse_pstack.py    pstack movie -> per-snapshot thread classes + allocator/lock findings
 │   │   ├── analyse_perf.py      perf report --stdio -> kernel vs user, wrapper time, top symbols
 │   │   ├── kcs_render.py        KCS article .md -> .docx and Salesforce .html (pandoc), SCS checks

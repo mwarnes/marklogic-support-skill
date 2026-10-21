@@ -22,6 +22,13 @@ Guide for reading a pstack movie and a perf report, with the two analysis script
 - `bursty_*`: a pattern present in some snapshots and absent in others (needs 3+ snapshots). `same_stack_across_snapshots`: non-waiting threads with the same top frames in 3+ consecutive snapshots. `thread_churn`: 10% or more of the thread ids appear in only one snapshot (needs 3+ snapshots).
 - perf: `kernel_dominant` when kernel code of the busiest command is at least 50% of samples; `time_under_user_wrapper` when a user-space symbol is at least 25% inclusive but at most 1% self (the time is in the functions it calls; thread entry points such as `start_thread` and `__clone` are ignored, at most 2 reported; kernel time is stated only when the kernel share is also at least 50%); the busiest command ignores `swapper`/`idle`; `unresolved_kernel_symbols` when at least 50% of kernel time is bare addresses; `user_hotspot` at 5% self for one user symbol; `allocator_share` at 5% self in allocator code.
 
+## Several hosts
+
+- Give the script the customer's zip or folder as it is: one zip per host (even zips in zips), macOS junk and duplicate copies are handled, and the host name is the inner zip or folder name (or the last two parts of the file path when there is none).
+- With more than one input SUMMARY.md and `hosts.csv` start with one row per host: Host, Snapshots, Span (first to last date line, `-` when the dates do not parse), Threads, Running and Lock wait (the maximum in one snapshot) and Top finding (the first finding's rule). Hosts with a severity-0 finding come first.
+- Threads are compared per host: the same-stack, burst and churn rules run on each input on its own, never across hosts. Snapshots from different hosts are not taken at the same instant unless the customer ran pstack.sh on all hosts at the same time `[unverified — confirm]`, so do not line them up by snapshot number.
+- Only the first input gets the thread kinds and top frames; the per-snapshot counts and findings of all of them are in `snapshots.csv` and `findings.json`.
+
 ## Standard procedures
 
 1. Run `scripts/analyse_pstack.py` (pstack.log or zip) and `scripts/analyse_perf.py` (perf report) and read their SUMMARY.md before reading anything by hand.
