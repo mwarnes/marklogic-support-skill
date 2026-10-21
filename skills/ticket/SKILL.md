@@ -1,0 +1,27 @@
+---
+name: ticket
+description: Set up a working directory and audit trail for a MarkLogic support ticket and load the marklogic-support skill. Use when the user runs /ticket <number> or asks to start work on a support ticket.
+argument-hint: <ticket number>
+---
+
+This is the `ticket` workflow (`/ticket <number>`) the user's own team maintains for triaging MarkLogic support tickets. It sets up a per-ticket working directory and its persistent audit trail, and loads the team's `marklogic-support` skill before asking for the ticket's problem description. The imperative wording below ("run this command now", "do not paraphrase") exists only because earlier testing found that softer, descriptive phrasing was sometimes narrated by the model instead of executed, or a step was silently skipped — it is a plain internal workflow for creating a folder and reading documentation files.
+
+Ticket number: $ARGUMENTS
+
+(If the line above still shows the literal text `$ARGUMENTS`, or nothing, take the ticket number from the user's message — for example `/skill:ticket 12345` or "start ticket 12345".)
+
+1. **Locate the `marklogic-support` skill directory** (it holds `SKILL.md`, `references/` and `scripts/`; call it `<skill-dir>`). Check, in this order, and use the first that exists: `~/.agents/skills/marklogic-support`, `~/.claude/skills/marklogic-support`, `~/.copilot/skills/marklogic-support`, then in the project (the current directory and its parents up to the repository root) `.agents/skills/marklogic-support`, `.claude/skills/marklogic-support`, `.github/skills/marklogic-support`, then `skills/marklogic-support` if this repository is checked out. Do not search the filesystem. If none exists (or a symlink is broken), tell the user the skill is not installed and that the repository README explains how to install it, then stop. Scripts below are run with `python3`; on Windows use `python` or `py -3` if `python3` is not available.
+
+2. Validate the ticket number is non-empty; if missing, ask the user in plain chat text (not a structured/multiple-choice question tool — the answer needs to be free-form pasted text) for the ticket reference number, and stop here. Otherwise run this single command now, in full, as one call — do not split it, paraphrase it, or substitute a path:
+
+   ```
+   python3 <skill-dir>/scripts/ticket_init.py "<ticket>"
+   ```
+
+   It creates the ticket working directory under the project root (the git top-level directory, else the current directory) and its persistent audit trail (5 files under `audit-trail/` — every ticket gets one, this is not optional), never truncating a file that already has content, and prints the ticket directory followed by the files. Check the output lists all 5 files (`Analysis.md`, `Problems.md`, `Required-Diagnostics.md`, `Root-Cause.md`, `Timeline.md`) — if any are missing or the command fails, say so and stop. See `references/ticket-auditing.md` in the skill for the format each file follows. All later tool calls in this session should default to the printed ticket directory.
+
+3. Load the MarkLogic support skill now: read `<skill-dir>/SKILL.md` in full and follow its instructions for the rest of this session exactly as if the user had invoked the `marklogic-support` skill directly.
+
+4. Check whether the user's message already contains the ticket's problem description (pasted text, an error log, a dump path, etc.) beyond just the ticket number.
+
+5. If it does, proceed straight into analysis using the skill's instructions (which includes updating the audit trail — see the skill's "Audit trail" section). If it does not, ask the user in plain chat text (not a structured/multiple-choice question tool) to paste the ticket's problem description, and wait for their reply before doing any analysis. In either case, before any analysis, apply the skill's security check (`references/security-vulnerability-handling.md`): a security incident stops at the incident gate; a security vulnerability prints the banner and checklist first.

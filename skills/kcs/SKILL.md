@@ -1,18 +1,21 @@
 ---
-description: Write a compliant KCS article (Markdown, Word, Salesforce HTML) from a completed MarkLogic support ticket
+name: kcs
+description: Write a compliant KCS article (Markdown, Word, Salesforce HTML) from a completed MarkLogic support ticket. Use when the user runs /kcs or asks for a KCS article for a finished ticket.
 argument-hint: [ticket number]
 ---
 
-This is the `/kcs` workflow the user's own team maintains for turning a finished MarkLogic support ticket into a Knowledge-Centered Support article that follows the company Solution Content Standard (see `/ticket` in `prompts/ticket.md`, which creates the ticket folder and its `audit-trail/`). It reads the ticket's audit trail, drafts an article in the team's fixed 20-field format, and renders it to Markdown, Word and Salesforce HTML. Imperative wording below is only there so steps are executed rather than narrated.
+This is the `/kcs` workflow the user's own team maintains for turning a finished MarkLogic support ticket into a Knowledge-Centered Support article that follows the company Solution Content Standard (see the `ticket` skill, which creates the ticket folder and its `audit-trail/`). It reads the ticket's audit trail, drafts an article in the team's fixed 20-field format, and renders it to Markdown, Word and Salesforce HTML. Imperative wording below is only there so steps are executed rather than narrated.
 
-Ticket argument: $1
+Ticket argument: $ARGUMENTS
+
+(If the line above still shows the literal text `$ARGUMENTS`, or nothing, take the ticket number from the user's message — for example `/skill:kcs 12345` or "write the KCS article for ticket 12345" — and if there is none, the ticket opened by the `ticket` skill earlier in this session.)
 
 1. **Resolve the ticket.**
-   - If `$1` is non-empty, the ticket is `$1`. Run (shell tool) `PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"; ls "$PROJECT_ROOT/$1/audit-trail/"`. If the directory does not exist, tell the user ticket `$1` was not found under the project root and stop — do not create it (that is `/ticket`'s job).
-   - If `$1` is empty, use the ticket opened by `/ticket` earlier in this same session. If `/ticket` was not run in this session, ask the user in plain chat text for an existing ticket number, and stop.
-   - Work from `<PROJECT_ROOT>/<TICKET>/` from here on.
+   - If there is a ticket number (from the argument, the user's message, or the `ticket` skill earlier in this same session), that is the ticket. **Locate the `marklogic-support` skill directory** (it holds `SKILL.md`, `references/` and `scripts/`; call it `<skill-dir>`). Check, in this order, and use the first that exists: `~/.agents/skills/marklogic-support`, `~/.claude/skills/marklogic-support`, `~/.copilot/skills/marklogic-support`, then in the project (the current directory and its parents up to the repository root) `.agents/skills/marklogic-support`, `.claude/skills/marklogic-support`, `.github/skills/marklogic-support`, then `skills/marklogic-support` if this repository is checked out. Do not search the filesystem. If none exists (or a symlink is broken), tell the user the skill is not installed and that the repository README explains how to install it, then stop. Then run `python3 <skill-dir>/scripts/ticket_init.py --check "<ticket>"` (on Windows use `python` or `py -3` if `python3` is unavailable). If it reports the ticket was not found, tell the user ticket `<ticket>` was not found under the project root and stop — do not create it (that is the `ticket` skill's job).
+   - If there is no ticket number, ask the user in plain chat text for an existing ticket number, and stop.
+   - Work from the ticket directory the script printed from here on.
 
-2. **Load the skill material.** Read `skills/marklogic-support/references/kcs-writing.md` (locate the skill by checking the same paths as `/ticket` step 2 — pi and Claude Code locations, `~/.claude/skills/marklogic-support/` included; if none exists or the symlink is broken, say so and stop). Set `<skill-dir>` to the directory that holds it. Then read all five files in `<TICKET>/audit-trail/`: `Timeline.md`, `Analysis.md`, `Required-Diagnostics.md`, `Problems.md`, `Root-Cause.md`.
+2. **Load the skill material.** Read `<skill-dir>/references/kcs-writing.md` (`<skill-dir>` was located in step 1). Then read all five files in `<TICKET>/audit-trail/`: `Timeline.md`, `Analysis.md`, `Required-Diagnostics.md`, `Problems.md`, `Root-Cause.md`.
 
 3. **Check the ticket is article-worthy and safe to publish.**
    - If `Root-Cause.md` has no entries beyond its title line, warn the user the cause is not confirmed and a KCS article would be premature; ask (plain chat) whether to continue anyway, and stop unless they say yes. Articles written this way use the standard Cause statement for an unknown cause (`kcs-writing.md`, "Standard statements"), say plainly which parts are unconfirmed, and use `Validation Status: Unverified`.

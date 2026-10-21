@@ -1,11 +1,10 @@
 {
   "name": "marklogic-support-skill",
-  "version": "1.0.0",
-  "description": "Pi agent skill for MarkLogic support engineers: triage config/security/performance/monitoring/DR/scaling issues, review server-side and client-side code, analyse support dumps and logs.",
-  "keywords": ["pi-package", "pi-skill", "marklogic"],
+  "version": "1.1.0",
+  "description": "Agent skills for MarkLogic support engineers (pi, Claude Code, Codex, GitHub Copilot): triage configuration, security, performance, monitoring and DR/scaling issues, analyse support dumps, logs and SAR data, write and review KCS articles.",
+  "keywords": ["pi-package", "pi-skill", "agent-skills", "claude-code", "codex", "github-copilot", "marklogic"],
   "license": "MIT",
   "pi": {
-    "skills": ["skills"],
-    "prompts": ["prompts"]
+    "skills": ["skills"]
   }
 }

@@ -27,6 +27,8 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 
+Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` is not available.
+
 ## Triage mode
 
 1. Extract facts from the ticket (state what is missing): MarkLogic version; cluster size / host count; what changed recently (upgrade, new host, index change, config change); exact error text / codes; affected component (host, forest, database, app server, security).
@@ -118,11 +120,11 @@ to draft a KCS article with `/kcs` (or `/kcs <ticket>` in a later session). Skip
 
 ## KCS articles
 
-On `/kcs` (see `prompts/kcs.md`) or a request to write a KCS article for a finished ticket, read
+On `/kcs` (the `kcs` skill) or a request to write a KCS article for a finished ticket, read
 `references/kcs-writing.md` and write from the ticket's `audit-trail/`; render with
 `scripts/kcs_render.py`. Never in Q&A mode without a ticket.
 
-On `/kcs-review` (see `prompts/kcs-review.md`) or a request to review someone else's KCS article,
+On `/kcs-review` (the `kcs-review` skill) or a request to review someone else's KCS article,
 read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 `scripts/kcs_render.py` (`--to-md`, `--target`). No ticket is involved.
 

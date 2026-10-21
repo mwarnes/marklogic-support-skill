@@ -1,13 +1,16 @@
 ---
-description: Review a KCS article written by another engineer (md/html/docx or pasted) and write the revised article as Markdown, Word and Salesforce HTML
+name: kcs-review
+description: Review a KCS article written by another engineer (md/html/docx or pasted text) and write the revised article as Markdown, Word and Salesforce HTML. Use when the user runs /kcs-review or asks to review a KCS article.
 argument-hint: [path to article]
 ---
 
-This is the `/kcs-review` workflow the user's own team maintains for reviewing a Knowledge-Centered Support article that another engineer sent for review (see `/kcs` in `prompts/kcs.md`, which writes articles from a ticket). It checks the article against the team's 20-field format, the Solution Content Standard rules in `kcs-writing.md`, and sanitisation rules, summarises recommendations, and on acceptance writes the revised article as Markdown, Word and Salesforce HTML. Imperative wording below is only there so steps are executed rather than narrated.
+This is the `/kcs-review` workflow the user's own team maintains for reviewing a Knowledge-Centered Support article that another engineer sent for review (see the `kcs` skill, which writes articles from a ticket). It checks the article against the team's 20-field format, the Solution Content Standard rules in `kcs-writing.md`, and sanitisation rules, summarises recommendations, and on acceptance writes the revised article as Markdown, Word and Salesforce HTML. Imperative wording below is only there so steps are executed rather than narrated.
 
 Article path argument (optional, may contain spaces): $ARGUMENTS
 
-1. **Load the skill material.** Read `skills/marklogic-support/references/kcs-writing.md` (locate the skill by checking the same paths as `/ticket` step 2 — pi and Claude Code locations, `~/.claude/skills/marklogic-support/` included; if none exists or the symlink is broken, say so and stop). Set `<skill-dir>` to the directory that holds it. Use its "Reviewing an article" section as the checklist.
+(If the line above still shows the literal text `$ARGUMENTS`, the user gave no path in this invocation; if they gave one in their message, for example `/skill:kcs-review path/to/article.md`, use that.)
+
+1. **Load the skill material.** **Locate the `marklogic-support` skill directory** (it holds `SKILL.md`, `references/` and `scripts/`; call it `<skill-dir>`). Check, in this order, and use the first that exists: `~/.agents/skills/marklogic-support`, `~/.claude/skills/marklogic-support`, `~/.copilot/skills/marklogic-support`, then in the project (the current directory and its parents up to the repository root) `.agents/skills/marklogic-support`, `.claude/skills/marklogic-support`, `.github/skills/marklogic-support`, then `skills/marklogic-support` if this repository is checked out. Do not search the filesystem. If none exists (or a symlink is broken), tell the user the skill is not installed and that the repository README explains how to install it, then stop. Read `<skill-dir>/references/kcs-writing.md`. Use its "Reviewing an article" section as the checklist.
 
 2. **Get the article.**
    - If `$ARGUMENTS` is non-empty, the whole of it is the path (do not split on spaces). Otherwise ask in plain chat text: "Give me the path to the KCS article (.md, .html or .docx), or paste the article text here." Wait for the reply.
