@@ -92,7 +92,29 @@ Engineer notes:
 - Whether `xdmp:server-status` and `xdmp:request-status` are usable as written by Query Console users without the status privilege was not tested; the customer text marks that `[unverified — confirm]`.
 - Apply the security incident gate before asking for files; the XML contains request text and user names.
 - Correlate the capture time with the pstack movie, the ErrorLog and the SAR windows (Log mode `TIMELINE.md`, `sar-analysis.md`). Ask for the host's time zone.
-- Monitoring History export is not covered yet (no page supplied).
+- For an incident that has already passed, use the Monitoring History export in the next section instead of a live capture.
+
+## Monitoring History data: export the Meters data
+
+Use for an incident that has already passed (the live status capture above is for a running problem). Monitoring History data is exported by exporting the Meters data. Source: KB 000266887 "Exporting metering data" (https://community.progress.com/s/article/exporting-metering-data, article dated Oct 15, 2024; the URL is built from the URL Name, not confirmed; maintainer-supplied copy).
+
+Customer request:
+
+> 1. First tell us whether Telemetry is enabled on your system (MarkLogic 9 and later). If it is, we may already have the metering data. If it is not, please check that Monitoring History is enabled on the group and has collected data covering the time of the incident (how to enable it: http://docs.marklogic.com/guide/monitoring/history#id_82258). Without it there is nothing to export.
+> 2. Option A, in Query Console, with the content database set to `Meters`: open the attached `exportMeters.xqy` and edit the four variables at the top: `$start` and `$end` (cover from a little before the incident to a little after), `$batch` (leave at 3000; lower it if you get expanded tree errors) and `$output-dir` (a directory on the MarkLogic host that MarkLogic can write to). Run it. It writes `meters-0.zip`, `meters-1.zip`, ... into that directory on the MarkLogic host. Please send us those zip files.
+> 3. Option B, if you prefer or cannot use Query Console: run the attached `get-raw.sh`. It needs MLCP installed and an XDBC server (it uses port 8000). Example: `./get-raw.sh localhost admin admin "2018-04-12T00:00:00" "2018-04-14T00:00:00"` (host, user, password, start, end; use the time format shown). The output is written to `./meters-export`, which must not exist beforehand. Please send that directory zipped.
+> 4. Why: this gives us the raw Monitoring History data for the incident time. A backup of the full Meters database is more complete, but is usually too large to transfer.
+
+Engineer notes:
+- Telemetry first: when enabled it collects, encrypts, packages and sends diagnostic and system-level usage information, including metering, to a protected location accessible to MarkLogic Technical Support (https://docs.marklogic.com/guide/monitoring/telemetry); check whether the data is already with Support before asking.
+- The scripts are `<skill-dir>/assets/support-scripts/exportMeters.xqy` and `get-raw.sh`, vendored verbatim from KB 000266887 (details and hashes in that folder's `README.md`). Give the customer those files.
+- Time window: `exportMeters.xqy` keeps only documents whose `start-time` is after `$start` and `end-time` is before `$end` (strict), so ask for a margin; `get-raw.sh` filters raw-period documents on `period-start-time` between its start and end (also strict). Ask for the host's time zone.
+- Lower `$batch` on expanded tree errors (the script's own comment).
+- Privileges: `xdmp:save` needs `xdmp-save` and `xdmp:invoke-function` needs `xdmp-invoke` (function pages); `xdmp:zip-create` lists none. The MLCP export options page lists no required roles for the export user. Whether a given Query Console user needs more was not tested `[unverified — confirm]`.
+- `get-raw.sh` passes the password on the `mlcp.sh` command line (observation from reading the script), so it is visible in the process list; it also leaves an options file `.metrics` in the current directory.
+- Per the article the exports can be reloaded into MarkLogic and used with the standard tools.
+- Apply the security incident gate before asking for the files; metering data describes the cluster's activity.
+- Correlate the exported window with the pstack movie, SAR and the ErrorLog (Log mode `TIMELINE.md`, `sar-analysis.md`).
 
 ## Stack samples: pstack movie
 
