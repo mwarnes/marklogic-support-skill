@@ -140,7 +140,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 | permissions, role, privilege, amp, SEC-*, LDAP/Kerberos/SAML, admin password, audit, encryption/keystore | `references/security.md` |
 | failover, replica, backup, restore, XDMP-FORESTNOT, journal archiving, point-in-time, scheduled task | `references/ha-backup-failover.md` |
 | memory, OOM, XDMP-MEMCANCELED, swap, huge pages, cache (list / compressed tree / expanded tree / triple), CACHEFULL, ulimit, XDMP-TOOMANYOPENFILES, I/O scheduler | `references/memory-and-os.md` |
-| monitoring dashboard, Meters database, ops director, monitoring history, view=status, alerting, baseline, historical data, manage-user, Performance Metering Enabled | `references/monitoring.md` |
+| monitoring dashboard, Meters database, ops director, monitoring history, view=status, alerting, baseline, historical data, manage-user, Performance Metering Enabled, xdmp:server-status, xdmp:request-status, xdmp:host-status, status screen, log disk space | `references/monitoring.md` |
 | slow query, cts:search, filtered/unfiltered search, range index, positions index, lexicon, query-meters, query-trace, profiler, XDMP-TREECACHEFULL | `references/performance-tuning.md` |
 | disaster recovery, database replication, flexible replication, foreign cluster, non-blocking timestamp, rebalancer, assignment policy, scale out, add host, retire forest | `references/dr-scaling.md` |
 | review this code, REST extension, resource extension, fn:error/fn.error, xdmp:eval/xdmp:invoke in code, hardcoded credentials, code review | `references/app-code-review.md` |

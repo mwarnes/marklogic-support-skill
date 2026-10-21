@@ -154,6 +154,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.marklogic.com/REST/GET/manage/v2/databases/%5Bid-or-name%5D@view=status>
 - <https://help.marklogic.com/Knowledgebase/Article/View/399>
 - <https://help.marklogic.com/knowledgebase/article/View/259/0>
+- maintainer-supplied copy of the MarkLogic 12.0 page "Monitoring MarkLogic Server Performance" (URL not supplied)
 
 ## dr-scaling.md
 
