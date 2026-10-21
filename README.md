@@ -60,7 +60,7 @@ cd ~/marklogic-support-skill
 ./install.sh status       # check what is installed where
 ```
 
-Then restart your agent if the skills do not appear (Codex and Claude Code detect changes live, other agents may only look at start-up).
+Then restart your agent if the skills do not appear (Codex's docs say to restart if an update is not picked up).
 
 Options: `--agents pi,claude,codex,copilot` (default `all`), `--copy` (copy instead of link), `--force`
 (replace a real folder or a link you made yourself; a `.bak-<time>` copy is kept), `--clean-legacy` (see Update).
@@ -98,7 +98,7 @@ junction, use `-Copy`, and re-run `-Command update -Copy` after each update. Opt
   The installer's `~/.agents/skills` link therefore covers all of them. Project skills live in `.github/skills/`,
   `.claude/skills/` or `.agents/skills/` inside a repository
   ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)).
-  The Copilot cloud agent runs on GitHub, not on your machine, so it only sees skills committed to the repository, never a personal install.
+  The Copilot cloud agent runs on GitHub rather than on your machine, so a personal install here is not visible to it; the locations the docs list for it are inside the repository (`.github/skills/`, `.claude/skills/` or `.agents/skills/`).
   The docs describe no
   organisation-wide distribution of skills, so on Copilot Enterprise each engineer installs the skills with the
   script, or a team commits them under `.github/skills/` in its own repository. The GitHub CLI's `gh skill`
@@ -199,7 +199,7 @@ links left behind point at nothing.
 | --- | --- |
 | The agent does not see the skills | Restart it. Run `./install.sh status` and check the folder for your agent (table above). |
 | `status` says `stale` | Run `./install.sh update`; the link points at another clone. |
-| `status` says `conflict` | A real folder with that name exists. Move it away, or re-run with `--force` (a backup is kept). |
+| `status` says `conflict` | A real folder, or a link of your own, with that name exists. Move it away, or re-run with `--force` (a backup is kept). |
 | `/ticket 12345` does nothing in pi | pi skills are started as `/skill:ticket 12345`. |
 | `/kcs` or `/ticket` still behaves like an old version | An old copy in `~/.claude/commands/` (or the pi/Codex prompt folder) is shadowing the skill: `./install.sh update --clean-legacy`. |
 | "pandoc not found" from `kcs` | Install pandoc (https://pandoc.org/installing.html); the Markdown article is already written. |

@@ -51,7 +51,7 @@ class ReadmeTest(unittest.TestCase):
         self.assertIn("/ticket 12345", README.split("| GitHub Copilot |", 1)[1].split("\n", 1)[0])
         self.assertIn("`~/.claude/skills` is documented for VS Code only", README)
         self.assertIn("`~/.copilot/skills` and `~/.agents/skills`", README)
-        self.assertRegex(README, r"cloud agent[^\n]*runs on GitHub[^\n]*(committed|repository)")
+        self.assertRegex(README, r"cloud agent runs on GitHub rather than on your machine, so a personal install here is not visible to it; the locations the docs list for it are inside the repository")
 
     def test_operational_notes(self):
         for needle in ("Uninstall before you move or delete the clone",
