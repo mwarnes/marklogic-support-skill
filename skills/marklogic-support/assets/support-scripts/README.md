@@ -20,7 +20,7 @@ Things to know when sending it:
 - **MarkLogic version:** the script calls `/etc/MarkLogic/proc-util.sh pstack` (MarkLogic 11.3.1 and later, RHEL9-based builds).
   For earlier versions, or 11.3.x builds not based on RHEL9, the script's own comment says to replace that line with
   `service MarkLogic pstack >> /tmp/$TSTAMP/pstack.log`.
-- **Impact:** pstack stops the process while it records the threads, so each sample pauses MarkLogic briefly.
+- **Impact:** pstack pauses the MarkLogic process while it records the threads, which has a performance impact.
 - **`ml-support-dump.sh`:** the article also lists a "longer pstack script" that is said to collect OS-level information, but the
   listing supplied for it is identical to `pstack.sh`, so only `pstack.sh` is kept here. Ask for OS-level data with the SAR and
   host-metrics requests in `references/performance-data-requests.md`.

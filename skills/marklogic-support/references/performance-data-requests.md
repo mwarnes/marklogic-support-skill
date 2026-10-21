@@ -83,7 +83,7 @@ Customer request:
 > 3. Copy the attached `pstack.sh` to the host and make it executable: `chmod +x pstack.sh`.
 > 4. While the problem is happening, run it for 60 seconds: `sudo ./pstack.sh 60`.
 > 5. It writes a zip file in `/tmp/` named after the server time and date (for example `/tmp/101530-10-21-2026.zip`). Please attach it to the case, with the host name and the time the problem happened.
-> 6. Each sample briefly pauses the MarkLogic process while it records the threads, so this has a small performance impact. Please agree a time with us first on a production system, and run it only while the problem is happening.
+> 6. Each sample pauses the MarkLogic process while it records the threads, which has a performance impact. Please agree a time with us first on a production system, and run it only while the problem is happening.
 > 7. MarkLogic older than 11.3.1, or an 11.3.x build not based on RHEL 9: open `pstack.sh` and replace the line `/etc/MarkLogic/proc-util.sh pstack >> /tmp/$TSTAMP/pstack.log` with `service MarkLogic pstack >> /tmp/$TSTAMP/pstack.log` (the script contains this as a comment).
 
 Engineer notes:
@@ -92,6 +92,7 @@ Engineer notes:
 - The article's `ml-support-dump.sh` listing is identical to `pstack.sh`, so ask for OS-level data with the SAR and host-metrics requests.
 - pstack pauses the process; for sustained high CPU prefer the perf request below.
 - Apply the security incident gate before asking for the file.
+- `pstack.sh` runs `zip -9 -r ...`, but the article's prerequisite line does not install `zip`. If `zip` is missing the script still leaves the `/tmp/<HHMMSS-MM-DD-YYYY>` directory; ask the customer to send that directory instead (for example archived with `tar`) `[unverified — confirm]`.
 - The zip contains `pstack.log`, a dated series of stack traces. Analysis tooling for it is planned (phase 2).
 
 ## CPU profile: perf
@@ -102,15 +103,17 @@ Customer request:
 
 > 1. We need a statistical profile of where the CPU time goes while the CPU is high.
 > 2. On the busy MarkLogic host, as root (or with sudo), install perf if it is missing: `yum install perf` (RHEL/CentOS).
-> 3. While the CPU is high, run these on that same host: `cd /tmp` then `perf record -F 99 -ag -- sleep 60`. It takes about a minute and writes `perf.data` in the current directory.
+> 3. While the CPU is high, run all of steps 3 to 5 as root (or prefix each perf command with `sudo`), on that same host. On a production system, please agree a time with us first. `cd /tmp` then `perf record -F 99 -ag -- sleep 60`. It takes about a minute and writes `perf.data` in the current directory.
 > 4. Create the report: `perf report --header -I --stdio > $(hostname -s).$(date -Is).report`
 > 5. Create the script output: `perf script > $(hostname -s).$(date -Is).script`. It can be large but compresses well, so please zip it.
-> 6. Please attach the `.report` file and the zipped `.script` file to the case.
+> 6. Please attach the `.report` file and the zipped `.script` file to the case, with the host name and the time the CPU was high.
 
 Engineer notes:
 - All steps must be run on the same MarkLogic host. `perf top` gives a quick live view of what is using the CPU.
-- Verified (`perf-record(1)`): `-F 99` profiles at 99 samples per second; `-a` is system-wide collection from all CPUs; `-g` records call graphs; `-- sleep 60` records while the command runs; the profile goes into `perf.data` by default. `perf-report(1)`: `--header` shows header information from `perf.data` (hostname, OS and perf version, CPU/memory info, command line), `-I` is `--show-info` (extended information such as CPU and NUMA topology, can be very large), `--stdio` selects the plain-text interface. `perf-script(1)` prints the recorded trace; `perf-top(1)` shows a real-time profile. `date -Is` is ISO 8601 to seconds (`date(1)`).
+- Verified (`perf-record(1)`): `-F 99` profiles at 99 samples per second; `-a` is system-wide collection from all CPUs; `-g` records call graphs; `-- sleep 60` records while the command runs; the description says the profile is written "into perf.data". `perf-report(1)`: `--header` "Show header information in the perf.data file. Currently only --stdio output supports this feature."; `-I`/`--show-info` "Display extended information about the perf.data file... currently includes: cpu and numa topology of the host system."; `--stdio` selects the plain-text interface. What else the header contains and how large the output is `[unverified — confirm]`. `perf-script(1)` prints the recorded trace; `perf-top(1)` shows a real-time profile. `date -Is` is ISO 8601 to seconds (`date(1)`).
 - Needing root or a relaxed `perf_event_paranoid` is `[unverified — confirm]`; the `perf-record(1)` page does not mention it.
+- Whether a `sudo perf record` followed by a plain `perf report` can fail on root-owned `perf.data` is `[unverified — confirm]`; hence the request to run steps 3 to 5 all as root.
+- Apply the security incident gate before asking for the files.
 - `date -Is` puts colons in the file names (fine on Linux; rename if copied to Windows).
 - The files hold function names and counts, not document content `[unverified — confirm]`.
 - Analysis tooling is planned (phase 2).

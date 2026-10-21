@@ -26,12 +26,27 @@ class StackAndPerfRequestTest(unittest.TestCase):
                        "000266816", "creating-a-pstack-movie-for-support", "pauses", "while the problem is happening"):
             self.assertIn(needle, s, needle)
         self.assertIn("3 seconds", s)
+        self.assertIn("pauses the MarkLogic process while it records the threads, which has a performance impact", s)
+        self.assertNotIn("briefly", s)
+        self.assertNotIn("small performance", s)
+        self.assertIn("incident gate", s)
+        self.assertIn("`zip` is missing", s)
+        self.assertIn("/tmp/<HHMMSS-MM-DD-YYYY>", s)
+        self.assertIn("yum -y install pstack sysstat psutils gdb`", s)
+        self.assertNotIn("zip", s.split("yum -y install pstack sysstat psutils gdb")[1].split("`")[0])
 
     def test_perf_request_follows_the_kb_procedure(self):
         s = section("CPU profile: perf")
         for needle in ("yum install perf", "cd /tmp", "perf record -F 99 -ag -- sleep 60", "perf report --header -I --stdio",
-                       "perf script", "same host", "000268341", "using-perf-to-understand-performance", "perf top"):
+                       "perf script", "same host", "000268341", "using-perf-to-understand-performance", "perf top",
+                       "On a production system, please agree a time with us first.",
+                       "with the host name and the time the CPU was high",
+                       "run all of steps 3 to 5 as root (or prefix each perf command with `sudo`)",
+                       "incident gate", "sudo perf record", "perf.data"):
             self.assertIn(needle, s, needle)
+        self.assertNotIn("can be very large", s)
+        self.assertNotIn("hostname, OS and perf version", s)
+        self.assertIn("Currently only --stdio output supports this feature", s)
 
     def test_old_unverified_manual_stack_commands_are_gone(self):
         self.assertNotIn("gdb -p <pid>", REQ)
@@ -68,6 +83,15 @@ class WiringTest(unittest.TestCase):
         triage = self.SKILL_MD.split("## Triage mode")[1].split("## Q&A mode")[0]
         for needle in ("pstack", "perf", "pauses"):
             self.assertIn(needle, triage, needle)
+
+    def test_triage_has_no_thread_dumps_wording(self):
+        self.assertNotIn("thread dumps", self.SKILL_MD)
+        self.assertIn("`pmap` only for runaway memory growth", self.SKILL_MD)
+
+    def test_support_scripts_readme_impact_wording(self):
+        r = (SKILL / "assets/support-scripts/README.md").read_text()
+        self.assertIn("pauses the MarkLogic process while it records the threads, which has a performance impact", r)
+        self.assertNotIn("briefly", r)
 
     def test_readme_lists_the_script_and_the_requests(self):
         for needle in ("assets/support-scripts/pstack.sh", "pstack movie", "perf"):
