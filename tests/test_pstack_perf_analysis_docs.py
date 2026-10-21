@@ -24,6 +24,36 @@ class PstackPerfModeTest(unittest.TestCase):
                             "references/performance-data-requests.md", "[unverified — confirm]"):
             self.assertIn(w, s, w)
 
+    def test_mode_section_covers_zips_and_the_host_overview(self):
+        s = section(SKILL_MD, "## pstack and perf mode")
+        for w in ("one per host", "zips in zips", "nothing is extracted to disk", "duplicate", "hosts.csv", "overview table"):
+            self.assertIn(w, s, w)
+
+    def test_reference_has_several_hosts_section(self):
+        ref = (SKILL / "references/pstack-analysis.md").read_text()
+        s = section(ref, "## Several hosts")
+        for w in ("Host", "Span", "Top finding", "per host", "hosts.csv", "[unverified — confirm]"):
+            self.assertIn(w, s, w)
+        self.assertLessEqual(len(ref.splitlines()), 160)
+
+    def test_mode_section_covers_raw_perf_data(self):
+        s = section(SKILL_MD, "## pstack and perf mode")
+        for w in ("perf.data", "--convert", "external tool on customer data", "header inventory", "text report", "not captured the same way"):
+            self.assertIn(w, s, w)
+        ref = (SKILL / "references/pstack-analysis.md").read_text()
+        self.assertIn("not captured the same way", section(ref, "## Several hosts"))
+        req = (SKILL / "references/performance-data-requests.md").read_text()
+        for w in ("raw `perf.data`", "perf archive", "perf report --header -I --stdio"):
+            self.assertIn(w, req, w)
+        readme = (ROOT / "README.md").read_text()
+        for w in ("raw `perf.data`", "--convert"):
+            self.assertIn(w, readme, w)
+
+    def test_readme_describes_archive_input(self):
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn("diag_inputs.py", readme)
+        self.assertIn("zips in zips", readme)
+
     def test_classification_bullet(self):
         self.assertIn("- A pstack movie (a pstack.log, or the zip from pstack.sh) or a `perf report --stdio` "
                       "text report → **pstack and perf mode**", SKILL_MD)
@@ -81,7 +111,11 @@ def token_hashes_by_file(roots):
                 continue
             toks = set(re.findall(r"[a-z0-9]+", data.decode("utf-8", "replace").lower()))
             out[f] = {hashlib.sha256(t.encode()).hexdigest() for t in toks}
+            out[f] |= {hashlib.sha256(t[:PREFIX_LEN].encode()).hexdigest() for t in toks if len(t) >= PREFIX_LEN}
     return out
+
+
+PREFIX_LEN = 6
 
 
 def hits(roots, needle_hashes):
@@ -95,11 +129,17 @@ FORBIDDEN_TOKEN_HASHES = (
     "a93f4f785d39e3219b1dc7e53fe75343e8fa67e6d05e19afb218fe583d70c509",
 )
 
+# SHA-256 of the first 6 characters (lower case) of customer identifiers: catches host names that extend a known stem
+FORBIDDEN_PREFIX_HASHES = (
+    "0a9bfe6f84f27807134b94904d063b16f035f35e0f06c77e3e81f75bdf6fba59",
+    "aea36ffd39c2a4c667bf28eef840bf3fb6298246fd0f3e80a5b2b76c862472f2",
+)
+
 
 class HygieneTest(unittest.TestCase):
     def test_no_customer_identifiers_in_skills_tests_docs_readme(self):
         roots = [p for p in (ROOT / "skills", ROOT / "tests", ROOT / "docs", ROOT / "README.md") if p.exists()]
-        found = hits(roots, FORBIDDEN_TOKEN_HASHES)
+        found = hits(roots, FORBIDDEN_TOKEN_HASHES + FORBIDDEN_PREFIX_HASHES)
         self.assertEqual(found, [])
         self.assertGreater(len(token_hashes_by_file(roots)), 10)
 
@@ -114,6 +154,15 @@ class HygieneTest(unittest.TestCase):
             self.assertEqual(hits([d], [needle]), [str(d / "dirty.txt")])
             (d / "bin.dat").write_bytes(b"\0" + token.encode())
             self.assertEqual(len(hits([d], [needle])), 1)
+
+    def test_the_prefix_mechanism_catches_a_longer_name_with_a_known_stem(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            needle = hashlib.sha256("qx9zkw".encode()).hexdigest()   # made-up 6-character stem
+            (d / "clean.txt").write_text("qx9zk is too short, and zkwqx9 is another stem\n")
+            self.assertEqual(hits([d], [needle]), [])
+            (d / "dirty.txt").write_text("host: QX9ZKW-node7.example\n")
+            self.assertEqual(hits([d], [needle]), [str(d / "dirty.txt")])
 
 
 if __name__ == "__main__":
