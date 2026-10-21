@@ -27,6 +27,8 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    `parse_dump.py`, `analyse_logs.py`, `analyse_sar.py`, `analyse_pstack.py` or `analyse_perf.py` or drafting a log request, check `Timeline.md` for a "Security
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
+4. **Scope awareness.** Apply `references/support-scope.md`: if its Criteria list is empty, do nothing; if a ticket clearly goes
+   far beyond the listed criteria, open the output with a "Scope flag" paragraph. The engineer decides.
 
 Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` is not available.
 
@@ -41,6 +43,8 @@ Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` 
    **What to check** — for each: Admin UI path, REST Management API (`GET /manage/v2/...`), or XQuery (`xdmp:*`, `admin:*`) — whichever the reference gives.
    **Best-practice recommendation** — the fix, plus how to prevent recurrence.
    **Doc links** — from the reference's `## Sources` / `references/sources.md`.
+
+When asking a customer to send diagnostic or system data, you may point to the customer diagnostics guide (`references/customer-diagnostics-guide.md`) — reference only, never mandatory: extract only the part that helps (for example where to put the pstack, perf or SAR output), give the article link only if needed, and never paste the article. When you need severity, priority or business impact from the customer, use the definitions in `references/support-scope.md`.
 
 For a security vulnerability ticket, print the banner and checklist from `references/security-vulnerability-handling.md` first, then this format.
 
@@ -145,6 +149,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 | If the ticket mentions… | Read |
 | --- | --- |
 | CVE, CVSS, vulnerability, exploit, scanner output, security scan, security incident, security event, malware, virus, ransomware, compromise, intrusion | `references/security-vulnerability-handling.md` (read first, before any other reference) |
+| how to upload, attachments, file structure, secure storage, support dump upload, organise files, zip | `references/customer-diagnostics-guide.md` |
 | meters export, monitoring history export, telemetry, stuck query, request-status, sar, sysstat, sadf, iostat, vmstat, mpstat, pidstat, %iowait, await, %util, run queue, load average, %steal, swap in/out, slow disk, OOM killer, performance data, pstack, perf, stack trace, hang, unresponsive, high CPU | `references/sar-analysis.md`, `references/performance-data-requests.md` and `references/pstack-analysis.md` and scripts `analyse_pstack.py` / `analyse_perf.py` |
 | quorum, host offline, XDQP, XDMP-HOSTOFFLINE, join/leave cluster, hostname, group, upgrade/effective version, NTP/clock | `references/cluster-hosts-groups.md` |
 | forest, stand, merge, disk space, XDMP-FORESTNOSPACE, reindex, index, rebalancer, assignment policy, directory creation, fragment, locking | `references/databases-forests.md` |

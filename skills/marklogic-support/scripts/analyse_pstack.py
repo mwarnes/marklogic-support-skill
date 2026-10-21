@@ -426,11 +426,19 @@ def main(argv=None):
         diag_inputs.close_all(sources)
 
 
+def env_note(sources, notes):
+    envs = diag_inputs.environments(sources)
+    if len(envs) > 1:
+        notes.add(f"inputs from more than one environment ({', '.join(diag_inputs.safe_label(e) for e in envs)}): "
+                  "the customer guide asks for environments not to be mixed; compare hosts within one environment only")
+
+
 def run(a, sources, notes):
     if not sources:
         diag_inputs.print_notes(notes)
         sys.exit("analyse_pstack: no pstack data found (expected blocks starting 'Thread N (Thread 0x... (LWP n)):').")
     entries, rows_all, findings_all = [], [], []
+    env_note(sources, notes)
     for src in sources:
         label = src.label
         text = read_text(src, notes)

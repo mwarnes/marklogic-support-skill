@@ -174,7 +174,7 @@ kernel and OOM messages, the pstack movie and perf requests (from the Progress K
 `analyse_pstack.py` reads a pstack movie (`pstack.log`, its zip or a folder; the shared `diag_inputs.py` opens zips in zips, one zip per host, skips macOS junk, special files and duplicate copies, cleans untrusted names and extracts nothing to disk; several hosts get an overview table): per snapshot the waiting, lock-wait
 and running threads, allocator and lock patterns, threads that stay in the same stack and thread churn.
 `analyse_perf.py` reads `perf report --stdio` text reports (files, folders or zips, one per node; raw `perf.data` files get a header inventory of host, kernel, CPUs and capture command, and `--convert` runs a local `perf` on them): kernel versus user time, time under a user-space
-wrapper, unresolved kernel symbols and the top symbols. `pstack-analysis.md` is the reading guide for both. Raw `perf.data` needs `perf` on a Linux host (`--convert`, or convert manually) or a re-request of the text report — see the section "Raw perf.data received: convert or re-request" in `performance-data-requests.md`.
+wrapper, unresolved kernel symbols and the top symbols. `pstack-analysis.md` is the reading guide for both. Raw `perf.data` needs `perf` on a Linux host (`--convert`, or convert manually) or a re-request of the text report — see the section "Raw perf.data received: convert or re-request" in `performance-data-requests.md`. `customer-diagnostics-guide.md` is a paraphrased digest of the KB article customers are sent (hosts/<hostname>/ folder layout, support dump, Meters, cloud, backups); it is reference only, never mandatory, and the analysers read that layout and note when environments are mixed. `support-scope.md` holds the severity, priority and business impact definitions and the (still empty) scope criteria used to flag tickets far beyond the scope of support.
 
 ### Security tickets
 
@@ -242,7 +242,7 @@ skills/
 │       ha-backup-failover · memory-and-os · monitoring · performance-tuning · dr-scaling
 │       app-code-review · client-integration · supportdump-anatomy · log-anatomy
 │       sar-analysis · performance-data-requests · pstack-analysis · security-vulnerability-handling
-│       ticket-auditing · kcs-writing · sources
+│       customer-diagnostics-guide · support-scope · ticket-auditing · kcs-writing · sources
 ├── ticket/SKILL.md              /ticket
 ├── kcs/SKILL.md                 /kcs
 └── kcs-review/SKILL.md          /kcs-review
