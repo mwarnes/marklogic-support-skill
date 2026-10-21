@@ -13,7 +13,7 @@ Maintainer's policy for this skill:
 
 - Scope of Support: https://community.progress.com/s/products/marklogic/scope-of-support
 - Support Guide: https://community.progress.com/s/products/marklogic/support-guide
-- The sub-page "SLA & Severity Definitions" is linked from the scope page. Its text has NOT been supplied yet.
+- SLA & Severity Definitions (sub-page of the support guide; text supplied by the maintainer 2026-10-21, paraphrased below).
 
 ## Severity, priority and business impact
 
@@ -27,7 +27,27 @@ Example 1. A Production database is offline and a critical application cannot ru
 
 Example 2. The same fault on a reporting or replication target while production is fine, and an audit report is due. Severity 2 ("Restricted Operations"). Priority High, because running the reports on production would load it and hurt the main application. Business Impact: an audit deadline and financial penalties.
 
-The resolution-time SLOs on the page are internal guidelines, not commitments.
+The SLOs are internal guidelines, not commitments. Progress may change a severity to match the condition the engineer finds. If a practical workaround or temporary solution is found, the severity is re-evaluated (usually lowered).
+
+### Severity levels (paraphrased)
+
+| Level | Meaning | Typical issues | Response | Target |
+| --- | --- | --- | --- | --- |
+| 1 | Production system down, no workaround | hang, crash or uncontrolled stop; data corruption or loss; security compromised; system or key component will not start or connect | 1 business hour | restore within 12 business hours; resolution in the next release |
+| 2 | Restricted operations: production, development, test or migration hindered but still running | severe performance problems; production-down issue with a workaround in place; intermittent stability problems | 1 business hour | resolution within 14 calendar days |
+| 3 | Minimal impact | cosmetic or GUI issues; nuisance; usage or roadmap questions; set-up or configuration help; enhancement requests | 1 day | resolution within 21 calendar days |
+
+- Severity 1 needs the customer reachable round the clock and the engineer working continuously until resolved or circumvented; Severity 2 needs the customer's documentation, system and people available. If that is not the case, the severity is re-evaluated.
+- A Severity 1 ticket notifies every support engineer and engineering management. On weekends Severity 1 cases should be opened by phone.
+- Severity 1 includes "security compromised": apply the security incident gate in `security-vulnerability-handling.md` before any data is requested or opened.
+- Check the stated severity against this table when triaging; if it looks wrong, say so to the engineer, who changes it and tells the customer.
+
+### Case handling rules from the support guide (paraphrased)
+
+- A reopen is allowed within 30 days, only for the same issue on the same system; otherwise a new case.
+- Escalation reasons: high risk to business operations, production critically affected, or low satisfaction with the service level.
+- Sunset or Retired releases get commercially reasonable effort only (no updates); recommend upgrading to a supported release.
+- Support needs: description of expected and actual behaviour, symptoms, leading events and a timeline; for server issues a support dump, ErrorLogs, AccessLogs, platform and OS details; for performance also SAR and metering data, and pstack on request; for reproducible cases the steps, code and documents.
 
 ## Scope check
 
@@ -65,5 +85,5 @@ Judgement: a short how-to or a sample query is "guidance"; a full custom program
 - https://community.progress.com/s/products/marklogic/scope-of-support
 - https://community.progress.com/s/products/marklogic/support-guide
 - Covered / not covered lists: maintainer-supplied paraphrase of the Scope of Support policy (2026-10-21).
-- Severity, priority and business impact text: maintainer-supplied; community pages cannot be fetched.
+- Severity, priority, business impact, SLO and severity-level text, and the case-handling rules: maintainer-supplied paraphrase of the Support Guide and SLA pages; community pages cannot be fetched.
 - The KB article on preparing diagnostic information (see `customer-diagnostics-guide.md`): https://community.progress.com/s/article/How-to-Prepare-and-Share-Diagnostic-Information-for-Progress-MarkLogic-Support-Cases

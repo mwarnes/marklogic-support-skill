@@ -16,7 +16,7 @@ class GuideTest(unittest.TestCase):
         self.t = GUIDE.read_text()
 
     def test_exists_within_cap(self):
-        self.assertLessEqual(len(self.t.splitlines()), 90)
+        self.assertLessEqual(len(self.t.splitlines()), 110)
 
     def test_required_content(self):
         for w in (ARTICLE, "000299228", "reference only", "verbatim", "hosts/<hostname>/", "performance/meters/",
@@ -40,12 +40,12 @@ class ScopeTest(unittest.TestCase):
         self.t = SCOPE.read_text()
 
     def test_exists_within_cap(self):
-        self.assertLessEqual(len(self.t.splitlines()), 90)
+        self.assertLessEqual(len(self.t.splitlines()), 110)
 
     def test_required_content(self):
         for w in ("https://community.progress.com/s/products/marklogic/scope-of-support",
                   "https://community.progress.com/s/products/marklogic/support-guide", ARTICLE,
-                  "Severity", "Priority", "Business Impact", "Scope flag", "Criteria", "SLA & Severity Definitions",
+                  "Severity", "Priority", "Business Impact", "Scope flag", "Criteria", "SLA & Severity Definitions", "### Severity levels", "12 business hours", "14 calendar days", "21 calendar days", "30 days", "security incident gate",
                   "### Criteria (what is not covered)", "### Covered (no flag)", "In-depth performance tuning", "dedicated support engineer", "far beyond",
                   "# Scope of support and severity (reference only)", "## Rules for using it", "## Links",
                   "## Severity, priority and business impact", "## Scope check", "## Sources"):
