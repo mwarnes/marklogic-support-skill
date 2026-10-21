@@ -43,6 +43,50 @@ class SkillLayoutTest(unittest.TestCase):
         self.assertIn("--check", kcs)
         self.assertNotIn("git rev-parse", kcs)
 
+    def test_locate_paragraph_is_identical_and_starts_with_the_sibling_rule(self):
+        paras = {}
+        for name in ("ticket", "kcs", "kcs-review"):
+            text = (ROOT / "skills" / name / "SKILL.md").read_text()
+            m = re.search(r"\*\*Locate the `marklogic-support` skill directory\*\*.*?explains how to install it, then stop\.",
+                          text, re.S)
+            self.assertTrue(m, name)
+            paras[name] = m.group(0)
+            self.assertIn("`../marklogic-support`", paras[name], name)
+            self.assertIn("next to this skill's own folder", paras[name], name)
+            self.assertIn("${CLAUDE_SKILL_DIR}/../marklogic-support", paras[name], name)
+            self.assertLess(paras[name].index("../marklogic-support"), paras[name].index("~/.agents/skills"), name)
+        self.assertEqual(len(set(paras.values())), 1)
+
+    def test_ticket_skill_changes_into_the_ticket_directory(self):
+        text = (ROOT / "skills/ticket/SKILL.md").read_text()
+        self.assertIn('cd "<ticket directory>"', text)
+        self.assertIn("run there", text)
+
+    def test_support_skill_finds_the_audit_trail_in_the_ticket_directory(self):
+        text = (ROOT / "skills/marklogic-support/SKILL.md").read_text()
+        phrase = ("in the current working directory, or in the ticket directory set up by the `ticket` skill earlier in "
+                  "this session (`<project root>/<ticket>/audit-trail/`)")
+        self.assertIn("If `audit-trail/` exists " + phrase, text)
+        self.assertIn("If `audit-trail/` exists in neither place, skip all of this silently", text)
+        self.assertNotIn("exists in the current working directory (created", text)
+
+    def test_command_templates_quote_the_script_path(self):
+        for name in ("ticket", "kcs", "kcs-review"):
+            text = (ROOT / "skills" / name / "SKILL.md").read_text()
+            self.assertNotRegex(text, r"python3 <skill-dir>", name)
+            self.assertNotRegex(text, r"python3 \"<skill-dir>[^\"]*\"[^ ]", name)
+        self.assertIn('python3 "<skill-dir>/scripts/ticket_init.py" "<ticket>"', (ROOT / "skills/ticket/SKILL.md").read_text())
+        self.assertIn('python3 "<skill-dir>/scripts/ticket_init.py" --check "<ticket>"',
+                      (ROOT / "skills/kcs/SKILL.md").read_text())
+
+    def test_arguments_placeholder_only_on_its_own_line_and_fallback_reads_after_substitution(self):
+        for name in ("ticket", "kcs", "kcs-review"):
+            text = (ROOT / "skills" / name / "SKILL.md").read_text()
+            lines = [l for l in text.splitlines() if "$ARGUMENTS" in l]
+            self.assertEqual(len(lines), 1, (name, lines))
+            self.assertRegex(lines[0], r"^[A-Z][^`]*: \$ARGUMENTS$", name)
+            self.assertIn("still shows a `$`-placeholder", text, name)
+
     def test_prompts_folder_is_gone_and_nothing_points_at_it(self):
         self.assertFalse((ROOT / "prompts").exists())
         for p in [ROOT / "README.md", ROOT / "package.json", *ROOT.glob("skills/**/*.md"), *ROOT.glob("tests/*.py")]:

@@ -47,7 +47,7 @@ foreach ($a in ($Agents -split ',')) {
         'all'     { Add-Target (Join-Path $HOME '.agents\skills'); Add-Target (Join-Path $HOME '.claude\skills') }
         { $_ -in 'pi', 'codex', 'copilot' } { Add-Target (Join-Path $HOME '.agents\skills') }
         'claude'  { Add-Target (Join-Path $HOME '.claude\skills') }
-        default   { Write-Error "unknown agent '$a' (use pi, claude, codex, copilot or all)"; exit 2 }
+        default   { [Console]::Error.WriteLine("unknown agent '$a' (use pi, claude, codex, copilot or all)"); exit 2 }
     }
 }
 
@@ -64,6 +64,16 @@ function Get-LinkTarget($path) {
 
 function Remove-Link($path) { [System.IO.Directory]::Delete($path, $false) }    # removes the junction, not its contents
 
+function Test-RepoLink($path, $name) {    # dangling, or a link into <clone>\skills\<name> of a checkout of this repo
+    $t = Get-LinkTarget $path
+    if (-not $t) { return $false }
+    if (-not (Test-Path -LiteralPath $t)) { return $true }
+    $leaf = Split-Path -Leaf $t
+    $skillsDir = Split-Path -Parent $t
+    if ($leaf -ne $name -or (Split-Path -Leaf $skillsDir) -ne 'skills') { return $false }
+    return (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $skillsDir) 'install.ps1'))
+}
+
 function Test-Ours($path) {
     $t = Get-LinkTarget $path
     if ($t) { return $t.StartsWith((Join-Path $Repo 'skills'), [System.StringComparison]::OrdinalIgnoreCase) }
@@ -79,7 +89,9 @@ function Install-One($name, $tdir) {
         $lt = Get-LinkTarget $dest
         if ($lt) {
             if (-not $Copy -and $lt -eq $src) { Say "ok        $dest"; return }
-            Remove-Link $dest; Say "relinked  $dest (was -> $lt)"
+            if (Test-RepoLink $dest $name) { Remove-Link $dest; Say "relinked  $dest (was -> $lt)" }
+            elseif ($Force) { Move-Item -LiteralPath $dest -Destination "$dest.bak-$Stamp"; Say "backed up $dest -> $dest.bak-$Stamp" }
+            else { Problem "$dest is a link to $lt that this installer did not create; re-run with -Force to replace it (a backup is kept)"; return }
         }
         elseif (Test-Path -LiteralPath (Join-Path $dest $Mark)) { Remove-Item -Recurse -Force -LiteralPath $dest }
         elseif ($Force) { Move-Item -LiteralPath $dest -Destination "$dest.bak-$Stamp"; Say "backed up $dest -> $dest.bak-$Stamp" }
@@ -91,7 +103,8 @@ function Install-One($name, $tdir) {
         Say "copied    $dest"
     }
     else {
-        New-Item -ItemType Junction -Path $dest -Target $src | Out-Null
+        try { New-Item -ItemType Junction -Path $dest -Target $src | Out-Null }
+        catch { Problem "could not create the junction $dest ($($_.Exception.Message)); re-run with -Copy"; return }
         Say "linked    $dest -> $src"
     }
 }
@@ -101,16 +114,18 @@ function Status-One($name, $tdir) {
     $dest = Join-Path $tdir $name
     $lt = Get-LinkTarget $dest
     if ($lt) {
-        if ($lt -eq $src) { Say "ok        $dest" } else { Say "stale     $dest -> $lt (run: .\install.ps1 -Command update)"; $script:Problems++ }
+        if ($lt -eq $src) { Say "ok        $dest" }
+        elseif (Test-RepoLink $dest $name) { Say "stale     $dest -> $lt (run: powershell -ExecutionPolicy Bypass -File .\install.ps1 -Command update)"; $script:Problems++ }
+        else { Say "conflict  $dest is a link to $lt that this installer did not create"; $script:Problems++ }
     }
-    elseif (Test-Path -LiteralPath (Join-Path $dest $Mark)) { Say "copy      $dest (refresh with: .\install.ps1 -Command update -Copy)" }
-    elseif (Test-Path -LiteralPath $dest) { Say "conflict  $dest is not managed by this installer"; $script:Problems++ }
+    elseif (Test-Path -LiteralPath (Join-Path $dest $Mark)) { Say "copy      $dest (refresh with: powershell -ExecutionPolicy Bypass -File .\install.ps1 -Command update -Copy)" }
+    elseif (Get-Item -LiteralPath $dest -Force -ErrorAction SilentlyContinue) { Say "conflict  $dest is not managed by this installer"; $script:Problems++ }
     else { Say "missing   $dest"; $script:Problems++ }
 }
 
 function Uninstall-One($name, $tdir) {
     $dest = Join-Path $tdir $name
-    if (Test-Path -LiteralPath $dest) {
+    if (Get-Item -LiteralPath $dest -Force -ErrorAction SilentlyContinue) {
         if (Test-Ours $dest) {
             if (Get-LinkTarget $dest) { Remove-Link $dest } else { Remove-Item -Recurse -Force -LiteralPath $dest }
             Say "removed   $dest"

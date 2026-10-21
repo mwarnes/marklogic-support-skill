@@ -41,6 +41,27 @@ class ReadmeTest(unittest.TestCase):
         self.assertIn("`/skill:ticket 12345`", README)       # pi
         self.assertIn("`$ticket 12345`", README)             # Codex
 
+    def test_windows_commands_use_execution_policy_bypass(self):
+        for line in README.splitlines():
+            if "install.ps1" in line and "-Command" in line:
+                self.assertIn("-ExecutionPolicy Bypass", line, line)
+
+    def test_copilot_claims_match_the_docs(self):
+        self.assertNotIn("no slash command", README)
+        self.assertIn("/ticket 12345", README.split("| GitHub Copilot |", 1)[1].split("\n", 1)[0])
+        self.assertIn("`~/.claude/skills` is documented for VS Code only", README)
+        self.assertIn("`~/.copilot/skills` and `~/.agents/skills`", README)
+        self.assertRegex(README, r"cloud agent[^\n]*runs on GitHub[^\n]*(committed|repository)")
+
+    def test_operational_notes(self):
+        for needle in ("Uninstall before you move or delete the clone",
+                       "A plain `./install.sh` replaces a `--copy` install with links",
+                       "start the agent in the folder where you keep your tickets",
+                       "restart your agent if the skills do not appear",
+                       "`ln -sfn` replaces an existing link",
+                       "MIT — see the LICENSE file"):
+            self.assertIn(needle, README, needle)
+
     def test_local_links_and_paths_in_the_readme_exist(self):
         for rel in re.findall(r"`((?:skills|tools|tests)/[\w./-]+)`", README):
             if "<" in rel or rel.endswith("/"):

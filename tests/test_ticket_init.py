@@ -1,4 +1,4 @@
-import subprocess, sys, tempfile, unittest
+import os, subprocess, sys, tempfile, unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,6 +68,33 @@ class TicketInitTest(unittest.TestCase):
         r = run("404", "--root", self.root, "--check")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(r.stdout.splitlines(), [str(self.root / "404")] + FILES)
+
+    def test_rejects_windows_reserved_names_and_trailing_dot(self):
+        for bad in ("CON", "con", "Nul", "aux.txt", "PRN", "com1", "COM9.log", "lpt3", "LPT9", "123.", "a.."):
+            r = run(bad, "--root", self.root)
+            self.assertNotEqual(r.returncode, 0, bad)
+            self.assertIn("invalid ticket id", r.stderr, bad)
+        self.assertEqual(list(self.root.iterdir()), [])
+        for ok in ("com10", "console", "COM0", "lpt", "nullable"):
+            self.assertEqual(run(ok, "--root", self.root).returncode, 0, ok)
+
+    def test_unwritable_root_is_a_one_line_error(self):
+        ro = self.root / "ro"; ro.mkdir(); ro.chmod(0o500)
+        self.addCleanup(ro.chmod, 0o700)
+        if os.access(ro, os.W_OK):
+            self.skipTest("directory permissions are not enforced (running as root?)")
+        r = run("555", "--root", ro)
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertEqual(len(r.stderr.strip().splitlines()), 1, r.stderr)
+        self.assertIn("ticket_init:", r.stderr)
+
+    def test_audit_trail_that_is_a_file_is_a_one_line_error(self):
+        (self.root / "556").mkdir(); (self.root / "556" / "audit-trail").write_text("not a dir")
+        r = run("556", "--root", self.root)
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertEqual(len(r.stderr.strip().splitlines()), 1, r.stderr)
 
     def test_check_rejects_bad_ids(self):
         self.assertNotEqual(run("../x", "--root", self.root, "--check").returncode, 0)

@@ -3,6 +3,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTALL = ROOT / "install.sh"
+GIT_ENV = dict({k: v for k, v in os.environ.items() if k != "HOME"}, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull)
+GIT_OPTS = ["-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "-c", "user.name=t", "-c", "user.email=t@e.com"]
+
+
+def git(*args):
+    """git that ignores the developer's own configuration (signing, hooks, templates)."""
+    subprocess.run(["git", *GIT_OPTS, *args], check=True, env=GIT_ENV)
 
 
 class InstallTest(unittest.TestCase):
@@ -15,14 +22,21 @@ class InstallTest(unittest.TestCase):
             (self.repo / "skills" / name).mkdir(parents=True)
             (self.repo / "skills" / name / "SKILL.md").write_text(f"---\nname: {name}\ndescription: x\n---\n")
         shutil.copy(INSTALL, self.repo / "install.sh")
-        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "-c", "user.name=t", "-c", "user.email=t@e.com",
-                        "commit", "-q", "-m", "init"], check=True)
+        git("init", "-q", str(self.repo))
+        git("-C", str(self.repo), "add", "-A")
+        git("-C", str(self.repo), "commit", "-q", "-m", "init")
 
-    def run_install(self, *args):
-        env = dict(os.environ, HOME=str(self.home))
-        return subprocess.run(["bash", str(self.repo / "install.sh"), *args], capture_output=True, text=True, env=env)
+    def run_install(self, *args, home=None, script=None, env=None, cwd=None):
+        e = dict(os.environ, HOME=str(home or self.home))
+        e.update(env or {})
+        return subprocess.run(["bash", str(script or self.repo / "install.sh"), *args], capture_output=True,
+                              text=True, env=e, cwd=cwd)
+
+    def fake_clone(self, name="other"):
+        clone = self.base / name
+        (clone / "skills" / "alpha").mkdir(parents=True)
+        (clone / "install.sh").write_text("#!/bin/sh\n")
+        return clone
 
     def link(self, root, name):
         return self.home / root / "skills" / name
@@ -54,13 +68,90 @@ class InstallTest(unittest.TestCase):
         self.assertIn("unknown agent", r.stderr)
 
     def test_stale_symlink_to_another_clone_is_relinked(self):
-        other = self.base / "other" / "alpha"; other.mkdir(parents=True)
+        other = self.fake_clone() / "skills" / "alpha"
         dest = self.link(".claude", "alpha"); dest.parent.mkdir(parents=True)
         dest.symlink_to(other)
         r = self.run_install("--agents", "claude")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("relinked", r.stdout)
         self.assertEqual(os.readlink(dest), str(self.repo / "skills" / "alpha"))
+
+    def test_dangling_symlink_is_relinked(self):
+        dest = self.link(".claude", "alpha"); dest.parent.mkdir(parents=True)
+        dest.symlink_to(self.base / "gone" / "skills" / "alpha")
+        r = self.run_install("--agents", "claude")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("relinked", r.stdout)
+        self.assertEqual(os.readlink(dest), str(self.repo / "skills" / "alpha"))
+
+    def test_users_own_symlink_is_a_conflict_until_forced(self):
+        mine = self.base / "mine"; mine.mkdir(); (mine / "x.txt").write_text("x")
+        dest = self.link(".claude", "alpha"); dest.parent.mkdir(parents=True)
+        dest.symlink_to(mine)
+        r = self.run_install("--agents", "claude")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("--force", r.stderr)
+        self.assertEqual(os.readlink(dest), str(mine))                    # untouched
+        self.assertTrue(self.link(".claude", "beta").is_symlink())        # other skills still installed
+        r = self.run_install("--agents", "claude", "--force")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(os.readlink(dest), str(self.repo / "skills" / "alpha"))
+        backups = [p for p in dest.parent.iterdir() if p.name.startswith("alpha.bak-")]
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(os.readlink(backups[0]), str(mine))
+
+    def test_home_with_a_space(self):
+        home = self.base / "home dir"; home.mkdir()
+        cwd = self.base / "cwd"; cwd.mkdir()
+        r = self.run_install(home=home, cwd=cwd)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        for root in (".agents", ".claude"):
+            for name in ("alpha", "beta"):
+                self.assertTrue((home / root / "skills" / name).is_symlink())
+        self.assertEqual(list(cwd.iterdir()), [])
+        self.assertEqual([p.name for p in self.base.iterdir() if p.name.startswith("home") and p.name != "home dir"],
+                         ["home"])
+        legacy = home / ".claude" / "commands"; legacy.mkdir(parents=True); (legacy / "kcs.md").write_text("old")
+        r = self.run_install("--clean-legacy", home=home, cwd=cwd)
+        self.assertIn("moved     ", r.stdout)
+        self.assertFalse((legacy / "kcs.md").exists())
+        self.assertEqual(list(cwd.iterdir()), [])
+        self.assertEqual(self.run_install("uninstall", home=home, cwd=cwd).returncode, 0)
+        self.assertFalse((home / ".claude" / "skills" / "alpha").exists())
+
+    def test_unset_home_is_reported(self):
+        e = {k: v for k, v in os.environ.items() if k != "HOME"}
+        r = subprocess.run(["bash", str(self.repo / "install.sh")], capture_output=True, text=True, env=e)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("HOME is not set", r.stderr)
+        self.assertNotIn("unbound", r.stderr)
+
+    def test_runs_through_a_symlink_to_the_script(self):
+        d = self.base / "bin"; d.mkdir()
+        (d / "install-skills").symlink_to(self.repo / "install.sh")
+        r = self.run_install("--agents", "claude", script=d / "install-skills")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(os.readlink(self.link(".claude", "alpha")), str(self.repo / "skills" / "alpha"))
+        (d / "rel").symlink_to(os.path.relpath(self.repo / "install.sh", d))     # relative link
+        self.assertEqual(self.run_install("status", "--agents", "claude", script=d / "rel").returncode, 0)
+
+    def test_agents_entries_are_trimmed(self):
+        r = self.run_install("--agents", "pi, claude")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(self.link(".agents", "alpha").is_symlink())
+        self.assertTrue(self.link(".claude", "alpha").is_symlink())
+
+    def test_legacy_backup_never_overwrites_an_existing_backup(self):
+        bindir = self.base / "fakebin"; bindir.mkdir()
+        (bindir / "date").write_text("#!/bin/sh\necho 20260101-000000\n"); (bindir / "date").chmod(0o755)
+        env = {"PATH": f"{bindir}:{os.environ['PATH']}"}
+        legacy = self.home / ".claude" / "commands"; legacy.mkdir(parents=True)
+        (legacy / "kcs.md").write_text("new"); (legacy / "kcs.md.bak-20260101-000000").write_text("precious")
+        r = self.run_install("--agents", "claude", "--clean-legacy", env=env)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual((legacy / "kcs.md.bak-20260101-000000").read_text(), "precious")
+        self.assertEqual(len([p for p in legacy.iterdir() if p.name.startswith("kcs.md.bak-")]), 2)
+        self.assertFalse((legacy / "kcs.md").exists())
 
     def test_real_directory_is_not_overwritten_without_force(self):
         dest = self.link(".claude", "alpha"); dest.mkdir(parents=True)
@@ -97,20 +188,20 @@ class InstallTest(unittest.TestCase):
 
     def test_update_pulls_from_origin(self):
         origin = self.base / "origin"
-        subprocess.run(["git", "clone", "-q", "--bare", str(self.repo), str(origin)], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "remote", "add", "origin", str(origin)], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "fetch", "-q", "origin"], check=True)
+        git("clone", "-q", "--bare", str(self.repo), str(origin))
+        git("-C", str(self.repo), "remote", "add", "origin", str(origin))
+        git("-C", str(self.repo), "fetch", "-q", "origin")
         branch = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "--abbrev-ref", "HEAD"],
-                                capture_output=True, text=True, check=True).stdout.strip()
-        subprocess.run(["git", "-C", str(self.repo), "branch", "-q", f"--set-upstream-to=origin/{branch}"], check=True)
+                                capture_output=True, text=True, check=True, env=GIT_ENV).stdout.strip()
+        git("-C", str(self.repo), "branch", "-q", f"--set-upstream-to=origin/{branch}")
         work = self.base / "work"
-        subprocess.run(["git", "clone", "-q", str(origin), str(work)], check=True)
+        git("clone", "-q", str(origin), str(work))
         (work / "skills" / "delta").mkdir()
         (work / "skills" / "delta" / "SKILL.md").write_text("---\nname: delta\ndescription: x\n---\n")
-        for cmd in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@e.com", "commit", "-q", "-m", "add delta"],
-                    ["push", "-q"]):
-            subprocess.run(["git", "-C", str(work), *cmd], check=True)
-        r = self.run_install("update")
+        git("-C", str(work), "add", "-A")
+        git("-C", str(work), "commit", "-q", "-m", "add delta")
+        git("-C", str(work), "push", "-q")
+        r = self.run_install("update", env={"GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_SYSTEM": os.devnull})
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("repository updated", r.stdout)
         self.assertTrue(self.link(".claude", "delta").is_symlink())
@@ -123,7 +214,7 @@ class InstallTest(unittest.TestCase):
         r = self.run_install("status", "--agents", "claude")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("ok        ", r.stdout)
-        dest = self.link(".claude", "alpha"); dest.unlink(); dest.symlink_to(self.base)
+        dest = self.link(".claude", "alpha"); dest.unlink(); dest.symlink_to(self.fake_clone() / "skills" / "alpha")
         self.assertIn("stale     ", self.run_install("status", "--agents", "claude").stdout)
         dest.unlink(); dest.mkdir()
         self.assertIn("conflict  ", self.run_install("status", "--agents", "claude").stdout)
@@ -187,6 +278,19 @@ class PowerShellScriptTest(unittest.TestCase):
                      "conflict  ", "removed   ", "kept      ", "legacy    ", "moved     ", "backed up "):
             self.assertIn(word, self.PS, word)
             self.assertIn(word, sh, word)
+
+    def test_hints_use_execution_policy_bypass(self):
+        for line in self.PS.splitlines():
+            if ".\\install.ps1 -Command" in line or ".\\install.ps1 -Copy" in line:
+                self.assertIn("powershell -ExecutionPolicy Bypass -File .\\install.ps1", line, line)
+
+    def test_bad_agent_exits_2_and_failures_are_handled(self):
+        self.assertNotIn('Write-Error "unknown agent', self.PS)
+        self.assertIn("exit 2", self.PS)
+        self.assertIn("catch", self.PS)
+        self.assertIn("-Copy", self.PS.split("catch", 1)[1].split("}", 1)[0])
+        self.assertNotIn("Test-Path -LiteralPath $dest)", self.PS)     # broken junctions: use Get-Item -Force
+        self.assertIn("skills", self.PS.split("function Test-RepoLink", 1)[1].split("function", 1)[0])
 
     def test_gitattributes_keeps_shell_script_lf(self):
         text = (ROOT / ".gitattributes").read_text()

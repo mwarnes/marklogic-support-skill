@@ -14,9 +14,16 @@
 #   ~/.claude/skills/<skill>   read by Claude Code (and by GitHub Copilot)
 # The skills are the folders under skills/ in this repository: marklogic-support, ticket, kcs, kcs-review.
 # macOS / Linux (bash 3.2 or newer). Windows: use install.ps1.
+# shellcheck disable=SC2329  # the per-skill functions are called indirectly by for_each_target
 set -u
 
-REPO="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SELF="${BASH_SOURCE[0]}"
+while [ -L "$SELF" ]; do       # run through a symlink: find the script's real directory
+  d="$(cd -P "$(dirname "$SELF")" && pwd)"
+  SELF="$(readlink "$SELF")"
+  case "$SELF" in /*) ;; *) SELF="$d/$SELF" ;; esac
+done
+REPO="$(cd -P "$(dirname "$SELF")" && pwd)"
 CMD=install; AGENTS=all; COPY=0; FORCE=0; PULL=1; CLEAN_LEGACY=0
 STAMP="$(date +%Y%m%d-%H%M%S)"
 MARK=".installed-by-marklogic-support-skill"
@@ -43,19 +50,29 @@ while [ $# -gt 0 ]; do
 done
 
 # --- which target directories for the chosen agents -------------------------------------------------
-TARGETS=""
-add_target() { case " $TARGETS " in *" $1 "*) ;; *) TARGETS="$TARGETS $1" ;; esac; }
+[ -n "${HOME:-}" ] || { warn "HOME is not set; cannot tell where to install"; exit 1; }
+WANT_AGENTS=0; WANT_CLAUDE=0
 OLDIFS="$IFS"; IFS=','
 for a in $AGENTS; do
+  a="${a#"${a%%[![:space:]]*}"}"; a="${a%"${a##*[![:space:]]}"}"
   case "$a" in
-    all) add_target "$HOME/.agents/skills"; add_target "$HOME/.claude/skills" ;;
-    pi|codex|copilot) add_target "$HOME/.agents/skills" ;;
-    claude) add_target "$HOME/.claude/skills" ;;
+    all) WANT_AGENTS=1; WANT_CLAUDE=1 ;;
+    pi|codex|copilot) WANT_AGENTS=1 ;;
+    claude) WANT_CLAUDE=1 ;;
     *) IFS="$OLDIFS"; warn "unknown agent '$a' (use pi, claude, codex, copilot or all)"; exit 2 ;;
   esac
 done
 IFS="$OLDIFS"
-[ -n "$TARGETS" ] || { warn "no agents selected"; exit 2; }
+[ "$WANT_AGENTS" = 1 ] || [ "$WANT_CLAUDE" = 1 ] || { warn "no agents selected"; exit 2; }
+
+for_each_skill() {     # $1 = function, $2 = target dir; calls: function skill target
+  local s
+  for s in $SKILLS; do "$1" "$s" "$2"; done
+}
+for_each_target() {    # $1 = function
+  if [ "$WANT_AGENTS" = 1 ]; then for_each_skill "$1" "$HOME/.agents/skills"; fi
+  if [ "$WANT_CLAUDE" = 1 ]; then for_each_skill "$1" "$HOME/.claude/skills"; fi
+}
 
 SKILLS=""
 discover_skills() {    # run after any git pull so newly added skills are seen
@@ -75,30 +92,65 @@ is_ours() {            # a link into this repo, or a copy carrying our marker
   [ -f "$1/$MARK" ]
 }
 
+repo_link() {          # $1 = link, $2 = skill: dangling, or pointing at <clone>/skills/<skill> of a checkout of this repo
+  local t; t="$(link_target "$1")"
+  [ -e "$1" ] || return 0
+  case "$t" in /*) ;; *) t="$(dirname "$1")/$t" ;; esac
+  case "$t" in
+    */skills/"$2") [ -f "$(dirname "$(dirname "$t")")/install.sh" ] ;;
+    *) return 1 ;;
+  esac
+}
+
+bak_path() {           # a backup name that does not exist yet
+  local p="$1.bak-$STAMP" i=1
+  while [ -e "$p" ] || [ -L "$p" ]; do p="$1.bak-$STAMP-$i"; i=$((i + 1)); done
+  printf '%s' "$p"
+}
+
 install_one() {        # $1 = skill name, $2 = target dir
-  local tdir="$2" src="$REPO/skills/$1" dest="$2/$1"
-  mkdir -p "$tdir"
+  local name="$1" tdir="$2" src="$REPO/skills/$1" dest="$2/$1" old bak
+  mkdir -p "$tdir" || { problem "cannot create $tdir"; return; }
   if [ -L "$dest" ]; then
-    if [ "$COPY" = 0 ] && [ "$(link_target "$dest")" = "$src" ]; then say "ok        $dest"; return; fi
-    local old; old="$(link_target "$dest")"
-    rm "$dest"; say "relinked  $dest (was -> $old)"
+    old="$(link_target "$dest")"
+    if [ "$COPY" = 0 ] && [ "$old" = "$src" ]; then say "ok        $dest"; return; fi
+    if repo_link "$dest" "$name"; then
+      rm "$dest" || { problem "cannot remove the old link $dest"; return; }
+      say "relinked  $dest (was -> $old)"
+    elif [ "$FORCE" = 1 ]; then
+      bak="$(bak_path "$dest")"
+      mv "$dest" "$bak" || { problem "cannot back up $dest"; return; }
+      say "backed up $dest -> $bak"
+    else
+      problem "$dest is a link to $old that this installer did not create; re-run with --force to replace it (a backup is kept)"; return
+    fi
   elif [ -e "$dest" ]; then
-    if [ -f "$dest/$MARK" ]; then rm -rf "$dest"
-    elif [ "$FORCE" = 1 ]; then mv "$dest" "$dest.bak-$STAMP"; say "backed up $dest -> $dest.bak-$STAMP"
+    if [ -f "$dest/$MARK" ]; then
+      rm -rf "$dest" || { problem "cannot remove the old copy $dest"; return; }
+    elif [ "$FORCE" = 1 ]; then
+      bak="$(bak_path "$dest")"
+      mv "$dest" "$bak" || { problem "cannot back up $dest"; return; }
+      say "backed up $dest -> $bak"
     else problem "$dest exists and is not managed by this installer; re-run with --force to replace it (a backup is kept)"; return
     fi
   fi
   if [ "$COPY" = 1 ]; then
-    cp -R "$src" "$dest" && : > "$dest/$MARK" && say "copied    $dest"
+    if ! cp -R "$src" "$dest"; then rm -rf "$dest"; problem "copy to $dest failed"; return; fi
+    if ! : > "$dest/$MARK"; then rm -rf "$dest"; problem "cannot mark the copy $dest"; return; fi
+    say "copied    $dest"
   else
-    ln -s "$src" "$dest" && say "linked    $dest -> $src"
+    ln -s "$src" "$dest" || { problem "cannot link $dest"; return; }
+    say "linked    $dest -> $src"
   fi
 }
 
 status_one() {
   local dest="$2/$1" src="$REPO/skills/$1"
   if [ -L "$dest" ]; then
-    if [ "$(link_target "$dest")" = "$src" ]; then say "ok        $dest"; else say "stale     $dest -> $(link_target "$dest") (run: ./install.sh update)"; PROBLEMS=$((PROBLEMS + 1)); fi
+    if [ "$(link_target "$dest")" = "$src" ]; then say "ok        $dest"
+    elif repo_link "$dest" "$1"; then say "stale     $dest -> $(link_target "$dest") (run: ./install.sh update)"; PROBLEMS=$((PROBLEMS + 1))
+    else say "conflict  $dest is a link to $(link_target "$dest") that this installer did not create"; PROBLEMS=$((PROBLEMS + 1))
+    fi
   elif [ -f "$dest/$MARK" ]; then say "copy      $dest (refresh with: ./install.sh update --copy)"
   elif [ -e "$dest" ]; then say "conflict  $dest is not managed by this installer"; PROBLEMS=$((PROBLEMS + 1))
   else say "missing   $dest"; PROBLEMS=$((PROBLEMS + 1))
@@ -112,17 +164,21 @@ uninstall_one() {
   fi
 }
 
-LEGACY_DIRS="$HOME/.claude/commands $HOME/.pi/agent/prompts $HOME/.codex/prompts"
-legacy() {
-  local d n f
-  for d in $LEGACY_DIRS; do
-    for n in ticket kcs kcs-review; do
-      f="$d/$n.md"
-      [ -e "$f" ] || [ -L "$f" ] || continue
-      if [ "$CLEAN_LEGACY" = 1 ]; then mv "$f" "$f.bak-$STAMP"; say "moved     $f -> $f.bak-$STAMP (superseded by the $n skill)"
-      else say "legacy    $f is superseded by the '$n' skill; remove it with --clean-legacy"; fi
-    done
+legacy_dir() {         # $1 = a directory that older versions put command files in
+  local n f bak
+  for n in ticket kcs kcs-review; do
+    f="$1/$n.md"
+    [ -e "$f" ] || [ -L "$f" ] || continue
+    if [ "$CLEAN_LEGACY" = 1 ]; then
+      bak="$(bak_path "$f")"
+      if mv "$f" "$bak"; then say "moved     $f -> $bak (superseded by the $n skill)"; else problem "cannot move $f aside"; fi
+    else say "legacy    $f is superseded by the '$n' skill; remove it with --clean-legacy"; fi
   done
+}
+legacy() {
+  legacy_dir "$HOME/.claude/commands"
+  legacy_dir "$HOME/.pi/agent/prompts"
+  legacy_dir "$HOME/.codex/prompts"
 }
 
 deps() {
@@ -150,16 +206,16 @@ discover_skills
 
 case "$CMD" in
   install|update)
-    for t in $TARGETS; do for s in $SKILLS; do install_one "$s" "$t"; done; done
+    for_each_target install_one
     legacy; deps
     ;;
   status)
     say "repository $REPO at $(commit)"
-    for t in $TARGETS; do for s in $SKILLS; do status_one "$s" "$t"; done; done
+    for_each_target status_one
     legacy; deps
     ;;
   uninstall)
-    for t in $TARGETS; do for s in $SKILLS; do uninstall_one "$s" "$t"; done; done
+    for_each_target uninstall_one
     ;;
 esac
 

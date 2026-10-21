@@ -89,7 +89,7 @@ Check the security incident gate first (Always first, step 3): SAR output is a c
 
 ## Audit trail
 
-If `audit-trail/` exists in the current working directory (created by `/ticket`), read
+If `audit-trail/` exists in the current working directory, or in the ticket directory set up by the `ticket` skill earlier in this session (`<project root>/<ticket>/audit-trail/`) (created by `/ticket`), read
 `references/ticket-auditing.md` once per session, then after producing output in Triage, Dump,
 Log, or SAR mode (never Q&A mode — a one-off question is not ticket work):
 
@@ -112,7 +112,7 @@ On a security vulnerability or incident ticket follow "Audit trail on security t
 entry moving to `Confirmed`, `Root-Cause.md` itself, an `[Escalation]` entry, or a `[Closure]`
 entry. These are assertions, not triage output — propose them, then write only once the engineer
 confirms (e.g. "confirmed", "write up root cause", "we escalated to X", "customer accepted, close
-it"). If `audit-trail/` does not exist, skip all of this silently.
+it"). If `audit-trail/` exists in neither place, skip all of this silently.
 
 **After a confirmed `[Closure]` entry is written**, offer once — in one sentence, no other action —
 to draft a KCS article with `/kcs` (or `/kcs <ticket>` in a later session). Skip the offer if

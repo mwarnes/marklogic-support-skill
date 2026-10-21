@@ -30,7 +30,7 @@ How you start a skill depends on the agent:
 | Claude Code | `/ticket 12345` | A skill is a slash command named after its folder |
 | pi | `/skill:ticket 12345` | Text after the name is passed to the skill |
 | Codex | `$ticket 12345` (or `/skills` to pick) | Codex can also pick a skill from its description |
-| GitHub Copilot | "use the ticket skill for case 12345" | Copilot chooses a skill from its description; there is no slash command for skills |
+| GitHub Copilot | `/ticket 12345` in VS Code chat; in the Copilot CLI, "use the /ticket skill for case 12345" | VS Code lists skills as slash commands when you type `/`; the CLI docs say to put the skill name, preceded by a forward slash, in your prompt. Copilot can also choose a skill from its description |
 
 ## Requirements
 
@@ -49,7 +49,7 @@ agents read, so there is one copy on disk and updating is a `git pull`:
 | Folder | Read by |
 | --- | --- |
 | `~/.agents/skills/` | pi, Codex, GitHub Copilot |
-| `~/.claude/skills/` | Claude Code (and GitHub Copilot) |
+| `~/.claude/skills/` | Claude Code (and GitHub Copilot in VS Code) |
 
 ### macOS and Linux
 
@@ -60,10 +60,12 @@ cd ~/marklogic-support-skill
 ./install.sh status       # check what is installed where
 ```
 
-Then restart your agent (Codex and others only look for new skills at start-up).
+Then restart your agent if the skills do not appear (Codex and Claude Code detect changes live, other agents may only look at start-up).
 
 Options: `--agents pi,claude,codex,copilot` (default `all`), `--copy` (copy instead of link), `--force`
-(replace a real folder of the same name; a `.bak-<time>` copy is kept), `--clean-legacy` (see Update).
+(replace a real folder or a link you made yourself; a `.bak-<time>` copy is kept), `--clean-legacy` (see Update).
+A plain `./install.sh` replaces a `--copy` install with links, and links that point at another clone of this
+repository (or at nothing) are re-pointed at this one.
 
 ### Windows
 
@@ -90,9 +92,14 @@ junction, use `-Copy`, and re-run `-Command update -Copy` after each update. Opt
   ([docs](https://learn.chatgpt.com/docs/build-skills)). Codex custom prompts (`~/.codex/prompts`) are
   [deprecated](https://learn.chatgpt.com/docs/custom-prompts) in favour of skills, which is why the
   workflows here are skills too.
-- **GitHub Copilot** — reads `~/.agents/skills/`, `~/.copilot/skills/` and `~/.claude/skills/` for personal skills,
-  and `.github/skills/`, `.claude/skills/` or `.agents/skills/` inside a repository
-  ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)). The docs describe no
+- **GitHub Copilot** — personal skills: the Copilot CLI and cloud-agent docs list `~/.copilot/skills` and `~/.agents/skills`; `~/.claude/skills` is documented for VS Code only
+  ([VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-skills),
+  [CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-skills)).
+  The installer's `~/.agents/skills` link therefore covers all of them. Project skills live in `.github/skills/`,
+  `.claude/skills/` or `.agents/skills/` inside a repository
+  ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)).
+  The Copilot cloud agent runs on GitHub, not on your machine, so it only sees skills committed to the repository, never a personal install.
+  The docs describe no
   organisation-wide distribution of skills, so on Copilot Enterprise each engineer installs the skills with the
   script, or a team commits them under `.github/skills/` in its own repository. The GitHub CLI's `gh skill`
   command (preview, GitHub CLI 2.90 or later) can also install skills from a GitHub repository; its exact usage is
@@ -108,7 +115,8 @@ for s in marklogic-support ticket kcs kcs-review; do
 done
 ```
 
-For one project only, create the same links under `<project>/.agents/skills/` (and `.claude/skills/` for Claude
+Check first: `ln -sfn` replaces an existing link, and if the destination is a real folder it creates the link
+*inside* that folder instead of replacing it. For one project only, create the same links under `<project>/.agents/skills/` (and `.claude/skills/` for Claude
 Code, `.github/skills/` for Copilot).
 
 ## Update
@@ -119,7 +127,7 @@ cd ~/marklogic-support-skill
 ./install.sh status
 ```
 
-Windows: `.\install.ps1 -Command update`. Restart the agent afterwards.
+Windows: `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Command update`. Restart the agent if the skills do not appear.
 
 - Because the installed skills are links to the clone, a plain `git pull` also updates them. `update` additionally
   links skills added in the new version and reports the old and new commit.
@@ -142,7 +150,8 @@ Start a ticket, work it, and write it up:
 /kcs-review path/to/article.md    # review someone else's article
 ```
 
-(Use the form for your agent from the table above.) The skill classifies the input (ticket, question, support
+Ticket folders are created under the git top-level directory (or the current directory if it is not a git
+repository), so start the agent in the folder where you keep your tickets. (Use the form for your agent from the table above.) The skill classifies the input (ticket, question, support
 dump, log files, SAR output) and routes to the right reference notes. See `skills/marklogic-support/SKILL.md`
 for the routing table and output formats.
 
@@ -180,7 +189,9 @@ that folder exists, otherwise to the working directory. The original is never mo
 ./install.sh uninstall          # removes only links (or marked copies) that point into this clone
 ```
 
-Windows: `.\install.ps1 -Command uninstall`. Then delete the clone.
+Windows: `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Command uninstall`. Then delete the clone.
+Uninstall before you move or delete the clone: the installer needs the clone to know which links are its own, and
+links left behind point at nothing.
 
 ## Troubleshooting
 
@@ -235,4 +246,4 @@ python3 -m unittest discover -s tests
 
 ## Licence
 
-MIT — see `package.json`.
+MIT — see the LICENSE file.

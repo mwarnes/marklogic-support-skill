@@ -14,6 +14,7 @@ from pathlib import Path
 
 FILES = ["Timeline", "Analysis", "Required-Diagnostics", "Problems", "Root-Cause"]
 TICKET_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+RESERVED_RE = re.compile(r"(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?", re.I)    # Windows device names
 
 
 def project_root(cwd):
@@ -27,7 +28,8 @@ def project_root(cwd):
 
 
 def check_id(ticket):
-    if not TICKET_RE.fullmatch(ticket) or ".." in ticket:
+    if (not TICKET_RE.fullmatch(ticket) or ".." in ticket or ticket.endswith(".")
+            or RESERVED_RE.fullmatch(ticket)):
         sys.exit(f"ticket_init: invalid ticket id {ticket!r} (use letters, digits, '.', '_' and '-' only)")
 
 
@@ -42,12 +44,16 @@ def check(ticket, root):
 def init(ticket, root):
     check_id(ticket)
     trail = Path(root) / ticket / "audit-trail"
-    trail.mkdir(parents=True, exist_ok=True)
-    for name in FILES:
-        f = trail / f"{name}.md"
-        if not f.exists():
-            f.write_text(f"# {name}\n\n")
-    return trail.parent, sorted(p.name for p in trail.iterdir())
+    try:
+        trail.mkdir(parents=True, exist_ok=True)
+        for name in FILES:
+            f = trail / f"{name}.md"
+            if not f.exists():
+                f.write_text(f"# {name}\n\n")
+        return trail.parent, sorted(p.name for p in trail.iterdir())
+    except OSError as e:
+        sys.exit(f"ticket_init: cannot create the audit trail under {root}: {e.strerror or e}"
+                 + (f" ({e.filename})" if e.filename else ""))
 
 
 def main(argv=None):
