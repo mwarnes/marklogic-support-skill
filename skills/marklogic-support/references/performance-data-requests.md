@@ -72,6 +72,28 @@ Engineer notes:
 - `dmesg -T` timestamps can be inaccurate and are not updated after suspend/resume (`dmesg(1)`); it can fail with permission denied when `dmesg_restrict` is set. `journalctl -k` shows only the current boot unless a boot is chosen, so after a reboot the incident may be in an earlier boot (how to select one: `[unverified — confirm]`).
 - The kernel message strings in the filter (`Out of memory`, `Killed process`, `hung task`, `I/O error`) were not checked against a kernel documentation page `[unverified — confirm]`; widen the filter if it returns nothing.
 
+## Running requests: request and server status
+
+Use for a stuck or slow request that is still running. Capture what MarkLogic itself reports before anything is cancelled. Sources: https://docs.marklogic.com/xdmp:server-status and https://docs.marklogic.com/xdmp:request-status (MarkLogic 12.0 function reference).
+
+Customer request:
+
+> While the request is still stuck or slow, please run the following in Query Console (set the query type to XQuery) and send us the result. It only reads status; it does not change or stop anything. The user needs the status privilege (`http://marklogic.com/xdmp/privileges/status`) `[unverified — confirm: the xdmp:server-status page lists no privilege]`.
+>
+> 1. Run `xdmp:server-status(xdmp:host("<host name>"), xdmp:server("<App Server name>"))`, using the host and the App Server (as named in the Admin Interface) that the request runs on. The result is XML that lists the requests running on that App Server, so we can see how long yours has run and what it is doing. If the request runs on another host, repeat this for that host.
+> 2. Save the XML result to a file, for example `server-status-<host>.xml`, and attach it to the case together with the host name and the time you ran it.
+> 3. If the request is slow rather than stuck, run it a second time about a minute later and send both results, so we can see whether it is progressing.
+> 4. Please do not cancel the request until we have confirmed the capture is enough.
+
+Engineer notes:
+- Why: the `request-status` data shows the request text, start time, time limit, user and state while it is happening. Capture first; cancel only afterwards and only on the customer's say-so. `xdmp:request-cancel` takes the host ID, server ID and request ID (the ID is in the `request` elements of `xdmp:server-status` output) and needs `cancel-any-request` or `cancel-my-requests` (both listed on its page). A cancelled request no longer appears in `xdmp:server-status`.
+- Single request: `xdmp:request-status(xdmp:host(), xdmp:server(), <request id>)` is the narrower call, but the page says it is not cluster-aware (the host must be the local host); use `xdmp:server-status` for a request on another host. Another user's request needs the status privilege.
+- Host-wide view: `xdmp:host-status(xdmp:host("<host>"))` needs the status privilege (`xdmp:host-status` page). `xdmp:forest-status` and `xdmp:forest-counts` are described in `monitoring.md`.
+- Whether `xdmp:server-status` and `xdmp:request-status` are usable as written by Query Console users without the status privilege was not tested; the customer text marks that `[unverified — confirm]`.
+- Apply the security incident gate before asking for files; the XML contains request text and user names.
+- Correlate the capture time with the pstack movie, the ErrorLog and the SAR windows (Log mode `TIMELINE.md`, `sar-analysis.md`). Ask for the host's time zone.
+- Monitoring History export is not covered yet (no page supplied).
+
 ## Stack samples: pstack movie
 
 Use for a hang, an unresponsive period, or a query that behaves unexpectedly. Source: KB 000266816 (https://community.progress.com/s/article/creating-a-pstack-movie-for-support, maintainer-supplied copy).

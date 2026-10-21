@@ -21,7 +21,7 @@ class MonitoringReferenceTest(unittest.TestCase):
         for s in ["ErrorLog.txt", "_AccessLog.txt", "xdmp:log", "xdmp:forest-counts",
                   "xdmp:forest-status", "xdmp:host-status", "xdmp:request-cancel",
                   "xdmp:request-status", "xdmp:server-status", "System Status",
-                  "Forest Status", "abort", "disk space", "URL not supplied"]:
+                  "Forest Status", "abort", "disk space"]:
             self.assertIn(s, text, s)
 
     def test_no_breach_word(self):
@@ -34,7 +34,9 @@ class MonitoringReferenceTest(unittest.TestCase):
 
     def test_sources_md_section_cites_page(self):
         section = SOURCES.read_text().split("## monitoring.md")[1].split("\n## ")[0]
-        self.assertIn("URL not supplied", section)
+        self.assertIn("https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html#id_80312", section)
+        self.assertNotIn("URL not supplied", section)
+        self.assertNotIn("URL not supplied", MON.read_text())
 
     def test_skill_routing_row_has_keywords(self):
         rows = [l for l in SKILL_MD.read_text().splitlines() if l.startswith("| monitoring dashboard")]

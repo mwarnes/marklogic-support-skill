@@ -32,6 +32,17 @@
 
 - **Server Monitoring APIs**: XQuery functions returning XML representations of current activity: `xdmp:forest-counts`, `xdmp:forest-status`, `xdmp:host-status`, `xdmp:request-cancel`, `xdmp:request-status`, `xdmp:server-status`. Use them to build your own reports or integrate with site-wide monitoring. `xdmp:forest-counts` can take some time on large systems because it queries the forest for some of the counts; its optional second argument limits the work. Syntax is in the "Server Monitoring functions" of the MarkLogic XQuery and XSLT Function Reference.
 
+  Verified on the function pages (MarkLogic 12.0 reference). Host ID: `xdmp:host("name")`; server ID: `xdmp:server("name")` (forms used in the page examples).
+
+  | Function | Parameters | Returns | Privilege |
+  | -------- | ---------- | ------- | --------- |
+  | `xdmp:request-status` | `$host-id` (must be the local host), `$server-id` (HTTP, XDBC, ODBC, WebDAV or Task server), `$request-id` (one or more) | `element(request-status)*`, one per requested ID that is running | none for the calling request's own ID; `http://marklogic.com/xdmp/privileges/status` for another request. Not cluster-aware: for a remote host use `xdmp:server-status` |
+  | `xdmp:server-status` | `$host-id`, `$server-id` (one or more; HTTP, XDBC, ODBC, WebDAV or Task) | `element(server-status)*`, including per-request details | the page lists none |
+  | `xdmp:host-status` | `$host-id` (one or more) | `element(host-status)*`; computed on the named host even when called from an App Server on another host | `http://marklogic.com/xdmp/privileges/status` |
+  | `xdmp:forest-status` | `$forest-id` (one or more), optional `$options`: `memory-summary` or `memory-detail` | `element(forest-status)*` | `http://marklogic.com/xdmp/privileges/status` |
+  | `xdmp:forest-counts` | `$forest-id` (one or more), optional `$show-elements` (names of count elements to compute; omitted or empty means all), optional `$options`: `preview-reindexer` or `preview-rebalancer` (only when `$show-elements` is empty) | `element(forest-counts)*`, one per forest; can take significantly longer than `xdmp:forest-status` | `http://marklogic.com/xdmp/privileges/counts` |
+  | `xdmp:request-cancel` | `$hostID`, `$serverID`, `$requestID` (request IDs appear in the `request` elements of `xdmp:server-status` output) | `empty-sequence()`; once cancelled, the request no longer appears in `xdmp:server-status` output | `http://marklogic.com/xdmp/privileges/cancel-any-request` and `http://marklogic.com/xdmp/privileges/cancel-my-requests` (both listed on the page) |
+
 ## Standard procedures
 
 1. **Enable Monitoring History**: Admin Interface → Groups → [group-name] → Configure tab → Monitoring History section → Enable monitoring history → Set retention periods → Apply
@@ -59,10 +70,10 @@
 | No baseline captured before go-live or before a change | Can't tell "abnormal" from "normal for this app" when a ticket comes in | Ask whether a baseline of normal cache hit rates / request rates / forest sizes exists | Capture and keep a baseline snapshot after go-live and after major changes | <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/introduction/guidelines-for-configuring-your-monitoring-tools/establish-a-performance-baseline.html> |
 | Ops Director not configured for multi-cluster estate management | Configuration drift between clusters goes unnoticed until it causes an incident | Ask how many clusters they run and how config changes are tracked across them; note: Ops Director deprecated Nov 2021 | Use external configuration management or monitoring tools to track consistency across clusters | [unverified — confirm] |
 | Meters database retention settings too aggressive | Historical data purged before investigations complete; inability to establish trends | Check Meters database retention settings vs typical incident investigation timeframes | Size retention periods for your MTTR + buffer; balance storage cost vs investigation needs | <https://help.marklogic.com/knowledgebase/article/View/259/0> |
-| Log device full | MarkLogic Server aborts, or fails to start because there is no disk space for the log files | Check free space on the filesystem holding the Logs directory | Keep sufficient free disk space on the log device; monitor it and trim old logs | maintainer-supplied page "Monitoring MarkLogic Server Performance" (MarkLogic 12.0, URL not supplied) [unverified — confirm] |
-| Calling `xdmp:forest-counts` repeatedly on a large system without limiting the work | Monitoring script or report is slow; load on the forests | Review what the script calls and how often; the function queries the forest for some counts | Call it sparingly and use its optional second argument to limit the work (see Function Reference) | maintainer-supplied page "Monitoring MarkLogic Server Performance" (MarkLogic 12.0, URL not supplied) [unverified — confirm] |
-| Not enabling the App Server option for writing uncaught exceptions to ErrorLog.txt | Application errors (e.g. syntax errors) reach only the client; nothing in `ErrorLog.txt` to correlate | Check the App Server configuration for the option and look for the error in `ErrorLog.txt` | Enable the App Server option for writing uncaught exceptions to ErrorLog.txt, especially when queries are generated from a browser or WebDAV client | maintainer-supplied page "Monitoring MarkLogic Server Performance" (MarkLogic 12.0, URL not supplied) [unverified — confirm] |
-| Log retention too short | Old `ErrorLog` files already deleted when an investigation starts | Confirm the configured number of old log files and how long a log is kept before a new one starts | Raise the number of old log files kept / log lifetime to cover investigation time | maintainer-supplied page "Monitoring MarkLogic Server Performance" (MarkLogic 12.0, URL not supplied) [unverified — confirm] |
+| Log device full | MarkLogic Server aborts, or fails to start because there is no disk space for the log files | Check free space on the filesystem holding the Logs directory | Keep sufficient free disk space on the log device; monitor it and trim old logs | <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html#id_80312> (page "Monitoring MarkLogic Server Performance", MarkLogic 12.0) |
+| Calling `xdmp:forest-counts` repeatedly on a large system without limiting the work | Monitoring script or report is slow; load on the forests | Review what the script calls and how often; the function queries the forest for some counts | Call it sparingly and use its optional second argument to limit the work (see Function Reference) | <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html#id_80312> (page "Monitoring MarkLogic Server Performance", MarkLogic 12.0) |
+| Not enabling the App Server option for writing uncaught exceptions to ErrorLog.txt | Application errors (e.g. syntax errors) reach only the client; nothing in `ErrorLog.txt` to correlate | Check the App Server configuration for the option and look for the error in `ErrorLog.txt` | Enable the App Server option for writing uncaught exceptions to ErrorLog.txt, especially when queries are generated from a browser or WebDAV client | <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html#id_80312> (page "Monitoring MarkLogic Server Performance", MarkLogic 12.0) |
+| Log retention too short | Old `ErrorLog` files already deleted when an investigation starts | Confirm the configured number of old log files and how long a log is kept before a new one starts | Raise the number of old log files kept / log lifetime to cover investigation time | <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html#id_80312> (page "Monitoring MarkLogic Server Performance", MarkLogic 12.0) |
 
 ## Sources
 
@@ -78,4 +89,10 @@
 - <https://docs.marklogic.com/REST/GET/manage/v2/databases/%5Bid-or-name%5D@view=status>
 - <https://help.marklogic.com/Knowledgebase/Article/View/399>
 - <https://help.marklogic.com/knowledgebase/article/View/259/0>
-- maintainer-supplied copy of the MarkLogic 12.0 page "Monitoring MarkLogic Server Performance" (URL not supplied)
+- <https://docs.progress.com/bundle/marklogic-server-tune-query-performance-12/page/topics/status.html#id_80312> (page "Monitoring MarkLogic Server Performance", MarkLogic 12.0; read on 2026-10-21, it covers the logs, the disk-space abort, the seven status screens, the six functions and the forest-counts note)
+- <https://docs.marklogic.com/xdmp:request-status>
+- <https://docs.marklogic.com/xdmp:server-status>
+- <https://docs.marklogic.com/xdmp:host-status>
+- <https://docs.marklogic.com/xdmp:forest-status>
+- <https://docs.marklogic.com/xdmp:request-cancel>
+- <https://docs.marklogic.com/xdmp:forest-counts>
