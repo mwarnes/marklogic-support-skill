@@ -32,6 +32,11 @@ How you start a skill depends on the agent:
 | Codex | `$ticket 12345` (or `/skills` to pick) | Codex can also pick a skill from its description |
 | GitHub Copilot | `/ticket 12345` in VS Code chat; in the Copilot CLI, "use the /ticket skill for case 12345" | VS Code lists skills as slash commands when you type `/`; the CLI docs say to put the skill name, preceded by a forward slash, in your prompt. Copilot can also choose a skill from its description |
 
+**Changed in 1.1:** `/ticket`, `/kcs` and `/kcs-review` used to be prompt templates (pi) and command files (Claude Code,
+Codex). They are now skills, so in **pi** they are started as `/skill:ticket`, `/skill:kcs` and `/skill:kcs-review`
+(`/ticket` no longer exists there); in **Claude Code** the commands are unchanged. Old copies of the command files are
+listed by `./install.sh status` and moved aside by `./install.sh update --clean-legacy`.
+
 ## Requirements
 
 - **Python 3** — the analysis, rendering and ticket scripts use the standard library only. On Windows the agent
@@ -51,10 +56,14 @@ agents read, so there is one copy on disk and updating is a `git pull`:
 | `~/.agents/skills/` | pi, Codex, GitHub Copilot |
 | `~/.claude/skills/` | Claude Code (and GitHub Copilot in VS Code) |
 
+The repository is private: you need read access to it and git credentials that work non-interactively
+(for example `gh auth login` followed by `gh auth setup-git`, or an SSH key loaded in `ssh-agent`). Ask the
+maintainer for access.
+
 ### macOS and Linux
 
 ```bash
-git clone <repo-url> ~/marklogic-support-skill
+git clone https://github.com/mwarnes/marklogic-support-skill.git ~/marklogic-support-skill
 cd ~/marklogic-support-skill
 ./install.sh              # all four agents; see ./install.sh --help
 ./install.sh status       # check what is installed where
@@ -70,7 +79,7 @@ repository (or at nothing) are re-pointed at this one.
 ### Windows
 
 ```powershell
-git clone <repo-url> $HOME\marklogic-support-skill
+git clone https://github.com/mwarnes/marklogic-support-skill.git $HOME\marklogic-support-skill
 cd $HOME\marklogic-support-skill
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -Command status
@@ -87,7 +96,7 @@ junction, use `-Copy`, and re-run `-Command update -Copy` after each update. Opt
   `/ticket`, `/kcs` and `/kcs-review`.
 - **pi** — reads `~/.agents/skills/` ([docs](https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md)).
   You can also install the repository as a pi package instead of using the script:
-  `pi install git:<repo-url>` (add `-l` to install for one project and record it in `.pi/settings.json`).
+  `pi install git:github.com/mwarnes/marklogic-support-skill` (add `-l` to install for one project and record it in `.pi/settings.json`).
 - **Codex** — reads `~/.agents/skills/` and follows symlinked skill folders
   ([docs](https://learn.chatgpt.com/docs/build-skills)). Codex custom prompts (`~/.codex/prompts`) are
   [deprecated](https://learn.chatgpt.com/docs/custom-prompts) in favour of skills, which is why the
@@ -131,7 +140,7 @@ Windows: `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Command update
 
 - Because the installed skills are links to the clone, a plain `git pull` also updates them. `update` additionally
   links skills added in the new version and reports the old and new commit.
-- **pi package installs:** `pi update --extensions` updates all installed packages, or `pi update git:<repo-url>`
+- **pi package installs:** `pi update --extensions` updates all installed packages, or `pi update git:github.com/mwarnes/marklogic-support-skill`
   updates just this one (`pi update` on its own updates pi itself).
 - **Copy installs** (`--copy` / `-Copy`) are not links: run `./install.sh update --copy` to refresh them.
 - **Older versions of this repository** shipped `/ticket`, `/kcs` and `/kcs-review` as command files that people

@@ -14,7 +14,8 @@ class ReadmeTest(unittest.TestCase):
 
     def test_names_all_four_agents_and_both_skill_folders(self):
         for word in ("Claude Code", "pi", "Codex", "GitHub Copilot", "~/.agents/skills", "~/.claude/skills",
-                     ".github/skills", "install.sh", "install.ps1", "<repo-url>"):
+                     ".github/skills", "install.sh", "install.ps1",
+                     "https://github.com/mwarnes/marklogic-support-skill.git"):
             self.assertIn(word, README, word)
 
     def test_documents_the_update_commands(self):
@@ -30,6 +31,16 @@ class ReadmeTest(unittest.TestCase):
         for p in (ROOT / "skills").iterdir():
             if (p / "SKILL.md").exists():
                 self.assertIn(p.name, README, p.name)
+
+    def test_repository_url_is_set_and_private_access_is_explained(self):
+        self.assertNotIn("<repo-url>", README)
+        self.assertIn("pi install git:github.com/mwarnes/marklogic-support-skill", README)
+        self.assertIn("The repository is private", README)
+
+    def test_invocation_change_for_pi_is_documented(self):
+        self.assertIn("**Changed in 1.1:**", README)
+        self.assertIn("`/ticket` no longer exists there", README)
+        self.assertIn("--clean-legacy", README)
 
     def test_no_stale_claims(self):
         self.assertNotIn("prompts/", README)
