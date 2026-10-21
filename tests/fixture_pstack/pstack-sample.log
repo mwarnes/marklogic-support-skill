@@ -1,0 +1,847 @@
+MarkLogic - user override of EC2 detection
+Thread 147 (Thread 0x7f535fcf6700 (LWP 6618)):
+#0  0x00007f535be709b0 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00000000041a7147 in svc::Semaphore::wait(bool) const ()
+#2  0x00000000041c1ded in svc::StarterThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 146 (Thread 0x7f535fcd7700 (LWP 6637)):
+#0  0x00007f535be71add in accept () from /lib64/libpthread.so.0
+#1  0x00000000041b1795 in svc::Socket::accept(sockaddr_in&) ()
+#2  0x0000000003ecbc5f in xdmp::XDQPServerThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 145 (Thread 0x7f535fcb8700 (LWP 6638)):
+#0  0x00007f535b2ef113 in poll () from /lib64/libc.so.6
+#1  0x00000000041b4fb5 in svc::Socket::_wait(unsigned int, bool, bool, char const*) const ()
+#2  0x00000000041b6b81 in svc::Socket::recv(char*, char*, unsigned int) ()
+#3  0x00000000041b703f in svc::Sockbuf::underflow() ()
+#4  0x00000000041ae6f6 in svc::Sockbuf::xsgetn(char*, long) ()
+#5  0x0000000003e7caed in xdmp::XDQPServerConnection::recv(xdmp::XDQPServerListener const&, std::vector<unsigned int, std::allocator<unsigned int> >&) ()
+#6  0x0000000003eb8839 in xdmp::XDQPServerConnection::run() ()
+#7  0x0000000003ebc110 in xdmp::XDQPServerConnectionThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 144 (Thread 0x7f535fc79700 (LWP 6639)):
+#0  0x00007f535be71fbd in nanosleep () from /lib64/libpthread.so.0
+#1  0x00000000041c1adb in svc::Thread::sleep(unsigned int) ()
+#2  0x0000000002473f65 in xdmp::ClusterManager::clusterThread() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 130 (Thread 0x7f53584b3700 (LWP 6659)):
+#0  0x00007f535be712e4 in __lll_lock_wait () from /lib64/libpthread.so.0
+#1  0x00007f535be6c588 in _L_lock_854 () from /lib64/libpthread.so.0
+#2  0x00007f535be6c457 in pthread_mutex_lock () from /lib64/libpthread.so.0
+#3  0x00007f535f8cb51d in arena_malloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8e2993 in tcache_create () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8c2ba2 in malloc () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535c3530bd in operator new(unsigned long) () from /usr/lib64/libstdc++.so.6
+#7  0x0000000000db6dd4 in std::vector<unsigned int, std::allocator<unsigned int> >::reserve(unsigned long) ()
+#8  0x0000000003e7d180 in xdmp::XDQPServerConnection::recv(xdmp::XDQPServerListener const&, std::vector<unsigned int, std::allocator<unsigned int> >&) ()
+#9  0x0000000003eb8839 in xdmp::XDQPServerConnection::run() ()
+#10 0x0000000003ebc110 in xdmp::XDQPServerConnectionThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 86 (Thread 0x7f5355905700 (LWP 7144)):
+#0  0x0000000002e627e7 in xdmp::CacheListPostingIterator::_skip(unsigned int, bool) ()
+#1  0x00000000031b7e0a in xdmp::AndPostingIterator::next(bool) ()
+#2  0x0000000003b17aa4 in xdmp::StandResultVector::StandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandle<xdmp::Stand> const&, svc::Handle<xdm...
+#3  0x0000000000d56f97 in xdmp::OrderingOrderOnDiskStandResultVector::OrderingOrderOnDiskStandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandl...
+#4  0x0000000000d571a1 in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#5  0x0000000003296766 in xdmp::OrderingOrderStandQueryTask::run() ()
+#6  0x00000000041c537c in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 83 (Thread 0x7f5220a9a700 (LWP 7150)):
+#0  0x00007f535f8cb979 in arena_bin_malloc_hard () from /opt/MarkLogic/lib/libjemalloc.so.1
+#1  0x00007f535f8cd590 in arena_tcache_fill_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8e25df in tcache_alloc_small_hard () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8c2b3f in malloc () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535c3530bd in operator new(unsigned long) () from /usr/lib64/libstdc++.so.6
+#5  0x00000000031b7987 in xdmp::AndPostingIteratorFuture::_finish(unsigned int, bool) ()
+#6  0x00000000031a2861 in xdmp::AndNotTwoPostingIteratorFutures::_finish(unsigned int, bool) ()
+#7  0x0000000000d5721c in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#8  0x0000000003296766 in xdmp::OrderingOrderStandQueryTask::run() ()
+#9  0x00000000041c537c in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 81 (Thread 0x7f5357380700 (LWP 7158)):
+#0  0x00007f535b2df2c7 in sched_yield () from /lib64/libc.so.6
+#1  0x0000000003ed65d9 in xdmp::XDQPServerSession::run() ()
+#2  0x00000000041c537c in svc::PooledThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 80 (Thread 0x7f522661b700 (LWP 7160)):
+#0  0x0000000001cd7613 in svc::Hash64Table<unsigned int>::put(unsigned long, unsigned int const&, unsigned int*, unsigned int**) ()
+#1  0x00000000025a5032 in xdmp::PartTable::put(unsigned long, unsigned long, unsigned int, unsigned int*) ()
+#2  0x00000000025bdc11 in xdmp::DatabaseQueryPath::putPart(unsigned long, unsigned long, unsigned int) ()
+#3  0x00000000025be1f3 in xdmp::DatabaseLocatorIterator::operator++() ()
+#4  0x0000000002e75d71 in xdmp::OrderingOrderCompositeLocatorIterator::operator++() ()
+#5  0x0000000003eaaea0 in xdmp::XDQPServerSession::moreLocators(xdmp::XDQPServerRequest&) ()
+#6  0x0000000003ed782d in xdmp::XDQPServerSession::run() ()
+#7  0x00000000041c537c in svc::PooledThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 74 (Thread 0x7f521f6c2700 (LWP 7198)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 73 (Thread 0x7f522099c700 (LWP 7205)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 71 (Thread 0x7f5357086700 (LWP 7214)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 69 (Thread 0x7f5328085700 (LWP 7230)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8ca6cb in arena_dalloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#7  0x00000000041c537c in svc::PooledThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 68 (Thread 0x7f5355984700 (LWP 7231)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 66 (Thread 0x7f5226e0b700 (LWP 7293)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 56 (Thread 0x7f5354984700 (LWP 7554)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 50 (Thread 0x7f521f9bc700 (LWP 7674)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 34 (Thread 0x7f521f545700 (LWP 7872)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8ca6cb in arena_dalloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x0000000002ad6386 in xdmp::httpreqbuf::~httpreqbuf() ()
+#5  0x0000000002aebb33 in xdmp::HTTPRequest::~HTTPRequest() ()
+#6  0x000000000229a76a in xdmp::AppRequest::~AppRequest() ()
+#7  0x000000000229ae21 in xdmp::AppRequest::~AppRequest() ()
+#8  0x00000000022ca362 in xdmp::AppRequestTask::run() ()
+#9  0x00000000041c537c in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 32 (Thread 0x7f5357301700 (LWP 7887)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 31 (Thread 0x7f53561d8700 (LWP 7889)):
+#0  0x00007f535b2df2c7 in sched_yield () from /lib64/libc.so.6
+#1  0x0000000004186b90 in svc::Mutex::acquire(bool) const ()
+#2  0x0000000002e6c3be in xdmp::CacheListStorage::eval(xdmp::QueryKind, unsigned long, xdmp::Indexed64FileRandomReader&, svc::Hash64Table<svc::Handle<xdmp::Indexed64Fi...
+#3  0x0000000003ad5502 in xdmp::OnDiskStand::eval(xdmp::QueryKind, unsigned long, unsigned long, xdmp::ScoreKind, bool, bool, int, svc::Handle<svc::ThreadControl> cons...
+#4  0x00000000031f4639 in xdmp::TermQuery::_eval(xdmp::QueryEnv&, svc::Handle<xdmp::PostingIteratorFuture>&) const ()
+#5  0x00000000031fa7f8 in xdmp::AndQuery::_eval(xdmp::QueryEnv&, svc::Handle<xdmp::PostingIteratorFuture>&) const ()
+#6  0x00000000031fa423 in xdmp::AndTwoQueries::_eval(xdmp::QueryEnv&, svc::Handle<xdmp::PostingIteratorFuture>&) const ()
+#7  0x0000000003b11e82 in xdmp::RelevanceOrderLocatorIteratorFuture::RelevanceOrderLocatorIteratorFuture(svc::Handle<xdmp::ForestQueryPath> const&, svc::Handle<xdmp::Q...
+#8  0x000000000328f456 in xdmp::RangeIndexes::getLocatorIteratorFuture(svc::Handle<xdmp::ForestQueryPath> const&, svc::Handle<xdmp::Query> const&, unsigned long, unsig...
+#9  0x00000000028a59ee in xdmp::ForestQueryPath::eval(svc::Handle<xdmp::Query> const&, unsigned long, svc::Handle<xdmp::Ordering> const&, unsigned long, bool, bool, xd...
+#10 0x000000000322a02b in xdmp::ConcurrentEvalTask::run() ()
+#11 0x00000000041c537c in svc::PooledThread::run() ()
+#12 0x00000000041c211b in svc::Thread::top() ()
+#13 0x00000000041c3319 in runThread ()
+#14 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#15 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 23 (Thread 0x7f52298c5700 (LWP 7931)):
+#0  0x0000000002e62764 in xdmp::CacheListPostingIterator::_skip(unsigned int, bool) ()
+#1  0x00000000031b3736 in xdmp::OrTwoPostingIterators::skip(unsigned int, bool) ()
+#2  0x00000000031afe85 in xdmp::OrThreePostingIterators::skip(unsigned int, bool) ()
+#3  0x00000000031b3736 in xdmp::OrTwoPostingIterators::skip(unsigned int, bool) ()
+#4  0x00000000031b3736 in xdmp::OrTwoPostingIterators::skip(unsigned int, bool) ()
+#5  0x00000000031b64a2 in xdmp::AndTwoPostingIterators::skip(unsigned int, bool) ()
+#6  0x00000000031b3682 in xdmp::OrTwoPostingIterators::skip(unsigned int, bool) ()
+#7  0x00000000031b7e0a in xdmp::AndPostingIterator::next(bool) ()
+#8  0x0000000003b17b6d in xdmp::StandResultVector::StandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandle<xdmp::Stand> const&, svc::Handle<xdm...
+#9  0x0000000000d56f97 in xdmp::OrderingOrderOnDiskStandResultVector::OrderingOrderOnDiskStandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandl...
+#10 0x0000000000d571a1 in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#11 0x0000000003296766 in xdmp::OrderingOrderStandQueryTask::run() ()
+#12 0x00000000041c537c in svc::PooledThread::run() ()
+#13 0x00000000041c211b in svc::Thread::top() ()
+#14 0x00000000041c3319 in runThread ()
+#15 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#16 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 21 (Thread 0x7f51e4804700 (LWP 7933)):
+#0  0x00007f535f8c471f in free () from /opt/MarkLogic/lib/libjemalloc.so.1
+#1  0x000000000414f514 in svc::Destroyable::destroy() ()
+#2  0x0000000003ee6b6f in xdmp::PathNodeIterator::~PathNodeIterator() ()
+#3  0x0000000003ee6ba1 in xdmp::PathNodeIterator::~PathNodeIterator() ()
+#4  0x000000000414f514 in svc::Destroyable::destroy() ()
+#5  0x0000000003762d85 in xdmp::NodeSequence::~NodeSequence() ()
+#6  0x0000000003762db1 in xdmp::NodeSequence::~NodeSequence() ()
+#7  0x000000000414f514 in svc::Destroyable::destroy() ()
+#8  0x0000000001eaab17 in xdmp::EvalFLWOREnv::evalReturn(xdmp::LocationInfo const&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::Expr> const&) ()
+#9  0x0000000001e2889e in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#10 0x0000000001de5e7d in xdmp::FLWORExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#11 0x0000000001def3de in xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#97 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#98 0x00000000041c537c in svc::PooledThread::run() ()
+#99 0x00000000041c211b in svc::Thread::top() ()
+#100 0x00000000041c3319 in runThread ()
+#101 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#102 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 20 (Thread 0x7f5217003700 (LWP 7934)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8c4915 in free () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x0000000003cab5cb in xdmp::Tree::~Tree() ()
+#8  0x0000000003cab721 in xdmp::ExpandedTree::~ExpandedTree() ()
+#9  0x0000000002f267dd in xdmp::NodeVal::~NodeVal() ()
+#10 0x0000000002f26851 in xdmp::NodeVal::~NodeVal() ()
+#11 0x000000000414f514 in svc::Destroyable::destroy() ()
+#114 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#115 0x00000000041c537c in svc::PooledThread::run() ()
+#116 0x00000000041c211b in svc::Thread::top() ()
+#117 0x00000000041c3319 in runThread ()
+#118 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#119 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 17 (Thread 0x7f5216c04700 (LWP 7941)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e253c in tcache_event_hard () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8c2b84 in malloc () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535c3530bd in operator new(unsigned long) () from /usr/lib64/libstdc++.so.6
+#9  0x0000000003dae25c in xdmp::createString(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, char const*, xdmp::SimpleTypeDefi...
+#10 0x000000000359cb6b in xdmp::SimpleTypeDefinition::create(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, char const*, xdmp...
+#11 0x0000000003d7bdb5 in xdmp::TypedValueIterator::init(xdmp::SimpleAtomIterator const&) ()
+#102 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#103 0x00000000041c537c in svc::PooledThread::run() ()
+#104 0x00000000041c211b in svc::Thread::top() ()
+#105 0x00000000041c3319 in runThread ()
+#106 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#107 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 14 (Thread 0x7f532c60d700 (LWP 7949)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e253c in tcache_event_hard () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8c2b84 in malloc () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535c3530bd in operator new(unsigned long) () from /usr/lib64/libstdc++.so.6
+#9  0x000000000415768d in svc::Hash64Set::put(unsigned long) ()
+#10 0x0000000003f0ab8d in xdmp::AttributeAxisStepNodeIterator::AttributeAxisStepNodeIterator(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::Stat...
+#11 0x0000000001dc8c8e in xdmp::AxisStepExpr::stepNodeIterator(xdmp::DynamicEnv&, svc::Handle<xdmp::StepNodeIterator>&) const ()
+#72 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#73 0x00000000041c537c in svc::PooledThread::run() ()
+#74 0x00000000041c211b in svc::Thread::top() ()
+#75 0x00000000041c3319 in runThread ()
+#76 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#77 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 9 (Thread 0x7f51f0798700 (LWP 7969)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 4 (Thread 0x7f5351800700 (LWP 7977)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 2 (Thread 0x7f51e5401700 (LWP 8001)):
+#0  0x0000000004153fcb in svc::Hash::hash64(unsigned long, char const*, unsigned long) ()
+#1  0x0000000003ccca21 in xdmp::ScratchExpandedTreeStorage::putAtom(unsigned char, unsigned long, char const*, unsigned long) ()
+#2  0x0000000003ccd44f in xdmp::ScratchExpandedTreeStorage::tokenize(std::vector<unsigned int, std::allocator<unsigned int> >&, char const*) ()
+#3  0x0000000003cd0c06 in xdmp::ScratchExpandedTreeStorage::endElemNode() ()
+#4  0x00000000024bdac6 in xdmp::ConfigFileHandler::endElement(unsigned long, unsigned long, char const*, char const*, char const*) ()
+#5  0x0000000003153c4a in xdmp::XMLParser::parseEndTag() ()
+#6  0x000000000315dc3b in xdmp::XMLParser::parse() ()
+#7  0x000000000315df62 in xdmp::parseXML(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::ParserInput> const&...
+#8  0x00000000024c8afc in xdmp::Config::readFile(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, std::basic_string<char, std::...
+#9  0x00000000024cbb1a in xdmp::Config::readFile(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, std::basic_string<char, std::...
+#10 0x00000000024cc45e in xdmp::Config::readFile(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, std::basic_string<char, std::...
+#11 0x00000000021c12be in xdmp::xdmp_read_cluster_config_file(svc::Handle<xdmp::OneArgBuiltinExpr> const&, xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xd...
+#110 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#111 0x00000000041c537c in svc::PooledThread::run() ()
+#112 0x00000000041c211b in svc::Thread::top() ()
+#113 0x00000000041c3319 in runThread ()
+#114 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#115 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+MarkLogic - user override of EC2 detection
+Thread 144 (Thread 0x7f535fcf6700 (LWP 6618)):
+#0  0x00007f535be709b0 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00000000041a7147 in svc::Semaphore::wait(bool) const ()
+#2  0x00000000041c1ded in svc::StarterThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 143 (Thread 0x7f535fcd7700 (LWP 6637)):
+#0  0x00007f535be71add in accept () from /lib64/libpthread.so.0
+#1  0x00000000041b1795 in svc::Socket::accept(sockaddr_in&) ()
+#2  0x0000000003ecbc5f in xdmp::XDQPServerThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 142 (Thread 0x7f535fcb8700 (LWP 6638)):
+#0  0x00007f535b2ef113 in poll () from /lib64/libc.so.6
+#1  0x00000000041b4fb5 in svc::Socket::_wait(unsigned int, bool, bool, char const*) const ()
+#2  0x00000000041b6b81 in svc::Socket::recv(char*, char*, unsigned int) ()
+#3  0x00000000041b703f in svc::Sockbuf::underflow() ()
+#4  0x00000000041ae6f6 in svc::Sockbuf::xsgetn(char*, long) ()
+#5  0x0000000003e7caed in xdmp::XDQPServerConnection::recv(xdmp::XDQPServerListener const&, std::vector<unsigned int, std::allocator<unsigned int> >&) ()
+#6  0x0000000003eb8839 in xdmp::XDQPServerConnection::run() ()
+#7  0x0000000003ebc110 in xdmp::XDQPServerConnectionThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 141 (Thread 0x7f535fc79700 (LWP 6639)):
+#0  0x00007f535be71fbd in nanosleep () from /lib64/libpthread.so.0
+#1  0x00000000041c1adb in svc::Thread::sleep(unsigned int) ()
+#2  0x0000000002473f65 in xdmp::ClusterManager::clusterThread() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 15 (Thread 0x7f5217fff700 (LWP 8015)):
+#0  0x000000000207f312 in xdmp::StackFrame::dissassemble(svc::Destroyable*&) ()
+#1  0x000000000414f50b in svc::Destroyable::destroy() ()
+#2  0x0000000001df00b5 in xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#3  0x0000000001e2881e in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#4  0x0000000001dfb640 in xdmp::FLWORExpr::evalToTree(xdmp::DynamicEnv&, svc::Handle<xdmp::SequenceType> const&, xdmp::ScratchExpandedTreeStorage&) const ()
+#5  0x00000000024debb3 in xdmp::IfExpr::evalToTree(xdmp::DynamicEnv&, svc::Handle<xdmp::SequenceType> const&, xdmp::ScratchExpandedTreeStorage&) const ()
+#6  0x0000000001e2889e in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#7  0x0000000001e287ba in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#8  0x0000000001e287ba in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#9  0x0000000001e287ba in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#10 0x0000000001dfb640 in xdmp::FLWORExpr::evalToTree(xdmp::DynamicEnv&, svc::Handle<xdmp::SequenceType> const&, xdmp::ScratchExpandedTreeStorage&) const ()
+#11 0x0000000001dee9ac in xdmp::FunctionCall::evalToTree(xdmp::DynamicEnv&, svc::Handle<xdmp::SequenceType> const&, xdmp::ScratchExpandedTreeStorage&) const ()
+#81 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#82 0x00000000041c537c in svc::PooledThread::run() ()
+#83 0x00000000041c211b in svc::Thread::top() ()
+#84 0x00000000041c3319 in runThread ()
+#85 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#86 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 4 (Thread 0x7f5217003700 (LWP 8034)):
+#0  0x00007f535f8c450c in free () from /opt/MarkLogic/lib/libjemalloc.so.1
+#1  0x0000000002090013 in xdmp::DynamicEnv::~DynamicEnv() ()
+#2  0x00000000026586fa in xdmp::_doEval(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::Expr> const&, svc::Handle<...
+#3  0x000000000265952a in xdmp::doEval(svc::Handle<xdmp::Expr> const&, xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<x...
+#4  0x0000000002659bac in xdmp::xdmp_eval(svc::Handle<xdmp::FourArgBuiltinExpr> const&, xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> cons...
+#5  0x0000000002419e3e in xdmp::FourArgBuiltinExpr::_eval(xdmp::DynamicEnv&, std::vector<svc::Handle<xdmp::Value>, std::allocator<svc::Handle<xdmp::Value> > > const&, ...
+#6  0x0000000002423147 in xdmp::BuiltinEnv::doEval() ()
+#7  0x0000000002436324 in xdmp::Value::builtinArg(xdmp::BuiltinEnv&) const ()
+#8  0x00000000024363a3 in xdmp::Value::builtinArg(xdmp::BuiltinEnv&) const ()
+#9  0x00000000024363a3 in xdmp::Value::builtinArg(xdmp::BuiltinEnv&) const ()
+#10 0x0000000002436d97 in xdmp::BuiltinExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#11 0x0000000001def3de in xdmp::FunctionCall::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#54 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#55 0x00000000041c537c in svc::PooledThread::run() ()
+#56 0x00000000041c211b in svc::Thread::top() ()
+#57 0x00000000041c3319 in runThread ()
+#58 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#59 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+MarkLogic - user override of EC2 detection
+Thread 144 (Thread 0x7f535fcf6700 (LWP 6618)):
+#0  0x00007f535be709b0 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00000000041a7147 in svc::Semaphore::wait(bool) const ()
+#2  0x00000000041c1ded in svc::StarterThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 143 (Thread 0x7f535fcd7700 (LWP 6637)):
+#0  0x00007f535be71add in accept () from /lib64/libpthread.so.0
+#1  0x00000000041b1795 in svc::Socket::accept(sockaddr_in&) ()
+#2  0x0000000003ecbc5f in xdmp::XDQPServerThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 142 (Thread 0x7f535fcb8700 (LWP 6638)):
+#0  0x00007f535b2ef113 in poll () from /lib64/libc.so.6
+#1  0x00000000041b4fb5 in svc::Socket::_wait(unsigned int, bool, bool, char const*) const ()
+#2  0x00000000041b6b81 in svc::Socket::recv(char*, char*, unsigned int) ()
+#3  0x00000000041b703f in svc::Sockbuf::underflow() ()
+#4  0x00000000041ae6f6 in svc::Sockbuf::xsgetn(char*, long) ()
+#5  0x0000000003e7caed in xdmp::XDQPServerConnection::recv(xdmp::XDQPServerListener const&, std::vector<unsigned int, std::allocator<unsigned int> >&) ()
+#6  0x0000000003eb8839 in xdmp::XDQPServerConnection::run() ()
+#7  0x0000000003ebc110 in xdmp::XDQPServerConnectionThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 141 (Thread 0x7f535fc79700 (LWP 6639)):
+#0  0x00007f535be71fbd in nanosleep () from /lib64/libpthread.so.0
+#1  0x00000000041c1adb in svc::Thread::sleep(unsigned int) ()
+#2  0x0000000002473f65 in xdmp::ClusterManager::clusterThread() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 88 (Thread 0x7f5328281700 (LWP 6956)):
+#0  0x0000000002e628ed in xdmp::CacheListPostingIterator::_skip(unsigned int, bool) ()
+#1  0x00000000031b7e0a in xdmp::AndPostingIterator::next(bool) ()
+#2  0x0000000003b17aa4 in xdmp::StandResultVector::StandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandle<xdmp::Stand> const&, svc::Handle<xdm...
+#3  0x0000000000d56f97 in xdmp::OrderingOrderOnDiskStandResultVector::OrderingOrderOnDiskStandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandl...
+#4  0x0000000000d571a1 in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#5  0x0000000003296766 in xdmp::OrderingOrderStandQueryTask::run() ()
+#6  0x00000000041c537c in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 85 (Thread 0x7f5356984700 (LWP 7123)):
+#0  0x0000000002e628b3 in xdmp::CacheListPostingIterator::_skip(unsigned int, bool) ()
+#1  0x00000000031b7e0a in xdmp::AndPostingIterator::next(bool) ()
+#2  0x0000000003b17aa4 in xdmp::StandResultVector::StandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandle<xdmp::Stand> const&, svc::Handle<xdm...
+#3  0x0000000000d56f97 in xdmp::OrderingOrderOnDiskStandResultVector::OrderingOrderOnDiskStandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandl...
+#4  0x0000000000d571a1 in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#5  0x0000000003296766 in xdmp::OrderingOrderStandQueryTask::run() ()
+#6  0x00000000041c537c in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 83 (Thread 0x7f5355905700 (LWP 7144)):
+#0  0x0000000002e629fd in xdmp::CacheListPostingIterator::_skip(unsigned int, bool) ()
+#1  0x00000000031b7e0a in xdmp::AndPostingIterator::next(bool) ()
+#2  0x0000000003b17aa4 in xdmp::StandResultVector::StandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandle<xdmp::Stand> const&, svc::Handle<xdm...
+#3  0x0000000000d56f97 in xdmp::OrderingOrderOnDiskStandResultVector::OrderingOrderOnDiskStandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandl...
+#4  0x0000000000d571a1 in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#5  0x000000000328ff2f in xdmp::OrderingOrderLocatorIteratorFuture::_finish() ()
+#6  0x000000000322a041 in xdmp::ConcurrentEvalTask::run() ()
+#7  0x00000000041c537c in svc::PooledThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 79 (Thread 0x7f5354282700 (LWP 7155)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 76 (Thread 0x7f52205a4700 (LWP 7163)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 69 (Thread 0x7f5358876700 (LWP 7206)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8ca6cb in arena_dalloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00000000041c53c2 in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 68 (Thread 0x7f5357086700 (LWP 7214)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8ca6cb in arena_dalloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00000000041c53c2 in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 66 (Thread 0x7f5328085700 (LWP 7230)):
+#0  0x0000000002e628f4 in xdmp::CacheListPostingIterator::_skip(unsigned int, bool) ()
+#1  0x00000000031b7e0a in xdmp::AndPostingIterator::next(bool) ()
+#2  0x0000000003b17aa4 in xdmp::StandResultVector::StandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandle<xdmp::Stand> const&, svc::Handle<xdm...
+#3  0x0000000000d56f97 in xdmp::OrderingOrderOnDiskStandResultVector::OrderingOrderOnDiskStandResultVector(svc::Handle<xdmp::ForestQueryPath> const&, svc::TrackedHandl...
+#4  0x0000000000d571a1 in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#5  0x0000000003296766 in xdmp::OrderingOrderStandQueryTask::run() ()
+#6  0x00000000041c537c in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 65 (Thread 0x7f5355984700 (LWP 7231)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8ca6cb in arena_dalloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00000000041c53c2 in svc::PooledThread::run() ()
+#7  0x00000000041c211b in svc::Thread::top() ()
+#8  0x00000000041c3319 in runThread ()
+#9  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#10 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 62 (Thread 0x7f528397d700 (LWP 7378)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8e2207 in tcache_bin_flush_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8e26c0 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00000000041c53c2 in svc::PooledThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 58 (Thread 0x7f5226817700 (LWP 7481)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#10 0x00000000041c537c in svc::PooledThread::run() ()
+#11 0x00000000041c211b in svc::Thread::top() ()
+#12 0x00000000041c3319 in runThread ()
+#13 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#14 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 44 (Thread 0x7f522120b700 (LWP 7745)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 43 (Thread 0x7f522022b700 (LWP 7746)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 37 (Thread 0x7f521ef51700 (LWP 7806)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8cac7a in arena_dalloc_bin_run () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8cafad in arena_dalloc_bin_locked () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8e23d7 in tcache_bin_flush_small () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8e2657 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#8  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#9  0x00000000041c53c2 in svc::PooledThread::run() ()
+#10 0x00000000041c211b in svc::Thread::top() ()
+#11 0x00000000041c3319 in runThread ()
+#12 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#13 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 36 (Thread 0x7f5226a13700 (LWP 7807)):
+#0  0x0000000002e6404c in xdmp::CacheListPostingIterator::CacheListPostingIterator(svc::Handle<svc::ThreadControl> const&, xdmp::Stand const*, svc::Handle<xdmp::Moment...
+#1  0x0000000002e64c06 in xdmp::CacheListPostingIteratorFuture::_finish(unsigned int, bool) ()
+#2  0x00000000031b4501 in xdmp::OrPostingIteratorFuture::_finish(unsigned int, bool) ()
+#3  0x00000000031b74be in xdmp::AndPostingIteratorFuture::_finish(unsigned int, bool) ()
+#4  0x00000000031b4501 in xdmp::OrPostingIteratorFuture::_finish(unsigned int, bool) ()
+#5  0x00000000031b74be in xdmp::AndPostingIteratorFuture::_finish(unsigned int, bool) ()
+#6  0x00000000031b74be in xdmp::AndPostingIteratorFuture::_finish(unsigned int, bool) ()
+#7  0x0000000003b19604 in xdmp::RelevanceOrderStandResultVectorFuture::_finish() ()
+#8  0x0000000003b1c08f in xdmp::RelevanceOrderLocatorIteratorFuture::_finish() ()
+#9  0x00000000025beb2a in xdmp::DatabaseEvalFuture::_finish() ()
+#10 0x0000000003eab9e4 in xdmp::XDQPServerSession::eval(xdmp::XDQPServerRequest&) ()
+#11 0x0000000003ed784d in xdmp::XDQPServerSession::run() ()
+#12 0x00000000041c537c in svc::PooledThread::run() ()
+#13 0x00000000041c211b in svc::Thread::top() ()
+#14 0x00000000041c3319 in runThread ()
+#15 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#16 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 35 (Thread 0x7f5228112700 (LWP 7833)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8e2207 in tcache_bin_flush_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x00007f535f8e26c0 in tcache_destroy () from /opt/MarkLogic/lib/libjemalloc.so.1
+#5  0x00007f535f8d2805 in thread_tcache_flush_ctl () from /opt/MarkLogic/lib/libjemalloc.so.1
+#6  0x00007f535f8d3658 in ctl_byname () from /opt/MarkLogic/lib/libjemalloc.so.1
+#7  0x0000000003ed65d4 in xdmp::XDQPServerSession::run() ()
+#8  0x00000000041c537c in svc::PooledThread::run() ()
+#9  0x00000000041c211b in svc::Thread::top() ()
+#10 0x00000000041c3319 in runThread ()
+#11 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#12 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 27 (Thread 0x7f5356301700 (LWP 7925)):
+#0  0x00007f535b2f5407 in madvise () from /lib64/libc.so.6
+#1  0x00007f535f8ce4fe in pages_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#2  0x00007f535f8c9eb0 in arena_purge () from /opt/MarkLogic/lib/libjemalloc.so.1
+#3  0x00007f535f8ca6cb in arena_dalloc_large () from /opt/MarkLogic/lib/libjemalloc.so.1
+#4  0x0000000002e4a80b in xdmp::RegisteredPostingIteratorFuture::__finish() ()
+#5  0x0000000002e4a9ab in xdmp::RegisteredPostingIteratorFuture::getNumPostings() const ()
+#6  0x000000000319ae81 in xdmp::OrPostingIteratorFuture::getNumPostings() const ()
+#7  0x00000000031a3dea in xdmp::asort(std::vector<svc::Handle<xdmp::PostingIteratorFuture>, std::allocator<svc::Handle<xdmp::PostingIteratorFuture> > >&) ()
+#8  0x00000000031b7554 in xdmp::AndPostingIteratorFuture::_finish(unsigned int, bool) ()
+#9  0x00000000031a2861 in xdmp::AndNotTwoPostingIteratorFutures::_finish(unsigned int, bool) ()
+#10 0x0000000000d5721c in xdmp::OrderingOrderOnDiskStandResultVectorFuture::_finish() ()
+#11 0x000000000328ff2f in xdmp::OrderingOrderLocatorIteratorFuture::_finish() ()
+#14 0x0000000003ed784d in xdmp::XDQPServerSession::run() ()
+#15 0x00000000041c537c in svc::PooledThread::run() ()
+#16 0x00000000041c211b in svc::Thread::top() ()
+#17 0x00000000041c3319 in runThread ()
+#18 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#19 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 19 (Thread 0x7f5351800700 (LWP 7977)):
+#0  0x000000000315dcff in xdmp::XMLParser::parse() ()
+#1  0x000000000315df62 in xdmp::parseXML(xdmp::LocationInfo const&, xdmp::DynamicEnv const&, svc::Handle<xdmp::StaticEnv> const&, svc::Handle<xdmp::ParserInput> const&...
+#2  0x00000000026aec3d in xdmp::parseRequest(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&, xdmp::DocumentFormat) ()
+#3  0x00000000022dab83 in xdmp::xdmp_get_request_body(svc::Handle<xdmp::OneArgBuiltinExpr> const&, xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::Stat...
+#4  0x0000000002419164 in xdmp::OneArgBuiltinExpr::_eval(xdmp::DynamicEnv&, std::vector<svc::Handle<xdmp::Value>, std::allocator<svc::Handle<xdmp::Value> > > const&, s...
+#5  0x00000000024230c0 in xdmp::BuiltinEnv::doEval() ()
+#6  0x0000000002436c52 in xdmp::BuiltinExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#7  0x0000000002437f12 in xdmp::OneArgBuiltinExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#8  0x0000000001e2881e in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#9  0x0000000001de5e7d in xdmp::FLWORExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#10 0x0000000001dbf70e in xdmp::Expr::evalCompletely(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#11 0x0000000003d1138b in xdmp::TryCatchExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#32 0x00000000022ca1c4 in xdmp::AppRequestTask::run() ()
+#33 0x00000000041c537c in svc::PooledThread::run() ()
+#34 0x00000000041c211b in svc::Thread::top() ()
+#35 0x00000000041c3319 in runThread ()
+#36 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#37 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+MarkLogic - user override of EC2 detection
+Thread 147 (Thread 0x7f535fcf6700 (LWP 6618)):
+#0  0x00007f535be709b0 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00000000041a7147 in svc::Semaphore::wait(bool) const ()
+#2  0x00000000041c1ded in svc::StarterThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 146 (Thread 0x7f535fcd7700 (LWP 6637)):
+#0  0x00007f535be71add in accept () from /lib64/libpthread.so.0
+#1  0x00000000041b1795 in svc::Socket::accept(sockaddr_in&) ()
+#2  0x0000000003ecbc5f in xdmp::XDQPServerThread::run() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 145 (Thread 0x7f535fcb8700 (LWP 6638)):
+#0  0x00007f535b2ef113 in poll () from /lib64/libc.so.6
+#1  0x00000000041b4fb5 in svc::Socket::_wait(unsigned int, bool, bool, char const*) const ()
+#2  0x00000000041b6b81 in svc::Socket::recv(char*, char*, unsigned int) ()
+#3  0x00000000041b703f in svc::Sockbuf::underflow() ()
+#4  0x00000000041ae6f6 in svc::Sockbuf::xsgetn(char*, long) ()
+#5  0x0000000003e7caed in xdmp::XDQPServerConnection::recv(xdmp::XDQPServerListener const&, std::vector<unsigned int, std::allocator<unsigned int> >&) ()
+#6  0x0000000003eb8839 in xdmp::XDQPServerConnection::run() ()
+#7  0x0000000003ebc110 in xdmp::XDQPServerConnectionThread::run() ()
+#8  0x00000000041c211b in svc::Thread::top() ()
+#9  0x00000000041c3319 in runThread ()
+#10 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#11 0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 144 (Thread 0x7f535fc79700 (LWP 6639)):
+#0  0x00007f535be71fbd in nanosleep () from /lib64/libpthread.so.0
+#1  0x00000000041c1adb in svc::Thread::sleep(unsigned int) ()
+#2  0x0000000002473f65 in xdmp::ClusterManager::clusterThread() ()
+#3  0x00000000041c211b in svc::Thread::top() ()
+#4  0x00000000041c3319 in runThread ()
+#5  0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#6  0x00007f535b2f893d in clone () from /lib64/libc.so.6
+Thread 2 (Thread 0x7f51e5401700 (LWP 8084)):
+#0  0x00007f535c3530a0 in operator new(unsigned long) () from /usr/lib64/libstdc++.so.6
+#1  0x0000000003ee4fc3 in xdmp::PathValueIterator::nodeIterator(xdmp::LocationInfo const&, xdmp::DynamicEnv&, svc::Handle<xdmp::StaticEnv> const&) const ()
+#2  0x0000000001df3403 in xdmp::PathExpr::_eval(xdmp::DynamicEnv&, std::vector<svc::Handle<xdmp::StepExpr>, std::allocator<svc::Handle<xdmp::StepExpr> > > const&, svc:...
+#3  0x0000000001df4d0f in xdmp::PathExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#4  0x0000000001dc4eea in xdmp::Expr::subEval(xdmp::DynamicEnv&, long, unsigned long, svc::Handle<xdmp::Value>&) const ()
+#5  0x0000000001de9829 in xdmp::PredicateExpr::eval(xdmp::DynamicEnv&, svc::Handle<xdmp::Value>&) const ()
+#6  0x0000000001e2881e in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#7  0x0000000001e287ba in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#8  0x0000000001e287ba in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#9  0x0000000001e287ba in xdmp::LetClause::flworEval(xdmp::FLWOREnv&, xdmp::FLWORExpr const&, unsigned long) const ()
+#10 0x0000000001dfb640 in xdmp::FLWORExpr::evalToTree(xdmp::DynamicEnv&, svc::Handle<xdmp::SequenceType> const&, xdmp::ScratchExpandedTreeStorage&) const ()
+#11 0x0000000001dee9ac in xdmp::FunctionCall::evalToTree(xdmp::DynamicEnv&, svc::Handle<xdmp::SequenceType> const&, xdmp::ScratchExpandedTreeStorage&) const ()
+#82 0x00000000041c537c in svc::PooledThread::run() ()
+#83 0x00000000041c211b in svc::Thread::top() ()
+#84 0x00000000041c3319 in runThread ()
+#85 0x00007f535be6aa51 in start_thread () from /lib64/libpthread.so.0
+#86 0x00007f535b2f893d in clone () from /lib64/libc.so.6

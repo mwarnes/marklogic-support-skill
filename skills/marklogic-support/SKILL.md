@@ -14,6 +14,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    - A support dump (a file path, or pasted text starting `Report Time:`) → **Dump mode**
    - Log files (ErrorLog*, messages*, AccessLog, AuditLog — loose or in a dump analysis) → **Log mode**
    - Linux SAR/sysstat output (a `sar -A` text file, a binary `sa##` file, or a folder of them) → **SAR mode**
+   - A pstack movie (a pstack.log, or the zip from pstack.sh) or a `perf report --stdio` text report → **pstack and perf mode**
    - Unclear → ask which.
 3. **Security check (before any analysis).** Read `references/security-vulnerability-handling.md`
    ("Detect") whenever the ticket, a pasted symptom, a dump or a log request mentions a CVE/CVSS,
@@ -23,7 +24,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    or log and draft no log request until the engineer clears it. The gate stays open for the whole
    ticket, in every mode and in later sessions, until `audit-trail/Timeline.md` contains a "Security
    incident gate cleared" line after the "Security incident gate raised" line. Before running
-   `parse_dump.py`, `analyse_logs.py` or `analyse_sar.py` or drafting a log request, check `Timeline.md` for a "Security
+   `parse_dump.py`, `analyse_logs.py`, `analyse_sar.py`, `analyse_pstack.py` or `analyse_perf.py` or drafting a log request, check `Timeline.md` for a "Security
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 
@@ -43,7 +44,7 @@ Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` 
 
 For a security vulnerability ticket, print the banner and checklist from `references/security-vulnerability-handling.md` first, then this format.
 
-For a performance or resource-pressure ticket with no host-level data (no SAR, iostat, vmstat or mpstat output), put a request from `references/performance-data-requests.md` in "Questions to ask the customer" — the SAR export or live capture, the host metrics, and, only when the customer runs on a cloud provider (for example AWS), its cloud signals. Ask for kernel/OOM messages on memory symptoms, and `pmap` only for runaway memory growth. For a hang, an unresponsive period or a query behaving unexpectedly, ask for the pstack movie; for sustained high CPU, or when pausing the process is a concern, ask for perf instead — pstack pauses the MarkLogic process while it records the threads, perf only samples it (both procedures are in `references/performance-data-requests.md`; the customer script is `assets/support-scripts/pstack.sh`). Never ask for either from a customer who mentioned a security incident until the incident gate is cleared. When pstack output (a pstack.log or a pstack movie zip) is supplied, read `references/pstack-analysis.md` and analyse it by hand — there is no analysis script yet — after the security incident gate check. For a stuck or slow request, also ask for the request/server status capture (`references/performance-data-requests.md`) before anything is cancelled. For an incident that has already passed, ask for the Monitoring History data instead: check Telemetry, otherwise the Meters export (`references/performance-data-requests.md`).
+For a performance or resource-pressure ticket with no host-level data (no SAR, iostat, vmstat or mpstat output), put a request from `references/performance-data-requests.md` in "Questions to ask the customer" — the SAR export or live capture, the host metrics, and, only when the customer runs on a cloud provider (for example AWS), its cloud signals. Ask for kernel/OOM messages on memory symptoms, and `pmap` only for runaway memory growth. For a hang, an unresponsive period or a query behaving unexpectedly, ask for the pstack movie; for sustained high CPU, or when pausing the process is a concern, ask for perf instead — pstack pauses the MarkLogic process while it records the threads, perf only samples it (both procedures are in `references/performance-data-requests.md`; the customer script is `assets/support-scripts/pstack.sh`). Never ask for either from a customer who mentioned a security incident until the incident gate is cleared. When pstack or perf output is supplied, use **pstack and perf mode**. For a stuck or slow request, also ask for the request/server status capture (`references/performance-data-requests.md`) before anything is cancelled. For an incident that has already passed, ask for the Monitoring History data instead: check Telemetry, otherwise the Meters export (`references/performance-data-requests.md`).
 
 Rules: never assert a root cause without at least one confirming check. Quote error codes exactly. If the reference row is marked `[unverified — confirm]`, say so.
 
@@ -87,11 +88,21 @@ Check the security incident gate first (Always first, step 3): SAR output is a c
 4. If the data does not cover the incident window, or lacks a section a finding needs (for example no `-d` disk data), say so and request it from `references/performance-data-requests.md`.
 5. Then update the audit trail per the **Audit trail** section below; a data request is a `Required-Diagnostics.md` entry.
 
+## pstack and perf mode
+
+Check the security incident gate first (Always first, step 3): stack and perf data are customer-supplied files.
+
+1. Run `scripts/analyse_pstack.py <log|zip|dir> --out pstack-analysis/<name>` and/or `scripts/analyse_perf.py <report> --out perf-analysis/<name>`, resolving `scripts/` relative to THIS skill's own directory (see Dump mode step 1). Never read a raw log or report wholesale.
+2. Read `references/pstack-analysis.md`, then each `<out>/SUMMARY.md`. Open `findings.json`, `snapshots.csv` or `top-symbols.csv` only for exact values.
+3. Output: **Per snapshot** what the threads are doing (waiting / lock wait / running); **Findings** the likely cause first; **Where the CPU time is** (kernel vs user, time under a user-space wrapper such as `madvise`); and **What the files cannot show** (a single capture, no timestamps, unresolved kernel symbols, no after-change capture). State which statements are inference, and mark the meaning of MarkLogic functions `[unverified — confirm]`. Then the Triage-mode format.
+4. If the data is missing something (date lines, kernel symbols, the perf header), ask for it using `references/performance-data-requests.md`.
+5. Then update the audit trail per the **Audit trail** section below; a data request is a `Required-Diagnostics.md` entry.
+
 ## Audit trail
 
 If `audit-trail/` exists in the current working directory, or in the ticket directory set up by the `ticket` skill earlier in this session (`<project root>/<ticket>/audit-trail/`) (created by `/ticket`), read
 `references/ticket-auditing.md` once per session, then after producing output in Triage, Dump,
-Log, or SAR mode (never Q&A mode — a one-off question is not ticket work):
+Log, SAR, or pstack and perf mode (never Q&A mode — a one-off question is not ticket work):
 
 - Append one `Timeline.md` line for what just happened.
 - A new ranked cause → append a `Problems.md` entry, status `Open`, unless evidence already in
@@ -133,7 +144,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 | If the ticket mentions… | Read |
 | --- | --- |
 | CVE, CVSS, vulnerability, exploit, scanner output, security scan, security incident, security event, malware, virus, ransomware, compromise, intrusion | `references/security-vulnerability-handling.md` (read first, before any other reference) |
-| meters export, monitoring history export, telemetry, stuck query, request-status, sar, sysstat, sadf, iostat, vmstat, mpstat, pidstat, %iowait, await, %util, run queue, load average, %steal, swap in/out, slow disk, OOM killer, performance data, pstack, perf, stack trace, hang, unresponsive, high CPU | `references/sar-analysis.md`, `references/performance-data-requests.md` and `references/pstack-analysis.md` |
+| meters export, monitoring history export, telemetry, stuck query, request-status, sar, sysstat, sadf, iostat, vmstat, mpstat, pidstat, %iowait, await, %util, run queue, load average, %steal, swap in/out, slow disk, OOM killer, performance data, pstack, perf, stack trace, hang, unresponsive, high CPU | `references/sar-analysis.md`, `references/performance-data-requests.md` and `references/pstack-analysis.md` and scripts `analyse_pstack.py` / `analyse_perf.py` |
 | quorum, host offline, XDQP, XDMP-HOSTOFFLINE, join/leave cluster, hostname, group, upgrade/effective version, NTP/clock | `references/cluster-hosts-groups.md` |
 | forest, stand, merge, disk space, XDMP-FORESTNOSPACE, reindex, index, rebalancer, assignment policy, directory creation, fragment, locking | `references/databases-forests.md` |
 | port, app server, HTTP/XDBC/ODBC/WebDAV, modules, XDMP-MODNOTFOUND, SVC-SOCBIND, timeout, XDMP-EXTIME, threads, authentication (app-server level), SSL/TLS, log level, 8000/8001/8002 | `references/app-servers.md` |

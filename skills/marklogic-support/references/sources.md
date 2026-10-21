@@ -141,6 +141,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://community.progress.com/s/article/creating-a-pstack-movie-for-support> — KB 000266816, pstack movie and `pstack.log` (maintainer-supplied copy; community pages cannot be fetched)
 - <https://community.progress.com/s/article/using-perf-to-understand-performance> — KB 000268341, perf as the lighter alternative to pstack (maintainer-supplied copy; community pages cannot be fetched)
 - <https://github.com/marklogic-community/mlstat> — mlstat, community tool to correlate OS metrics with server activity (not official guidance)
+- anonymised 2015 customer capture used for the worked example and the test fixtures; not kept in the repository (not a URL)
 
 ## monitoring.md
 

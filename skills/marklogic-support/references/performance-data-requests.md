@@ -137,7 +137,7 @@ Engineer notes:
 - pstack pauses the process; for sustained high CPU prefer the perf request below.
 - Apply the security incident gate before asking for the file.
 - `pstack.sh` runs `zip -9 -r ...`, but the article's prerequisite line does not install `zip`. If `zip` is missing the script still leaves the `/tmp/<HHMMSS-MM-DD-YYYY>` directory; ask the customer to send that directory instead (for example archived with `tar`) `[unverified — confirm]`.
-- The zip contains `pstack.log`, a dated series of stack traces. Analysis tooling for it is planned (phase 2).
+- The zip contains `pstack.log`, a dated series of stack traces. Analyse it with `scripts/analyse_pstack.py` (see `references/pstack-analysis.md`).
 
 ## CPU profile: perf
 
@@ -160,7 +160,7 @@ Engineer notes:
 - Apply the security incident gate before asking for the files.
 - `date -Is` puts colons in the file names (fine on Linux; rename if copied to Windows).
 - The files hold function names and counts, not document content `[unverified — confirm]`.
-- Analysis tooling is planned (phase 2).
+- Analyse the report with `scripts/analyse_perf.py` (see `references/pstack-analysis.md`); the `perf script` output is not analysed by a script.
 
 ## Memory growth: pmap
 
