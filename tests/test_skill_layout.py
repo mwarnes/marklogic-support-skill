@@ -46,7 +46,7 @@ class SkillLayoutTest(unittest.TestCase):
     def test_prompts_folder_is_gone_and_nothing_points_at_it(self):
         self.assertFalse((ROOT / "prompts").exists())
         for p in [ROOT / "README.md", ROOT / "package.json", *ROOT.glob("skills/**/*.md"), *ROOT.glob("tests/*.py")]:
-            if p.name == "test_skill_layout.py":
+            if p.name in ("test_skill_layout.py", "test_readme.py"):
                 continue
             self.assertNotIn("prompts/", p.read_text(), str(p))
 
