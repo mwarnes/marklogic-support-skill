@@ -547,7 +547,7 @@ def run(a, sources, notes):
         diag_inputs.print_notes(notes)
         sys.exit("analyse_perf: no perf report entries found (expected `perf report --stdio` text with lines like '  12.34%  0.56%  Command  Shared  [k] symbol', "
                  "or a raw perf.data).")
-    out = Path(a.out) if a.out else Path("perf-analysis") / Path(a.paths[0]).stem
+    out = Path(a.out) if a.out else Path("perf-analysis") / diag_inputs.slug(Path(a.paths[0]).stem)
     out.mkdir(parents=True, exist_ok=True)
     usable = [i for i in infos if i["usable"]]
     diag_inputs.disambiguate(usable)
@@ -594,7 +594,7 @@ def run(a, sources, notes):
         w = csv.DictWriter(fh, fieldnames=["input", "children", "self", "command", "dso", "kind", "symbol"]); w.writeheader()
         w.writerows(csv_rows)
     inv = sum(1 for i in infos if i["kind"] == "perf.data" and i["header"] is not None)
-    print(f"wrote {out}: {used} report(s), {len(all_findings)} finding(s)" + (f", {inv} perf.data header(s)" if inv else ""))
+    print(f"wrote {diag_inputs.safe_label(out)}: {used} report(s), {len(all_findings)} finding(s)" + (f", {inv} perf.data header(s)" if inv else ""))
     return 0
 
 

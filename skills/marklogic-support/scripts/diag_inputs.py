@@ -25,8 +25,9 @@ API
                                           through safe_label.
     safe_label(text, limit=200) -> str    untrusted text made safe for one line of markdown, a table cell or a note: C0/C1 control characters and
                                           DEL become '?', '|' becomes '/', a backtick becomes "'", whitespace runs collapse to one space, and text
-                                          over `limit` is cut with an ellipsis. Every label, host hint and header string goes through it.
-    csv_cell(value)                       a str cell that starts with = + - or @ gets a leading "'" (spreadsheet formula injection); the bare
+                                          over `limit` is cut with an ellipsis; Unicode format/unassigned/private-use characters are dropped and an empty result is '?'. Every label, host hint and header string goes through it.
+    slug(text, limit=60) -> str           directory-name slug of an input name ([A-Za-z0-9._-] only, else 'analysis').
+    csv_cell(value)                       a str cell that starts with = + - @ TAB or CR gets a leading "'" (spreadsheet formula injection); the bare
                                           placeholder '-' and non-str values are left as they are.
     disambiguate(rows)                    rows with the same 'host' (case-insensitive) get ' (<tail of the last label part, 30 chars>)' appended.
     print_notes(notes)                    the Notes to stderr (used before an error exit).
@@ -55,7 +56,7 @@ Other notes: corrupt zip (BadZipFile), password-protected member, nesting deeper
 a source that cannot be hashed (kept, never treated as a duplicate).
 Memory: logs are read and parsed whole in memory, so a very large log (hundreds of MB) can need several GB of RAM `[unverified — confirm]`.
 """
-import hashlib, io, os, re, stat, struct, sys, zipfile, zlib
+import hashlib, io, os, re, stat, struct, sys, unicodedata, zipfile, zlib
 from pathlib import Path
 
 MAX_DEPTH = 3
@@ -79,20 +80,29 @@ class MemberTooLarge(ValueError):
 
 _CTRL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
 _SPACE_RE = re.compile(r"\s+")
+_DROP_CATS = frozenset(("Cf", "Cn", "Co", "Cs"))
+_SLUG_BAD_RE = re.compile(r"[^A-Za-z0-9._-]")
 
 
 def safe_label(text, limit=200):
     """Untrusted text made safe for one markdown line / table cell / note (see the module docstring)."""
     t = _CTRL_RE.sub("?", str(text)).replace("|", "/").replace("`", "'")
-    t = _SPACE_RE.sub(" ", t).strip()
+    t = "".join(c for c in t if unicodedata.category(c) not in _DROP_CATS)
+    t = _SPACE_RE.sub(" ", t).strip() or "?"
     return t if len(t) <= limit else t[:max(limit - 1, 0)] + "\u2026"
 
 
 def csv_cell(value):
     """Neutralise spreadsheet formula injection: a str starting with = + - or @ (other than the bare placeholder '-') gets a leading quote."""
-    if isinstance(value, str) and value != "-" and value[:1] in ("=", "+", "-", "@"):
+    if isinstance(value, str) and value != "-" and value[:1] in ("=", "+", "-", "@", "\t", "\r"):
         return "'" + value
     return value
+
+
+def slug(text, limit=60):
+    """A directory-name slug: only [A-Za-z0-9._-], repeats collapsed, leading dots/underscores stripped, capped, 'analysis' when empty."""
+    t = re.sub(r"_+", "_", _SLUG_BAD_RE.sub("_", str(text))).lstrip("._")
+    return t[:limit] or "analysis"
 
 
 def disambiguate(rows):

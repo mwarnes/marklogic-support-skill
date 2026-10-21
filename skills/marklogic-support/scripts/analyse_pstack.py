@@ -448,9 +448,9 @@ def run(a, sources, notes):
         diag_inputs.print_notes(notes)
         sys.exit("analyse_pstack: no parseable pstack snapshots (blocks must look like 'Thread N (Thread 0x... (LWP n)):')")
     diag_inputs.disambiguate(entries)
-    out = Path(a.out) if a.out else Path("pstack-analysis") / Path(a.paths[0]).stem
+    out = Path(a.out) if a.out else Path("pstack-analysis") / diag_inputs.slug(Path(a.paths[0]).stem)
     write_outputs(entries, rows_all, findings_all, out, notes, a.min_samples, a.min_threads)
-    print(f"wrote {out}: {len(entries)} input(s), {sum(len(e['snaps']) for e in entries)} snapshot(s), {len(findings_all)} finding(s)")
+    print(f"wrote {diag_inputs.safe_label(out)}: {len(entries)} input(s), {sum(len(e['snaps']) for e in entries)} snapshot(s), {len(findings_all)} finding(s)")
     return 0
 
 
