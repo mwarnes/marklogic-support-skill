@@ -16,6 +16,8 @@
 
 ## Standard procedures
 
+First read `resource-consumption.md`: it says which activity uses which resource, on which hosts (E-nodes or D-nodes), and what is normal. It also covers `xdmp:cache-status`, cache-full errors and index expansion, which this note does not.
+
 1. **Run xdmp:query-meters on slow query**: Append `xdmp:query-meters()` to query and examine elapsed time and cache hit/miss ratios. Record results for comparison across runs.
 
 2. **Use xdmp:query-trace for detailed analysis**: Add `xdmp:query-trace(true())` before query execution. Check ErrorLog.txt for "unsearchable" XPath steps indicating filtering requirements.

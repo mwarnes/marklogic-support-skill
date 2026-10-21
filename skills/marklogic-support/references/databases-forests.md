@@ -22,6 +22,8 @@
 
 ## Standard procedures
 
+For merge mechanics, the 64-stand limit, merge disk-space and I/O behaviour, journaling and index expansion, see `resource-consumption.md`.
+
 1. **Create forest**: Choose host → set data directory, optional fast/large data directories → attach to database in appropriate order for load distribution
 2. **Add index**: Database → Index Settings → enable specific indexes → reindexer automatically starts if enabled → monitor completion before relying on index
 3. **Configure merge schedule**: Set merge blackout periods to avoid I/O-intensive merges during peak hours
