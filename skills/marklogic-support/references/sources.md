@@ -4,12 +4,12 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 
 ## architecture.md
 
-- Inside MarkLogic Server (PDF, 127 pp.) — ch. 1–2 overview, indexing, clustering & caching, forests/stands/merges
+- Inside MarkLogic Server (PDF, 127 pp.) — ch. 1–2 overview, indexing, clustering & caching, forests/stands/merges; see also `internals.md`
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/introduction/architecture-overview.html>
 
 ## cluster-hosts-groups.md
 
-- Inside MarkLogic Server (PDF) — clustering overview (p.5, 10-11), failover and clustering (p.47, 104)
+- Inside MarkLogic Server (PDF) — clustering overview (p.10-11), clustering and caching (p.47-56), failover and quorum (p.104-105)
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/clusters.html>
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/hosts.html>
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/groups.html>
@@ -34,7 +34,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://help.marklogic.com/Knowledgebase/Article/View/10/0/how-does-the-number-of-stands-impact-performance-and-how-does-merging-help>
 - <https://help.marklogic.com/Knowledgebase/Article/View/291/0/emergency-stand-has-n-fragments-message>
 - <https://help.marklogic.com/knowledgebase/article/View/18/15/how-reindexing-works-and-its-impact-on-performance>
-- Inside MarkLogic p.35-38
+- Inside MarkLogic p.34-38, p.120
 
 ## app-servers.md
 
@@ -42,7 +42,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/xdbc-servers.html> — XDBC Server setup, XCC connectivity, security model
 - <https://docs.marklogic.com/admin-help/http-server> — Complete reference for HTTP Server configuration parameters
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/log-files.html> — Log levels, ErrorLog monitoring, access logs
-- Inside MarkLogic Server p.46 — distribute timestamps and MVCC settings
+- Inside MarkLogic Server p.51 (distribute timestamps), p.109 (contemporaneous vs non-blocking)
 - <https://help.marklogic.com/Knowledgebase/Article/View/266/0/resolving-svc-socbind-error> — SVC-SOCBIND port conflict resolution
 - <https://help.marklogic.com/knowledgebase/article/View/27/16/xdmp-canceled-vs-xdmp-extime> — Understanding timeout errors
 - <https://docs.progress.com/bundle/marklogic-server-configure-scal-avail-perf-12/page/topics/scalability.html> — Thread configuration and scalability considerations
@@ -83,7 +83,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 
 ## memory-and-os.md
 
-- Inside MarkLogic Server (PDF) p.119 — Linux Huge Pages, swap space, deadline I/O scheduler recommendations
+- Inside MarkLogic Server (PDF) p.119-120 — Linux Huge Pages, swap space, deadline I/O scheduler recommendations
 - <https://docs.marklogic.com/admin-help/group> — cache sizing methods and configuration
 - <https://docs.progress.com/bundle/marklogic-server-configure-scal-avail-perf-12/page/topics/scalability.html> — forest sizing guidelines (2 vCPU + 8GB per forest)
 - <https://www.progress.com/blogs/scaling-memory-in-marklogic-server> — memory scaling strategies, E-node vs D-node considerations
@@ -209,3 +209,7 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - MarkLogic whitepaper "MarkLogic Performance: Understanding System Resources" (E. Miller, January 2016, MarkLogic 7 and 8, 42 pp.; maintainer-supplied `fundamentals-of-resource-consumption.pdf`, not stored in the repository) — ingest, merges, journal and fast data directory p.4-12; indexes and expansion p.13-17; queries, filtering and caches p.17-25; operations, topology, backup, reindex, memory, HA, threads, swap p.25-36
 - <https://docs.marklogic.com/xdmp:cache-status>
 - <https://docs.marklogic.com/admin:group-set-background-io-limit>
+
+## internals.md
+
+- Inside MarkLogic Server, 3rd edition (J. Hunter and M. Wooldridge, MarkLogic 8, April 2016, 127 pp.; maintainer-supplied `Inside-MarkLogic-Server.pdf`, not stored in the repository; printed page numbers) — indexing p.12-33, data management and MVCC p.33-47, clustering and caching p.47-57, backups p.101-104, failover and replication p.104-110, rebalancing p.110-113, tiered storage p.115-118, system control p.119-120

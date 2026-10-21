@@ -41,7 +41,7 @@
 | `request timeout`/`default time limit` raised cluster-wide to hide slow queries | Thread exhaustion, everything slows down | Compare timeout settings vs typical request duration | Fix root cause in queries; use per-request `xdmp:set-request-time-limit` | <https://docs.marklogic.com/admin-help/http-server> |
 | `max threads` set too high for host CPU count | CPU contention, increased latency under load | threads × app servers per host vs CPU cores | Keep threads near default; add hosts for scale | <https://docs.progress.com/bundle/marklogic-server-configure-scal-avail-perf-12/page/topics/scalability.html> |
 | Content database and modules database swapped after environment clone | Module not found errors, empty query results | Verify app server database field settings match intent | Correct database references in app server config | [unverified — confirm] |
-| `distribute timestamps` / MVCC set to `nonblocking` without understanding | Stale reads, read-after-write inconsistency | Check app server MVCC setting | Use default `fast`/`contemporaneous` unless justified | Inside MarkLogic p.46 |
+| `distribute timestamps` / MVCC set to `nonblocking` without understanding | Stale reads, read-after-write inconsistency | Check app server MVCC setting | Keep the defaults (`distribute timestamps` fast, MVCC contemporaneous) unless justified; `strict` makes updates wait until every host knows the timestamp, and `nonblocking` suits app servers on a hot database-replication replica | Inside MarkLogic p.51, p.109 |
 | SSL enabled but certificate template expired, wrong hostname, or unsigned | TLS handshake failures, certificate errors in clients | `openssl s_client -connect HOST:PORT`; check cert validity | Renew certificate, ensure hostname/SAN matches | <https://docs.marklogic.com/admin-help/http-server> |
 | Repurposing or disabling built-in app servers (8000/8001/8002) | Admin UI, REST API, or QConsole becomes unreachable | Check which app server serves port 8001 (App-Services) | Never modify App-Services, Admin, or Manage servers | [unverified — confirm] |
 | `log level` set to `debug`/`finest` in production | Massive ErrorLog files, disk space issues | Check group log level setting and disk usage | Set to `notice` for production; `debug` only temporarily | <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/log-files.html> |
@@ -55,7 +55,7 @@
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/xdbc-servers.html> — XDBC Server setup, XCC connectivity, security model
 - <https://docs.marklogic.com/admin-help/http-server> — Complete reference for HTTP Server configuration parameters
 - <https://docs.progress.com/bundle/marklogic-server-administrate-12/page/topics/log-files.html> — Log levels, ErrorLog monitoring, access logs
-- Inside MarkLogic Server p.46 — distribute timestamps and MVCC settings
+- Inside MarkLogic Server p.51 (distribute timestamps), p.109 (contemporaneous vs non-blocking)
 - <https://help.marklogic.com/Knowledgebase/Article/View/266/0/resolving-svc-socbind-error> — SVC-SOCBIND port conflict resolution
 - <https://help.marklogic.com/knowledgebase/article/View/27/16/xdmp-canceled-vs-xdmp-extime> — Understanding timeout errors
 - <https://docs.progress.com/bundle/marklogic-server-configure-scal-avail-perf-12/page/topics/scalability.html> — Thread configuration and scalability considerations
