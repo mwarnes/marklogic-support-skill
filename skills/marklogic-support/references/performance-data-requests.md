@@ -160,8 +160,34 @@ Engineer notes:
 - Apply the security incident gate before asking for the files.
 - `date -Is` puts colons in the file names (fine on Linux; rename if copied to Windows).
 - The files hold function names and counts, not document content `[unverified — confirm]`.
-- Customers sometimes send the raw `perf.data` (even one per node in a zip) instead of the report. That gives the header only (host, kernel, CPUs, memory, capture command, window): `scripts/analyse_perf.py` reads it, but the samples need `perf report -i <file> --stdio` on a Linux host with the same perf (`--convert` runs the local perf). Ask for the `perf report --header -I --stdio` text and the `perf script` text, or have `perf archive` run and its output sent with the `perf.data` `[unverified — confirm]`.
+- For a raw `perf.data` (even one per node in a zip) instead of the report, see "Raw perf.data received: convert or re-request" below.
 - Analyse the report with `scripts/analyse_perf.py` (see `references/pstack-analysis.md`); the `perf script` output is not analysed by a script.
+
+## Raw perf.data received: convert or re-request
+
+A raw `perf.data` (even one per node in a zip) gives you, without any tool, the header inventory that `scripts/analyse_perf.py` prints: host, kernel, CPUs, memory, capture command and window. The samples need `perf`: either `analyse_perf.py ... --convert` or a manual conversion.
+
+Choose, in this order of preference:
+- A. Ask the customer to run the text reports on the host that recorded the file, using `-i` (cheapest; symbols resolve at the source `[unverified — confirm]`). Needs the customer to still have the file and a login. Message below.
+- B. Convert it yourself on a Linux host with perf (you control the environment). Manually: `perf report -i <file> --header -I --stdio > <host>.report` and `perf script -i <file> > <host>.script`, then `scripts/analyse_perf.py <host>.report`. Or let the script do it: `scripts/analyse_perf.py <zip-or-folder> --convert` (runs your local perf on customer data; it refuses a perf at a relative PATH entry; 600 s timeout per file). Needs a Linux box with perf. Compare the kernel in the header with yours: differing kernels mean kernel symbols will not resolve `[unverified — confirm]`.
+- C. Ask for `perf archive` output (`perf archive <file>`) alongside the `perf.data`, so the analysis can be done on another machine (`perf-archive(1)`). The unpacking steps are in that man page `[unverified — confirm]`.
+
+With many nodes, ask once for all of them.
+
+Customer message:
+
+> Thank you for the `perf.data` files. To read the profile on our side we need text versions of them. On the SAME host that recorded each file, as root, in the folder that holds the file:
+> 1. `perf report -i perf.data --header -I --stdio > $(hostname -s).$(date -Is).report`
+> 2. `perf script -i perf.data > $(hostname -s).$(date -Is).script` (this can be large, so please zip it)
+> 3. Please send both files for each node, named with the host name.
+>
+> If a `perf.data` no longer exists, please repeat the recording as described in steps 3 to 5 of the CPU profile request above.
+
+Engineer notes:
+- Apply the security incident gate first. Running perf on customer files is running an external tool on untrusted data: use an isolated Linux host or VM `[unverified — confirm]` (recommendation).
+- `--symfs <dir>`, `--kallsyms=<file>` and `-k`/`--vmlinux=<file>` exist for pointing perf at the right files (`perf-report(1)`); how to use them for a customer's host is not covered here `[unverified — confirm]`.
+- Check the header first: kernel, a window of about 60 s, and the capture command `perf record -F 99 -ag -- sleep 60` as in the KB request.
+- Sources: `perf-report(1)`, `perf-script(1)`, `perf-archive(1)` on man7.org.
 
 ## Memory growth: pmap
 

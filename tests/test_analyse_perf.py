@@ -403,7 +403,7 @@ class RawPerfDataTest(unittest.TestCase):
         rc, out = run_main([p, "--out", self.d / "o"], path=f"{self.bin}")
         self.assertEqual(rc, 0)
         s = (self.d / "o" / "SUMMARY.md").read_text()
-        for needle in ("host61", "3.10.0-1062.18.1.el7.x86_64", "x86_64", "`cpu-clock`", "60", "sleep 60", "32.0 GiB", "perf report -i <file> --stdio",
+        for needle in ("host61", "3.10.0-1062.18.1.el7.x86_64", "x86_64", "`cpu-clock`", "60", "sleep 60", "32.0 GiB", "perf report -i <file> --header -I --stdio",
                        "[unverified — confirm]", "--convert", "customer data"):
             self.assertIn(needle, s, needle)
         self.assertNotIn("## Hosts", s)
@@ -442,12 +442,20 @@ class RawPerfDataTest(unittest.TestCase):
         self.assertIn("host61", s)
         self.assertNotIn("perf not installed", s)
 
+    def test_raw_notes_name_both_options_and_the_section(self):
+        for note in (ap.NO_PERF_NOTE, ap.RAW_NOTE.format(n=2)):
+            for needle in ("header only", "convert", "text report", "--header -I --stdio",
+                           "Raw perf.data received: convert or re-request", "references/performance-data-requests.md"):
+                self.assertIn(needle, note, needle)
+        self.assertIn("--convert", ap.RAW_NOTE)
+        self.assertIn("[unverified — confirm]", ap.RAW_NOTE)
+
     def test_convert_without_perf_on_path_notes_the_command(self):
         p = self.put("node1.perf.data")
         rc, _ = run_main([p, "--convert", "--out", self.d / "o"], path=str(self.empty))
         self.assertEqual(rc, 0)
         s = (self.d / "o" / "SUMMARY.md").read_text()
-        self.assertIn("perf not installed here: raw perf.data cannot be analysed; run on a Linux host with the same perf: `perf report -i <file> --stdio`", s)
+        self.assertIn("perf not installed here: raw perf.data gives the header only; convert it on a Linux host with perf (`perf report -i <file> --header -I --stdio > <host>.report`", s)
         self.assertIn("references/performance-data-requests.md", s)
 
     def test_convert_non_zero_exit_is_noted_and_other_files_continue(self):
