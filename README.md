@@ -170,7 +170,7 @@ for the routing table and output formats.
 ErrorLog, messages, AccessLog and AuditLog into an incident timeline; `analyse_sar.py` reads `sar -A` text output
 and ranks saturation (iowait, disk latency, swap, memory, run queue, steal, network errors).
 `performance-data-requests.md` holds ready-to-paste customer requests for SAR, iostat/vmstat/mpstat/pidstat,
-kernel and OOM messages, thread dumps and, on cloud-hosted customers only, steal and EBS signals.
+kernel and OOM messages, the pstack movie and perf requests (from the Progress KB articles; the customer script is vendored at `skills/marklogic-support/assets/support-scripts/pstack.sh`) and, on cloud-hosted customers only, steal and EBS signals.
 
 ### Security tickets
 
@@ -223,6 +223,7 @@ install.sh  install.ps1          install / update / status / uninstall (macOS+Li
 skills/
 ├── marklogic-support/           triage method, routing table, dump / log / SAR modes
 │   ├── SKILL.md
+│   ├── assets/support-scripts/pstack.sh   customer script from KB 000266816 (verbatim)
 │   ├── scripts/
 │   │   ├── parse_dump.py        splits a support dump into config/status/logs + findings
 │   │   ├── analyse_logs.py      ErrorLog/messages/AccessLog/AuditLog -> incident timeline + patterns

@@ -54,5 +54,26 @@ class StackAndPerfRequestTest(unittest.TestCase):
             self.assertIn(needle, SOURCES, needle)
 
 
+class WiringTest(unittest.TestCase):
+    SKILL_MD = (SKILL / "SKILL.md").read_text()
+    README = (ROOT / "README.md").read_text()
+
+    def test_routing_row_has_hang_and_cpu_keywords(self):
+        rows = [l for l in self.SKILL_MD.splitlines() if l.startswith("|") and "performance-data-requests.md" in l]
+        self.assertTrue(rows)
+        for kw in ("pstack", "perf", "hang", "unresponsive", "high CPU"):
+            self.assertIn(kw, rows[0], kw)
+
+    def test_triage_rule_chooses_between_pstack_and_perf(self):
+        triage = self.SKILL_MD.split("## Triage mode")[1].split("## Q&A mode")[0]
+        for needle in ("pstack", "perf", "pauses"):
+            self.assertIn(needle, triage, needle)
+
+    def test_readme_lists_the_script_and_the_requests(self):
+        for needle in ("assets/support-scripts/pstack.sh", "pstack movie", "perf"):
+            self.assertIn(needle, self.README, needle)
+        self.assertNotIn("thread dumps and, on cloud-hosted", self.README)
+
+
 if __name__ == "__main__":
     unittest.main()
