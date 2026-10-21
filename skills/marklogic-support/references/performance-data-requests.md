@@ -1,6 +1,6 @@
 # Customer data requests for performance tickets
 
-Use these blocks to build the "Questions to ask the customer" and `Required-Diagnostics.md` entries on performance tickets that have no host-level data. Copy a block, fill the `<...>` parts and paste it into Salesforce. Each customer block is numbered, says why each item is needed and is plain language. Apply the security incident gate (`security-vulnerability-handling.md`) before asking for any file from a customer who mentioned a security incident. How to read what comes back: `sar-analysis.md`. Cloud signals are requested only from cloud-hosted customers, never on-prem (see the last section). Commands are checked against the man7.org pages for `sar(1)`, `iostat(1)`, `vmstat(8)`, `mpstat(1)`, `pidstat(1)`, `dmesg(1)`, `journalctl(1)`; anything not on a page read is marked `[unverified — confirm]`.
+Use these blocks to build the "Questions to ask the customer" and `Required-Diagnostics.md` entries on performance tickets that have no host-level data. Copy a block, fill the `<...>` parts and paste it into Salesforce. Each customer block is numbered, says why each item is needed and is plain language. Apply the security incident gate (`security-vulnerability-handling.md`) before asking for any file from a customer who mentioned a security incident. How to read what comes back: `sar-analysis.md`. Cloud signals are requested only from cloud-hosted customers, never on-prem (see the last section). Commands are checked against the man7.org pages for `sar(1)`, `iostat(1)`, `vmstat(8)`, `mpstat(1)`, `pidstat(1)`, `dmesg(1)`, `journalctl(1)`, `perf-record(1)`, `perf-report(1)`, `perf-script(1)`, `perf-top(1)`, `date(1)`; anything not on a page read is marked `[unverified — confirm]`.
 
 ## SAR export
 
@@ -72,24 +72,67 @@ Engineer notes:
 - `dmesg -T` timestamps can be inaccurate and are not updated after suspend/resume (`dmesg(1)`); it can fail with permission denied when `dmesg_restrict` is set. `journalctl -k` shows only the current boot unless a boot is chosen, so after a reboot the incident may be in an earlier boot (how to select one: `[unverified — confirm]`).
 - The kernel message strings in the filter (`Out of memory`, `Killed process`, `hung task`, `I/O error`) were not checked against a kernel documentation page `[unverified — confirm]`; widen the filter if it returns nothing.
 
-## Hangs: thread dumps and pmap
+## Stack samples: pstack movie
 
-Use only for hangs or runaway memory. No official MarkLogic documentation or KB article describing process-level stack collection could be fetched (help.marklogic.com pages do not load; `dbg:stack` is a request-level function, not a process dump). The wording below is therefore general Linux practice, `[unverified — confirm]` with MarkLogic Support or a current KB article before sending.
+Use for a hang, an unresponsive period, or a query that behaves unexpectedly. Source: KB 000266816 (https://community.progress.com/s/article/creating-a-pstack-movie-for-support, maintainer-supplied copy).
 
 Customer request:
 
-> Because the server is hanging, we need a snapshot of what its threads are doing. Please agree a time with us first, and take these only while the hang is happening.
+> 1. We need to see what the MarkLogic server threads are doing over a short time while the problem is happening. A script from Support records a stack trace of the MarkLogic process every 3 seconds and zips the result.
+> 2. Someone with root access on the MarkLogic host runs these steps. First install the tools if they are missing: `yum -y install pstack sysstat psutils gdb` (RHEL/CentOS).
+> 3. Copy the attached `pstack.sh` to the host and make it executable: `chmod +x pstack.sh`.
+> 4. While the problem is happening, run it for 60 seconds: `sudo ./pstack.sh 60`.
+> 5. It writes a zip file in `/tmp/` named after the server time and date (for example `/tmp/101530-10-21-2026.zip`). Please attach it to the case, with the host name and the time the problem happened.
+> 6. Each sample pauses the MarkLogic process while it records the threads, which has a performance impact. Please agree a time with us first on a production system, and run it only while the problem is happening.
+> 7. MarkLogic older than 11.3.1, or an 11.3.x build not based on RHEL 9: open `pstack.sh` and replace the line `/etc/MarkLogic/proc-util.sh pstack >> /tmp/$TSTAMP/pstack.log` with `service MarkLogic pstack >> /tmp/$TSTAMP/pstack.log` (the script contains this as a comment).
+
+Engineer notes:
+- The script is `<skill-dir>/assets/support-scripts/pstack.sh`, vendored verbatim from the KB article; give the customer that file.
+- The article text says 5-second samples but the script uses 3 (`INTERVAL=3`).
+- The article's `ml-support-dump.sh` listing is identical to `pstack.sh`, so ask for OS-level data with the SAR and host-metrics requests.
+- pstack pauses the process; for sustained high CPU prefer the perf request below.
+- Apply the security incident gate before asking for the file.
+- `pstack.sh` runs `zip -9 -r ...`, but the article's prerequisite line does not install `zip`. If `zip` is missing the script still leaves the `/tmp/<HHMMSS-MM-DD-YYYY>` directory; ask the customer to send that directory instead (for example archived with `tar`) `[unverified — confirm]`.
+- The zip contains `pstack.log`, a dated series of stack traces. Analysis tooling for it is planned (phase 2).
+
+## CPU profile: perf
+
+Use when CPU is high or when pausing the process is a concern. Source: KB 000268341 (https://community.progress.com/s/article/using-perf-to-understand-performance, maintainer-supplied copy). perf samples the process instead of pausing it, so it is lighter than pstack.
+
+Customer request:
+
+> 1. We need a statistical profile of where the CPU time goes while the CPU is high.
+> 2. On the busy MarkLogic host, as root (or with sudo), install perf if it is missing: `yum install perf` (RHEL/CentOS).
+> 3. While the CPU is high, run all of steps 3 to 5 as root (or prefix each perf command with `sudo`), on that same host. On a production system, please agree a time with us first. `cd /tmp` then `perf record -F 99 -ag -- sleep 60`. It takes about a minute and writes `perf.data` in the current directory.
+> 4. Create the report: `perf report --header -I --stdio > $(hostname -s).$(date -Is).report`
+> 5. Create the script output: `perf script > $(hostname -s).$(date -Is).script`. It can be large but compresses well, so please zip it.
+> 6. Please attach the `.report` file and the zipped `.script` file to the case, with the host name and the time the CPU was high.
+
+Engineer notes:
+- All steps must be run on the same MarkLogic host. `perf top` gives a quick live view of what is using the CPU.
+- Verified (`perf-record(1)`): `-F 99` profiles at 99 samples per second; `-a` is system-wide collection from all CPUs; `-g` records call graphs; `-- sleep 60` records while the command runs; the description says the profile is written "into perf.data". `perf-report(1)`: `--header` "Show header information in the perf.data file. Currently only --stdio output supports this feature."; `-I`/`--show-info` "Display extended information about the perf.data file... currently includes: cpu and numa topology of the host system."; `--stdio` selects the plain-text interface. What else the header contains and how large the output is `[unverified — confirm]`. `perf-script(1)` prints the recorded trace; `perf-top(1)` shows a real-time profile. `date -Is` is ISO 8601 to seconds (`date(1)`).
+- Needing root or a relaxed `perf_event_paranoid` is `[unverified — confirm]`; the `perf-record(1)` page does not mention it.
+- Whether a `sudo perf record` followed by a plain `perf report` can fail on root-owned `perf.data` is `[unverified — confirm]`; hence the request to run steps 3 to 5 all as root.
+- Apply the security incident gate before asking for the files.
+- `date -Is` puts colons in the file names (fine on Linux; rename if copied to Windows).
+- The files hold function names and counts, not document content `[unverified — confirm]`.
+- Analysis tooling is planned (phase 2).
+
+## Memory growth: pmap
+
+Use only for runaway memory.
+
+Customer request:
+
+> Please agree a time with us first. Take a memory map of the MarkLogic process at the start and at the end of the growth.
 >
 > 1. Find the MarkLogic process id: `pgrep -x MarkLogic` `[unverified — confirm process name]`. We need it to target the right process.
 > 2. Memory map: `pmap -x <pid> > pmap-<host>-<n>.txt`, once at the start and once at the end. This shows how the process's memory is divided.
-> 3. Thread stacks, three times about 10 seconds apart: `pstack <pid> > pstack-<host>-<n>.txt`, or if `pstack` is not installed `gdb -p <pid> -batch -ex "thread apply all bt" > stacks-<host>-<n>.txt`. Three samples show whether the threads are stuck in the same place.
->
-> Please note that attaching a debugger to a production process can pause it briefly. Run this only at the agreed time, during the hang.
 
 Engineer notes:
 - `pmap -x` is the documented "extended format" (`pmap(1)`); the man page does not describe the columns. Compare the start and end maps for growth.
-- Community scripts (for example a MarkLogic pstack gist and `mlstat`) loop `pstack`/`pmap`/`iostat`/`vmstat`; they are not official guidance. On some Linux systems `pmap` on the MarkLogic process needs root (mlstat README, not re-checked).
-- The `gdb -batch -ex` form and the pause risk are `[unverified — confirm]`. If the customer is reluctant, ask for the three-sample SAR/host-metrics data first.
+- On some Linux systems `pmap` on the MarkLogic process needs root (mlstat README, not re-checked). Community scripts such as `mlstat` loop `pstack`/`pmap`/`iostat`/`vmstat`; they are not official guidance.
+- If the customer is reluctant, ask for the SAR/host-metrics data first.
 
 ## Cloud-hosted customers
 
