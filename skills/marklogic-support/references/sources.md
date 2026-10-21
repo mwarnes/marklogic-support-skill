@@ -133,6 +133,13 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html> — EC2 instance metrics, 5-minute default period
 - <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-credits-baseline-concepts.html> — T-series CPU credit metrics, Unlimited mode
 
+## pstack-analysis.md
+
+- Maintainer notes, 2026-10-21 — simplified guidance on reading pstack output: repeated threads, waiting, CPU spinning, alternatives (not a URL source)
+- <https://community.progress.com/s/article/creating-a-pstack-movie-for-support> — KB 000266816, pstack movie and `pstack.log` (maintainer-supplied copy; community pages cannot be fetched)
+- <https://community.progress.com/s/article/using-perf-to-understand-performance> — KB 000268341, perf as the lighter alternative to pstack (maintainer-supplied copy; community pages cannot be fetched)
+- <https://github.com/marklogic-community/mlstat> — mlstat, community tool to correlate OS metrics with server activity (not official guidance)
+
 ## monitoring.md
 
 - <https://docs.progress.com/bundle/marklogic-server-monitor-12/page/topics/introduction.html>

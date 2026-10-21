@@ -171,6 +171,7 @@ ErrorLog, messages, AccessLog and AuditLog into an incident timeline; `analyse_s
 and ranks saturation (iowait, disk latency, swap, memory, run queue, steal, network errors).
 `performance-data-requests.md` holds ready-to-paste customer requests for SAR, iostat/vmstat/mpstat/pidstat,
 kernel and OOM messages, the pstack movie and perf requests (from the Progress KB articles; the customer script is vendored at `skills/marklogic-support/assets/support-scripts/pstack.sh`) and, on cloud-hosted customers only, steal and EBS signals.
+`pstack-analysis.md` is a reading guide for pstack movies (an analysis script will follow).
 
 ### Security tickets
 
@@ -234,7 +235,7 @@ skills/
 │       architecture · cluster-hosts-groups · databases-forests · app-servers · security
 │       ha-backup-failover · memory-and-os · monitoring · performance-tuning · dr-scaling
 │       app-code-review · client-integration · supportdump-anatomy · log-anatomy
-│       sar-analysis · performance-data-requests · security-vulnerability-handling
+│       sar-analysis · performance-data-requests · pstack-analysis · security-vulnerability-handling
 │       ticket-auditing · kcs-writing · sources
 ├── ticket/SKILL.md              /ticket
 ├── kcs/SKILL.md                 /kcs
