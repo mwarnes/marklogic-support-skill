@@ -36,7 +36,7 @@ Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` 
 ## Triage mode
 
 1. Extract facts from the ticket (state what is missing): MarkLogic version; cluster size / host count; what changed recently (upgrade, new host, index change, config change); exact error text / codes; affected component (host, forest, database, app server, security).
-2. Pick 1–2 reference files from the routing table and read them fully.
+2. Pick 1–2 reference files from the routing table and read them fully. For any performance, tuning, capacity or resource-usage ticket, `references/resource-consumption.md` is one of them: it is the foundation for what each MarkLogic activity costs and what is normal (it is a 2016 paper for MarkLogic 7/8, so its numbers carry `[unverified — confirm for 11/12]`).
 3. Answer in exactly this format:
 
    **Likely causes (ranked)** — each with the confirming check that would prove it; mark each as `config error` or `possible bug / capacity limit`.
@@ -159,6 +159,7 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 | failover, replica, backup, restore, XDMP-FORESTNOT, journal archiving, point-in-time, scheduled task | `references/ha-backup-failover.md` |
 | memory, OOM, XDMP-MEMCANCELED, swap, huge pages, cache (list / compressed tree / expanded tree / triple), CACHEFULL, ulimit, XDMP-TOOMANYOPENFILES, I/O scheduler | `references/memory-and-os.md` |
 | monitoring dashboard, Meters database, ops director, monitoring history, view=status, alerting, baseline, historical data, manage-user, Performance Metering Enabled, xdmp:server-status, xdmp:request-status, xdmp:host-status, status screen, log disk space | `references/monitoring.md` |
+| resource consumption, what is using CPU / disk / memory / network, I/O bound, CPU bound, E-node, D-node, evaluator, merge storm, `nice` CPU, too many stands, XDMP-TOOMANYSTANDS, in-memory stand, XDMP-INMMTREEFULL, cache partition, `xdmp:cache-status`, partition-busy, XDMP-EXPNTREECACHEFULL, XDMP-LISTCACHEFULL, index expansion, capacity planning, sizing, tuning, performance | `references/resource-consumption.md` (read first for any performance or tuning ticket, then `performance-tuning.md` and the host-level notes) |
 | slow query, cts:search, filtered/unfiltered search, range index, positions index, lexicon, query-meters, query-trace, profiler, XDMP-TREECACHEFULL | `references/performance-tuning.md` |
 | disaster recovery, database replication, flexible replication, foreign cluster, non-blocking timestamp, rebalancer, assignment policy, scale out, add host, retire forest | `references/dr-scaling.md` |
 | review this code, REST extension, resource extension, fn:error/fn.error, xdmp:eval/xdmp:invoke in code, hardcoded credentials, code review | `references/app-code-review.md` |

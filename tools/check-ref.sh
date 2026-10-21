@@ -19,7 +19,7 @@ grep -qF '| Mistake | Symptom seen by customer | How to confirm | Fix / best pra
  }
 # every table body row (starts with '|', not header/separator) must carry a source
 awk '/^\| Mistake/{t=1;next} t&&/^\|[- |]+\|$/{next} t&&/^\|/{print} t&&!/^\|/{t=0}' "$f" |
- grep -vE 'http|Inside MarkLogic p\.[0-9]+|\[unverified — confirm\]' |
+ grep -vE 'http|Inside MarkLogic p\.[0-9]+|Resource Consumption p\.[0-9]+|\[unverified — confirm\]' |
  head -1 | grep -q . && {
  echo "FAIL: $f has a mistakes row without Source"
  exit 1

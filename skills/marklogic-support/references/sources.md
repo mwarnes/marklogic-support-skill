@@ -203,3 +203,9 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://github.com/marklogic-community/ml-gradle/wiki/Property-reference>
 - <https://developer.marklogic.com/code/corb/>
 - <https://github.com/marklogic-community/corb2/blob/master/README.md>
+
+## resource-consumption.md
+
+- MarkLogic whitepaper "MarkLogic Performance: Understanding System Resources" (E. Miller, January 2016, MarkLogic 7 and 8, 42 pp.; maintainer-supplied `fundamentals-of-resource-consumption.pdf`, not stored in the repository) — ingest, merges, journal and fast data directory p.4-12; indexes and expansion p.13-17; queries, filtering and caches p.17-25; operations, topology, backup, reindex, memory, HA, threads, swap p.25-36
+- <https://docs.marklogic.com/xdmp:cache-status>
+- <https://docs.marklogic.com/admin:group-set-background-io-limit>

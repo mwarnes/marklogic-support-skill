@@ -20,6 +20,8 @@
 
 ## Standard procedures
 
+For how each activity (ingest, merges, queries, reindexing) uses memory, cache partitions and `xdmp:cache-status`, see `resource-consumption.md`.
+
 1. **Set Linux Huge Pages**: Configure `vm.nr_hugepages` in `/etc/sysctl.conf` to 3/8 of physical RAM (in 2MB blocks). Check with `cat /proc/meminfo | grep Huge` and restart MarkLogic after changes.
 
 2. **Disable Transparent Huge Pages**: Add `echo never > /sys/kernel/mm/transparent_hugepage/enabled` to startup scripts. Verify with `cat /sys/kernel/mm/transparent_hugepage/enabled` showing `[never]`.
