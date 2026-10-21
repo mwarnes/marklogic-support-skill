@@ -18,7 +18,7 @@ def zbytes(members, compression=zipfile.ZIP_STORED):
 class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup); self.d = Path(self.tmp.name)
-        for k in ("MAX_DEPTH", "MAX_MEMBER", "MAX_TOTAL", "MAX_MEMBERS", "RATIO_MIN_SIZE", "RATIO"):
+        for k in ("MAX_DEPTH", "MAX_MEMBER", "MAX_TOTAL", "MAX_MEMBERS", "RATIO_MIN_SIZE", "RATIO", "NESTED_BUDGET"):
             self.addCleanup(setattr, di, k, getattr(di, k))
 
     def walk(self, *paths):
@@ -140,8 +140,8 @@ class WalkTest(Base):
     def test_member_count_limit_stops_with_a_note(self):
         o = self.d / "o.zip"; o.write_bytes(zbytes({f"f{i}.log": b"x" for i in range(5)}))
         di.MAX_MEMBERS = 3
-        srcs, notes = self.walk(o)
-        self.assertEqual([s.name for s in srcs], ["f0.log", "f1.log", "f2.log"])
+        srcs, notes = self.walk(o)      # the declared count is checked before the zip is opened (see test_diag_inputs_hardening)
+        self.assertEqual(srcs, [])
         self.assertEqual(notes, {"o.zip: stopped reading, more than 3 entries"})
 
     def test_encrypted_member_note(self):

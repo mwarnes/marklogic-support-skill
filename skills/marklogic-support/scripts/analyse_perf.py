@@ -8,18 +8,23 @@ Input:  the .report file written by `perf report --header -I --stdio > <host>.<d
         A RAW perf.data (magic PERFILE2) is recognised by content: its file header is parsed in pure Python (host, kernel, CPUs, memory,
         capture command, events, sample window) and listed in an inventory. Samples cannot be read without a local `perf`: only with
         --convert is `perf report -i <temp copy> --stdio` run (no shell, 600 s timeout, output capped at 512 MB; the copy is a 0600 file
-        in a private temp dir removed afterwards) and its text analysed like a report. --convert runs an external tool on customer data,
+        in a private temp dir removed afterwards; perf runs in its own session and the whole process group is killed at the end, on a timeout,
+        on the cap and on an error or Ctrl-C; a `perf` found at a relative PATH entry or inside the current directory or an input folder is
+        not run) and its text analysed like a report. --convert runs an external tool on customer data,
         so it is never the default. Without --convert a note gives the exact command to run on a Linux host instead.
         With more than one input SUMMARY.md starts with a per-host overview table (also hosts.csv).
         Only the top-level entry lines are read (call-graph detail is skipped), so large reports are fine. A report with several events
         (one `# Samples:` header each) is analysed once per event. The column header (Overhead/Children/Self/Samples/Command/Shared Object/Symbol)
         is read when present, so `--sort dso,sym` and `-n` reports parse; an unrecognised layout is noted and the default parse is used.
+Names and header strings from the input are made safe for markdown and CSV (diag_inputs.safe_label / csv_cell). With more than 20 analysed
+inputs the per-input sections are printed only for inputs with a finding (the overview table and top-symbols.csv hold all of them).
+Memory: a report or perf.data is read whole into memory, so a very large file (hundreds of MB) can need several GB of RAM `[unverified — confirm]`.
 Writes: SUMMARY.md findings.json top-symbols.csv (hosts.csv with several inputs)   (UTF-8)
 Thresholds are the constants below; the findings state what the numbers show, not why (kernel symbols are often unresolved addresses).
 The thresholds and the allocator / wrapper symbol lists are the script author's heuristics (derived from one anonymised 2015 customer
 capture), not maintainer-note content, and what a MarkLogic function means is not decided here.
 """
-import argparse, csv, json, os, re, shutil, struct, subprocess, sys, tempfile, time
+import argparse, csv, json, os, re, shutil, signal, struct, subprocess, sys, tempfile, time
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -27,6 +32,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import diag_inputs
 
 SEP = diag_inputs.SEP
+S = diag_inputs.safe_label
+MAX_SECTIONS = 20
 PERF_MAGIC = b"PERFILE2"
 CONVERT_TIMEOUT = 600
 CONVERT_MAX = 512 * 1024 * 1024
@@ -119,7 +126,7 @@ def parse_lines(lines):
             if m:
                 if cur["meta"]["samples"] is not None:
                     cur = new()
-                cur["meta"]["samples"], cur["meta"]["event"] = m[1], m[2]
+                cur["meta"]["samples"], cur["meta"]["event"] = S(m[1], 40), S(m[2], 80)
             m = COUNT_RE.match(line)
             if m:
                 cur["meta"]["count"] = int(m[1])
@@ -137,6 +144,8 @@ def parse_lines(lines):
             continue
         row = cur["entry"](line)
         if row:
+            for k in ("command", "dso", "symbol"):
+                row[k] = S(row[k], 300)
             cur["rows"].append(row)
         elif ENTRYISH_RE.match(line):
             cur["unparsed"] += 1
@@ -243,7 +252,7 @@ def read_perf_header(data):
                 continue
             sec = data[off:off + size]
             if feat in (3, 4, 5, 6, 8):
-                h[{3: "hostname", 4: "osrelease", 5: "version", 6: "arch", 8: "cpudesc"}[feat]] = _string(sec, 0)[0]
+                h[{3: "hostname", 4: "osrelease", 5: "version", 6: "arch", 8: "cpudesc"}[feat]] = S(_string(sec, 0)[0])
             elif feat == 7:
                 h["cpus"], h["cpus_online"] = struct.unpack_from("<II", sec, 0)
             elif feat == 10:
@@ -252,7 +261,7 @@ def read_perf_header(data):
                 pos = 4
                 for _ in range(_u32(sec, 0)):
                     t, pos = _string(sec, pos)
-                    h["cmdline"].append(t)
+                    h["cmdline"].append(S(t))
             elif feat == 12:
                 n, attr_size = struct.unpack_from("<II", sec, 0)
                 pos = 8
@@ -262,7 +271,7 @@ def read_perf_header(data):
                     pos += 8 * nr_ids
                     if pos > len(sec):
                         raise ValueError("event description runs past its section")
-                    h["events"].append(name)
+                    h["events"].append(S(name))
             elif feat == 21:
                 start, end = struct.unpack_from("<QQ", sec, 0)
                 h["window_s"] = (end - start) / 1e9 if end >= start else None
@@ -294,15 +303,45 @@ def text_header(text):
             break
     mem = re.match(r"(\d+)\s*kB", out.get("total memory", ""))
     cpus = re.match(r"(\d+)", out.get("nrcpus online", ""))
-    return {"osrelease": out.get("os release"), "cpus": int(cpus[1]) if cpus else None, "mem_kb": int(mem[1]) if mem else None,
-            "cmdline": out.get("cmdline")}
+    return {"osrelease": S(out["os release"]) if "os release" in out else None, "cpus": int(cpus[1]) if cpus else None,
+            "mem_kb": int(mem[1]) if mem else None, "cmdline": S(out["cmdline"]) if "cmdline" in out else None}
 
 
-def convert_with_perf(data, label, notes):
-    """Run the local `perf report -i <private temp copy> --stdio` on raw perf.data bytes -> text, or None with a note."""
+def find_perf(roots, notes):
+    """The `perf` to run, or None with a note: not installed, or found at a relative PATH entry / inside the current directory or an input folder."""
     perf = shutil.which("perf")
     if perf is None:
         notes.add(NO_PERF_NOTE)
+        return None
+    trusted = os.path.isabs(perf)
+    if trusted:
+        real = os.path.realpath(perf)
+        for r in [os.getcwd(), *roots]:
+            r = os.path.realpath(r)
+            if real == r or real.startswith(r.rstrip(os.sep) + os.sep):
+                trusted = False
+    if not trusted:
+        notes.add(UNTRUSTED_PERF_NOTE)
+        return None
+    return perf
+
+
+def kill_session(proc):
+    """SIGKILL perf's whole process group (it was started in its own session), then reap it; safe to call twice."""
+    try:
+        if hasattr(os, "killpg"):
+            os.killpg(proc.pid, signal.SIGKILL)
+        else:
+            proc.kill()
+    except OSError:       # ProcessLookupError (nothing left), PermissionError
+        pass
+    proc.wait()
+
+
+def convert_with_perf(data, label, notes, roots=()):
+    """Run the local `perf report -i <private temp copy> --stdio` on raw perf.data bytes -> text, or None with a note."""
+    perf = find_perf(roots, notes)
+    if perf is None:
         return None
     with tempfile.TemporaryDirectory(prefix="analyse-perf-") as d:
         src, outp = os.path.join(d, "perf.data"), os.path.join(d, "report.txt")
@@ -312,21 +351,24 @@ def convert_with_perf(data, label, notes):
         status, rc = "ok", None
         try:
             with open(outp, "wb") as of:
-                proc = subprocess.Popen([perf, "report", "-i", src, "--stdio"], stdin=subprocess.DEVNULL, stdout=of, stderr=subprocess.DEVNULL)
-                deadline = time.monotonic() + CONVERT_TIMEOUT
-                while True:
-                    try:
-                        rc = proc.wait(timeout=max(0.01, min(0.1, deadline - time.monotonic())))
-                        break
-                    except subprocess.TimeoutExpired:
-                        pass
-                    if os.path.getsize(outp) > CONVERT_MAX:
-                        status = "cap"
-                    elif time.monotonic() >= deadline:
-                        status = "timeout"
-                    if status != "ok":
-                        proc.kill(); proc.wait()
-                        break
+                proc = subprocess.Popen([perf, "report", "-i", src, "--stdio"], stdin=subprocess.DEVNULL, stdout=of, stderr=subprocess.DEVNULL,
+                                        start_new_session=True)
+                try:
+                    deadline = time.monotonic() + CONVERT_TIMEOUT
+                    while True:
+                        try:
+                            rc = proc.wait(timeout=max(0.01, min(0.1, deadline - time.monotonic())))
+                            break
+                        except subprocess.TimeoutExpired:
+                            pass
+                        if os.path.getsize(outp) > CONVERT_MAX:
+                            status = "cap"
+                        elif time.monotonic() >= deadline:
+                            status = "timeout"
+                        if status != "ok":
+                            break
+                finally:
+                    kill_session(proc)
         except OSError as e:
             notes.add(f"{label}: conversion with local perf failed ({type(e).__name__})")
             return None
@@ -344,6 +386,7 @@ def convert_with_perf(data, label, notes):
     return None
 
 
+UNTRUSTED_PERF_NOTE = "perf found at a relative/untrusted PATH entry; not run"
 NO_PERF_NOTE = ("perf not installed here: raw perf.data cannot be analysed; run on a Linux host with the same perf: `perf report -i <file> --stdio`, "
                 "or ask for the text report from the request in references/performance-data-requests.md")
 RAW_NOTE = ("{n} raw perf.data file(s): only the file header is read here; the samples need `perf report -i <file> --stdio` run on a Linux host with the same perf "
@@ -398,7 +441,8 @@ def host_row(x):
     mem = h.get("mem_kb")
     w = h.get("window_s")
     r = x["result"]
-    return {"host": x["host"], "input_kind": x["kind"], "kernel": h.get("osrelease") or "-", "cpus": h.get("cpus") if h.get("cpus") is not None else "-",
+    cpus = h.get("cpus_online") if x["kind"] == "perf.data" else h.get("cpus")
+    return {"host": x["host"], "input_kind": x["kind"], "kernel": h.get("osrelease") or "-", "cpus": cpus if cpus is not None else "-",
             "memory_gib": f"{mem / 1048576:.1f}" if mem else "-", "window_s": f"{w:g}" if w is not None else "-", "capture_command": cmd or "-",
             "analysed": "yes" if r else "no", "kernel_share": f"{r['t_kernel']:.1f}" if r else "-",
             "top_finding": (r["findings"][0]["rule"] if r["findings"] else "-") if r else "-", "label": x["label"],
@@ -427,7 +471,8 @@ def main(argv=None):
 
 
 def run(a, sources, notes):
-    keep, skipped = [], 0
+    keep, skipped, binary = [], 0, 0
+    roots = [str(p) for p in a.paths if os.path.isdir(p)]
     for src in sources:
         try:
             kind = classify(src.head(SNIFF))
@@ -435,11 +480,13 @@ def run(a, sources, notes):
             notes.add(f"{src.label}: could not be read ({type(e).__name__})")
             continue
         if kind == "binary":
-            notes.add(f"{src.label}: skipped, binary file")
+            binary += 1
         elif kind is None:
             skipped += 1
         else:
             keep.append(src)
+    if binary:
+        notes.add(f"{binary} binary file(s) skipped")
     if skipped:
         notes.add(f"{skipped} file(s) skipped, not a perf report (no `# Samples:` header or entry lines)")
     try:
@@ -459,17 +506,19 @@ def run(a, sources, notes):
             raw += 1
             info["kind"] = "perf.data"
             try:
-                info["header"] = read_perf_header(data)
-                info["usable"] = True
-                info["host"] = info["header"]["hostname"]
+                hdr = read_perf_header(data)
+                if hdr["hostname"] or hdr["cmdline"] or hdr["events"] or hdr["window_s"] is not None:
+                    info["header"], info["usable"], info["host"] = hdr, True, hdr["hostname"]
+                else:
+                    notes.add(f"{src.label}: perf.data header has no usable fields")
             except ValueError:
                 notes.add(f"{src.label}: unreadable perf.data header")
             if a.convert:
-                text, label = convert_with_perf(data, src.label, notes), src.label + CONVERTED
+                text, label = convert_with_perf(data, src.label, notes, roots), src.label + CONVERTED
         else:
             text = data.decode("utf-8", errors="replace")
             info["header"] = text_header(text)
-        info["host"] = info["host"] or diag_inputs.host_hint(src) or SEP.join(src.parts[-2:])
+        info["host"] = S(info["host"] or diag_inputs.host_hint(src) or SEP.join(src.parts[-2:]))
         info["src_label"] = src.label
         if text is not None:
             segs = parse_lines(text.splitlines())
@@ -489,39 +538,49 @@ def run(a, sources, notes):
                 sections.append({"label": elabel, "meta": meta, "rows": rows, "r": r})
                 info["result"] = info["result"] or r
                 all_findings += [{**x, "input": elabel} for x in r["findings"]]
-                csv_rows += [{"input": elabel, **x} for x in sorted(rows, key=lambda x: -x["self"])[:200]]
+                csv_rows += [{k: diag_inputs.csv_cell(v) for k, v in {"input": elabel, **x}.items()}
+                             for x in sorted(rows, key=lambda x: -x["self"])[:200]]
         infos.append(info)
     if raw:
         notes.add(RAW_NOTE.format(n=raw))
     if not any(i["usable"] for i in infos):
+        diag_inputs.print_notes(notes)
         sys.exit("analyse_perf: no perf report entries found (expected `perf report --stdio` text with lines like '  12.34%  0.56%  Command  Shared  [k] symbol', "
                  "or a raw perf.data).")
     out = Path(a.out) if a.out else Path("perf-analysis") / Path(a.paths[0]).stem
     out.mkdir(parents=True, exist_ok=True)
-    many = sum(1 for i in infos if i["usable"]) > 1
+    usable = [i for i in infos if i["usable"]]
+    diag_inputs.disambiguate(usable)
+    many = len(usable) > 1
+    shown = sections
     L = ["# perf report analysis", ""]
     if many:
         hosts = sorted((host_row(i) for i in infos if i["usable"]), key=lambda h: (not h["_sev0"], h["host"].lower(), h["label"]))
         with (out / "hosts.csv").open("w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, fieldnames=HOST_COLS); w.writeheader()
             for h in hosts:
-                w.writerow({c: h[c] for c in HOST_COLS})
+                w.writerow({c: diag_inputs.csv_cell(h[c]) for c in HOST_COLS})
         short = lambda c: c if len(c) <= 40 else c[:37] + "..."
         L += ["## Hosts", "", "| Host | Input kind | Kernel | CPUs | Memory (GiB) | Window (s) | Capture command | Analysed | Kernel share of target command (%) | Top finding |",
               "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
         L += [f"| {h['host']} | {h['input_kind']} | {h['kernel']} | {h['cpus']} | {h['memory_gib']} | {h['window_s']} | {short(h['capture_command'])} | "
               f"{h['analysed']} | {h['kernel_share']} | {h['top_finding']} |" for h in hosts]
         L += ["", "Hosts with a severity-0 finding come first. Kernel share is the kernel part of the busiest command, in % of all samples. "
+                  "CPUs is the online CPU count (for a perf.data the header's online count, as in the text report header). "
                   "Raw perf.data rows show header facts only unless converted. The captures are not simultaneous `[unverified — confirm]`.", ""]
+        if len(usable) > MAX_SECTIONS:
+            shown = [e for e in sections if e["r"]["findings"]]
+            L += [f"More than {MAX_SECTIONS} inputs: per-input sections are shown only for the {len({e['label'] for e in shown})} input(s) with at least one "
+                  "finding; all inputs are in the table above and in top-symbols.csv and findings.json.", ""]
         diff = [what for what, vals in (("kernel versions differ", {h["kernel"] for h in hosts} - {"-"}),
                                          ("capture commands differ", {h["capture_command"] for h in hosts} - {"-"})) if len(vals) > 1]
         if diff:
             notes.add("the nodes were not captured the same way: " + "; ".join(diff) + " (compare them with care)")
-    elif raw and infos[0]["header"] and infos[0]["kind"] == "perf.data":
-        L += inventory_block(infos[0]["label"], infos[0]["header"])
-    for i, e in enumerate(sections):
+    elif raw and usable and usable[0]["kind"] == "perf.data" and usable[0]["header"]:
+        L += inventory_block(usable[0]["label"], usable[0]["header"])
+    for i, e in enumerate(shown):
         L += section(e, a.top, not many or i == 0)
-    if many and len(sections) > 1:
+    if many and len(shown) > 1:
         L += ["Top-symbol tables of the inputs after the first are not repeated here; their rows are in top-symbols.csv.", ""]
     L += ["## How to read this", "",
           "- `perf` samples the process (statistical, lighter than pstack). Self % is time in that symbol itself; children % includes the functions it calls.",

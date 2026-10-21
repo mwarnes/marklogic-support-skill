@@ -11,6 +11,8 @@ Inputs: a pstack.log (or .txt) with gdb/pstack style blocks `Thread N (Thread 0x
         and a dated snapshot ends only at the next date line; without date lines a new snapshot starts where the thread numbers restart.
         Text outside thread blocks (a MarkLogic banner, say) is ignored and only counted in the Notes.
 Writes: SUMMARY.md findings.json snapshots.csv (hosts.csv with several inputs)   (never whole stacks: only counts and the top few signatures; all UTF-8)
+Memory: each log is read and parsed whole in memory, so a very large log (hundreds of MB) can need several GB of RAM `[unverified — confirm]`.
+Names from the input (zip members, folders, date lines, function names) are made safe for markdown and CSV (diag_inputs.safe_label / csv_cell).
 Provenance: the maintainer notes (2026-10-21) supply only the three categories to look for (same place across snapshots; waiting in
 sleep/poll/synchronisation; identical internal stacks). The specific wait / lock function name lists and the allocator and
 CacheListStorage patterns below are the script author's heuristics, derived from one anonymised 2015 customer capture (glibc 2.12,
@@ -168,12 +170,17 @@ def format_span(seconds):
 
 
 def timing(snaps):
-    """(span seconds | None, median spacing seconds | None) from the parseable date lines, in snapshot order."""
-    ts = [d for d in (parse_date(s["date"]) for s in snaps if s["date"]) if d]
+    """(span seconds | None, median spacing seconds | None) from the parseable date lines: sorted first, so the gaps are absolute."""
+    ts = sorted(d for d in (parse_date(s["date"]) for s in snaps if s["date"]) if d)
     if len(ts) < 2:
         return None, None
     gaps = [(b - a).total_seconds() for a, b in zip(ts, ts[1:])]
-    return (max(ts) - min(ts)).total_seconds(), statistics.median(gaps)
+    return (ts[-1] - ts[0]).total_seconds(), statistics.median(gaps)
+
+
+def dates_out_of_order(snaps):
+    ts = [d for d in (parse_date(s["date"]) for s in snaps if s["date"]) if d]
+    return ts != sorted(ts)
 
 
 def pstack_sources(paths, notes):
@@ -182,7 +189,7 @@ def pstack_sources(paths, notes):
         sources = diag_inputs.walk(paths, notes)
     except FileNotFoundError as e:
         sys.exit(f"analyse_pstack: path not found: {e.filename}")
-    keep, no_threads = [], 0
+    keep, no_threads, binary = [], 0, 0
     for src in sources:
         try:
             head = src.head(PSTACK_SNIFF)
@@ -190,11 +197,13 @@ def pstack_sources(paths, notes):
             notes.add(f"{src.label}: could not be read ({type(e).__name__})")
             continue
         if is_binary(head[:4096]):
-            notes.add(f"{src.label}: skipped, binary file")
+            binary += 1
         elif PSTACK_RE.search(head.decode("utf-8", errors="replace")):
             keep.append(src)
         else:
             no_threads += 1
+    if binary:
+        notes.add(f"{binary} binary file(s) skipped")
     if no_threads:
         notes.add(f"{no_threads} file(s) skipped, no 'Thread N (...)' blocks")
     try:
@@ -235,7 +244,7 @@ def analyse(snaps, min_samples, min_threads):
                 if pred(nfr, t["class"]):
                     pats[name] += 1
         s["cls"], s["pats"] = cls, pats
-        rows.append({"snapshot": i, "date": s["date"] or "", "threads": len(s["threads"]), "waiting": cls["waiting"],
+        rows.append({"snapshot": i, "date": diag_inputs.safe_label(s["date"], 80) if s["date"] else "", "threads": len(s["threads"]), "waiting": cls["waiting"],
                      "lock": cls["lock"], "running": cls["running"], **{n: pats[n] for n, _, _ in PATTERNS}})
     # patterns seen in enough threads
     for name, _, meaning in PATTERNS:
@@ -271,7 +280,7 @@ def analyse(snaps, min_samples, min_threads):
             if len(run) > len(best):
                 best = list(run)
         if len(best) >= min_samples:
-            stuck.append((lwp, len(best), " <- ".join(best[0][1][:4])))
+            stuck.append((lwp, len(best), " <- ".join(diag_inputs.safe_label(f, 100) for f in best[0][1][:4])))
     if stuck:
         findings.append({"rule": "same_stack_across_snapshots", "severity": 0,
                          "detail": f"{len(stuck)} non-waiting thread(s) show the same top frames in {min_samples}+ consecutive snapshots",
@@ -306,6 +315,7 @@ def host_row(e):
             "label": e["label"], "_sev0": any(x["severity"] == 0 for x in f)}
 
 
+MAX_SECTIONS = 20
 HOST_COLS = ["host", "snapshots", "span", "threads", "running", "lock_wait", "top_finding", "label"]
 
 
@@ -347,9 +357,9 @@ def detail_blocks(snaps):
             if t["class"] == "running":
                 run_tops[(t["frames"][0] if t["frames"] else "??")] += 1
     L = ["### Top frames of running (non-waiting) threads, all snapshots", ""]
-    L += [f"- {n} x `{f[:100]}`" for f, n in run_tops.most_common(8)] or ["- none"]
+    L += [f"- {n} x `{diag_inputs.safe_label(f, 100)}`" for f, n in run_tops.most_common(8)] or ["- none"]
     L += ["", "### Thread kinds (nearest `::run` frame), all snapshots", ""]
-    L += [f"- {n} x `{k[:100]}`" for k, n in kinds.most_common(8)]
+    L += [f"- {n} x `{diag_inputs.safe_label(k, 100)}`" for k, n in kinds.most_common(8)]
     L.append("")
     return L
 
@@ -361,7 +371,7 @@ def write_outputs(entries, rows_all, findings_all, out, notes, min_samples, min_
     with (out / "snapshots.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=cols); w.writeheader()
         for r in rows_all:
-            w.writerow({c: r.get(c, "") for c in cols})
+            w.writerow({c: diag_inputs.csv_cell(r.get(c, "")) for c in cols})
     L = ["# pstack analysis", ""]
     many = len(entries) > 1
     if many:
@@ -369,14 +379,19 @@ def write_outputs(entries, rows_all, findings_all, out, notes, min_samples, min_
         with (out / "hosts.csv").open("w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, fieldnames=HOST_COLS); w.writeheader()
             for h in hosts:
-                w.writerow({c: h[c] for c in HOST_COLS})
+                w.writerow({c: diag_inputs.csv_cell(h[c]) for c in HOST_COLS})
         L += ["## Hosts", "",
               "| Host | Snapshots | Span | Threads | Running | Lock wait | Top finding |", "| --- | --- | --- | --- | --- | --- | --- |"]
         L += [f"| {h['host']} | {h['snapshots']} | {h['span']} | {h['threads']} | {h['running']} | {h['lock_wait']} | {h['top_finding']} |"
               for h in hosts]
         L += ["", "Threads, Running and Lock wait are the maximum in one snapshot. Hosts with a severity-0 finding come first. "
                   "Snapshots from different hosts are not taken at the same instant `[unverified — confirm]`.", ""]
-    for e in entries:
+    shown = entries
+    if len(entries) > MAX_SECTIONS:
+        shown = [e for e in entries if e["findings"]]
+        L += [f"More than {MAX_SECTIONS} inputs: per-input sections are shown only for the {len(shown)} input(s) with at least one finding; "
+              "all inputs are in the table above, in snapshots.csv and in findings.json.", ""]
+    for e in shown:
         L += input_section(e)
     if many:
         L += [f"## Details of {entries[0]['label']}", ""] + detail_blocks(entries[0]["snaps"])
@@ -403,8 +418,17 @@ def main(argv=None):
     if a.min_samples < 1 or a.min_threads < 1:
         ap.error("--min-samples and --min-threads must be at least 1")
     notes = set()
-    sources = pstack_sources(a.paths, notes)
+    sources = []
+    try:
+        sources = pstack_sources(a.paths, notes)
+        return run(a, sources, notes)
+    finally:
+        diag_inputs.close_all(sources)
+
+
+def run(a, sources, notes):
     if not sources:
+        diag_inputs.print_notes(notes)
         sys.exit("analyse_pstack: no pstack data found (expected blocks starting 'Thread N (Thread 0x... (LWP n)):').")
     entries, rows_all, findings_all = [], [], []
     for src in sources:
@@ -413,11 +437,17 @@ def main(argv=None):
         snaps = parse_text(text, label, notes) if text is not None else []
         if not snaps:
             continue
+        if dates_out_of_order(snaps):
+            notes.add(f"{label}: dates are not in order")
         rows, findings, _ = analyse(snaps, a.min_samples, a.min_threads)
         host = diag_inputs.host_hint(src) or SEP.join(src.parts[-2:])
         entries.append({"label": label, "host": host, "snaps": snaps, "rows": rows, "findings": findings})
         rows_all += [{**r, "input": label} for r in rows]
         findings_all += [{**f, "input": label} for f in findings]
+    if not entries:
+        diag_inputs.print_notes(notes)
+        sys.exit("analyse_pstack: no parseable pstack snapshots (blocks must look like 'Thread N (Thread 0x... (LWP n)):')")
+    diag_inputs.disambiguate(entries)
     out = Path(a.out) if a.out else Path("pstack-analysis") / Path(a.paths[0]).stem
     write_outputs(entries, rows_all, findings_all, out, notes, a.min_samples, a.min_threads)
     print(f"wrote {out}: {len(entries)} input(s), {sum(len(e['snaps']) for e in entries)} snapshot(s), {len(findings_all)} finding(s)")

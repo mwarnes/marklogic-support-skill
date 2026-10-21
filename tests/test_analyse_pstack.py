@@ -432,7 +432,7 @@ class InputTest(unittest.TestCase):
         notes = set()
         out = ap.read_inputs([self.d], notes)
         self.assertEqual([n for n, _ in out], ["a.log"])
-        self.assertTrue(any("core.1234" in n and "binary" in n for n in notes), notes)
+        self.assertIn("1 binary file(s) skipped", notes)
 
     def test_outputs_are_utf8_whatever_the_locale(self):
         env = {**os.environ, "PYTHONUTF8": "0", "PYTHONCOERCECLOCALE": "0", "LC_ALL": "C"}

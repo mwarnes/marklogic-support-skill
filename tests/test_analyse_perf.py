@@ -274,7 +274,7 @@ class InputTest(unittest.TestCase):
             r = run_main([self.d, "--out", self.d / "o"])
         self.assertEqual(r[0], 0)
         s = (self.d / "o" / "SUMMARY.md").read_text()
-        self.assertIn("blob.bin: skipped, binary file", s)
+        self.assertIn("1 binary file(s) skipped", s)
         self.assertIn("big.txt: skipped, larger than", s)
         if not os.access(locked, os.R_OK):
             self.assertIn("locked.txt: could not be read", s)
@@ -399,7 +399,7 @@ class RawPerfDataTest(unittest.TestCase):
         p = self.d / "in" / name; p.parent.mkdir(exist_ok=True); p.write_bytes(build_perf_data(**kw)); return p
 
     def test_single_raw_perf_data_gives_inventory_notes_and_exit_0_without_running_perf(self):
-        p = self.put("m61perf.data")
+        p = self.put("node1.perf.data")
         rc, out = run_main([p, "--out", self.d / "o"], path=f"{self.bin}")
         self.assertEqual(rc, 0)
         s = (self.d / "o" / "SUMMARY.md").read_text()
@@ -424,7 +424,7 @@ class RawPerfDataTest(unittest.TestCase):
         self.assertIn("unreadable perf.data header", (self.d / "o" / "SUMMARY.md").read_text())
 
     def test_convert_runs_local_perf_on_a_private_temp_file_and_cleans_up(self):
-        p = self.put("m61perf.data")
+        p = self.put("node1.perf.data")
         path = self.fake_perf()
         rc, out = run_main([p, "--convert", "--out", self.d / "o"], path=path)
         self.assertEqual(rc, 0, out)
@@ -443,7 +443,7 @@ class RawPerfDataTest(unittest.TestCase):
         self.assertNotIn("perf not installed", s)
 
     def test_convert_without_perf_on_path_notes_the_command(self):
-        p = self.put("m61perf.data")
+        p = self.put("node1.perf.data")
         rc, _ = run_main([p, "--convert", "--out", self.d / "o"], path=str(self.empty))
         self.assertEqual(rc, 0)
         s = (self.d / "o" / "SUMMARY.md").read_text()
@@ -461,7 +461,7 @@ class RawPerfDataTest(unittest.TestCase):
         self.assertEqual({r["host"]: r["analysed"] for r in rows}, {"host61": "yes", "host62": "no"})
 
     def test_convert_timeout_is_noted_and_the_process_is_killed(self):
-        p = self.put("m61perf.data")
+        p = self.put("node1.perf.data")
         path = self.fake_perf("exec sleep 30\n")
         with mock.patch.object(ap, "CONVERT_TIMEOUT", 1):
             rc, _ = run_main([p, "--convert", "--out", self.d / "o"], path=path)
@@ -471,7 +471,7 @@ class RawPerfDataTest(unittest.TestCase):
         self.assertFalse(os.path.exists(tmpfile))
 
     def test_convert_output_cap_is_noted(self):
-        p = self.put("m61perf.data")
+        p = self.put("node1.perf.data")
         path = self.fake_perf("yes '    10.00%  A  B  [.] f' | head -c 200000\n")
         with mock.patch.object(ap, "CONVERT_MAX", 1000):
             rc, _ = run_main([p, "--convert", "--out", self.d / "o"], path=path)
@@ -486,7 +486,7 @@ class RawPerfDataTest(unittest.TestCase):
         self.assertEqual(rc, 0)
         s = (self.d / "o" / "SUMMARY.md").read_text()
         self.assertIn("host61", s)
-        self.assertIn("other.bin: skipped, binary file", s)
+        self.assertIn("1 binary file(s) skipped", s)
 
 
 class MultiNodeTest(unittest.TestCase):
@@ -501,8 +501,8 @@ class MultiNodeTest(unittest.TestCase):
         return z
 
     def test_zip_of_raw_perf_data_nodes_overview_and_csv(self):
-        members = {"perfdata/m61perf.data": build_perf_data(hostname="host61"), "perfdata/m62perf.data": build_perf_data(hostname="host62", osrelease="3.10.0-1160.el7.x86_64", mem_kb=64 * 1048576),
-                   "__MACOSX/perfdata/._m61perf.data": b"junk", "perfdata/.DS_Store": b"x", "perfdata/m63perf.data": build_perf_data(hostname="host63")}
+        members = {"perfdata/node1.perf.data": build_perf_data(hostname="host61"), "perfdata/node2.perf.data": build_perf_data(hostname="host62", osrelease="3.10.0-1160.el7.x86_64", mem_kb=64 * 1048576),
+                   "__MACOSX/perfdata/._node1.perf.data": b"junk", "perfdata/.DS_Store": b"x", "perfdata/node3.perf.data": build_perf_data(hostname="host63")}
         z = self.zip_with(members)
         rc, out = run_main([z, "--out", self.d / "o"], path=str(self.d))
         self.assertEqual(rc, 0)
