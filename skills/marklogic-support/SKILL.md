@@ -135,6 +135,11 @@ it"). If `audit-trail/` exists in neither place, skip all of this silently.
 to draft a KCS article with `/kcs` (or `/kcs <ticket>` in a later session). Skip the offer if
 `<ticket>/kcs/` already holds an article for this ticket, or the engineer has declined it.
 
+## Ticket folder hygiene
+
+The ticket folder (`<project root>/<ticket>/`) holds ticket data only: customer files and logs, `audit-trail/`, diagnostic requests and replies, ticket-scoped reports, and the ticket's resolution KCS article in `<ticket>/kcs/`.
+When ticket work turns into building something reusable (a script or tool, a test lab or test environment, KCS articles that document a script), stop and put it in its own project folder from the start, for example a repository under `~/Projects/<name>` (scripts and their KCS how-to drafts in a scripts repository, labs in a labs repository), not in the ticket folder. Propose the folder to the engineer before the first file is written, keep credentials and working output out of every repository, and record in `Timeline.md` only a one-line pointer to where the work lives. If tooling or lab files are already in the ticket folder, say so once and offer to move them; do not move them without a go-ahead.
+
 ## KCS articles
 
 On `/kcs` (the `kcs` skill) or a request to write a KCS article for a finished ticket, read
