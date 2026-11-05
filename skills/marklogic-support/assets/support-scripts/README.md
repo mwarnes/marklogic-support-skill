@@ -75,7 +75,7 @@ password is read from the `MARKLOGIC_PASS` environment variable and passed to cu
 
 `python3 ml-security-gather.py AREA --host <host> --user <user> [--external-security NAME] [--user-name U ...] [--idp-metadata FILE|URL] [--saml-response FILE] [--logs [--minutes N | --start ISO --end ISO]] [--cacert CA | --insecure] [--scheme http|https] [--port 8002]`
 
-`AREA` is `saml`, `oauth`, `ldap` or `https` (2026-10-25: the script was extended from SAML only; `AREA --help` documents each area). It writes `./<area>-gather-<timestamp>/` (`SUMMARY.md` plus the raw JSON of each call) and a `.zip` of it. Verified on a
+`AREA` is `saml`, `oauth`, `ldap`, `https` or `certificate` (2026-10-25: the script was extended from SAML only; the `certificate` area (client certificates, `--client-cert`, `--client-chain`) and a one-sentence **Conclusion** at the top of every report were synced 2026-10-29; `AREA --help` documents each area; the master copy's `README.md` is the canonical usage reference). The customer requests that use these scripts are in `references/security-data-requests.md`. It writes `./<area>-gather-<timestamp>/` (`SUMMARY.md` plus the raw JSON of each call) and a `.zip` of it. Verified on a
 MarkLogic 12.1.0 test server with authentik as the IdP (2026-10-24):
 
 - Self-documenting (2026-10-25): `--help` prints the full documentation; a wrong or misspelt option, or a missing `--host`/`--user`, prints the same documentation followed by the error (option abbreviations are not accepted). A missing password asks for it on a terminal, otherwise stops with the `export MARKLOGIC_PASS=...` hint. A pre-flight read of `GET /manage/v2` stops with a specific hint for a refused password (401), a non-admin user (403), an unreachable host/port, or an untrusted or non-TLS port, and writes no report; an unknown `--external-security` name stops and lists the profiles that exist. Only `--host` and `--user` are required.
@@ -93,7 +93,7 @@ MarkLogic 12.1.0 test server with authentik as the IdP (2026-10-24):
 
 `python3 ml-trace-events.py enable|disable|status --host <host> --user <user> [--group Default] [--event NAME ...] [--preset saml|oauth|ldap] [--dry-run]`
 
-Generic: any trace event, not only SAML. Presets: `saml` = SAML, SAML Response, External Authenticate; `oauth`; `ldap`.
+Generic: any trace event, not only SAML. Presets: `saml` = SAML, SAML Response, External Authenticate; `oauth`; `ldap`; `certificate` (`External Authenticate` only; add the `ldap` events for authorization `ldap`; synced 2026-10-29).
 Verified on MarkLogic 12.1.0 (2026-10-24): the group properties hold a flat list `"event": ["SAML", ...]` and
 `"events-activated"`; a `PUT /manage/v2/groups/<group>/properties` **replaces** the whole list (so the script always sends
 the complete list), `"event": []` clears it, and event names are not validated. The `trace-event` / `trace-event-name`

@@ -35,7 +35,7 @@ Sections are delimited by a `=====` line, a title line, another `=====` line (ru
 | `server.xml` | this host's host-id, licensee, license-key | — |
 | `keystore.xml` | data/config/logs-encryption | — |
 
-Users and roles live in the Security database and are **not** in the dump — `default-user` cannot be resolved to a name.
+Users and roles live in the Security database and are **not** in the dump — `default-user` cannot be resolved to a name. The same holds for external security profiles (LDAP, certificate, OAuth, SAML), role and user external names and the certificates and templates behind them: for an authentication ticket ask for the security gather or the Management API calls in `security-data-requests.md`.
 
 ## Artefacts written by `scripts/parse_dump.py <dump> [--out DIR]` (default `dump-analysis/<dump-stem>/`)
 

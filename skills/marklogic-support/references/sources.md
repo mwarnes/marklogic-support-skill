@@ -68,6 +68,17 @@ One section per reference file. Add every URL/KB article/PDF page used. Use as t
 - <https://docs.marklogic.com/admin:cluster-set-xdqp-ssl-certificate>
 - <https://docs.marklogic.com/9.0/guide/security/SSL>
 
+## security-authentication.md and security-data-requests.md
+
+- <https://mwarnes.github.io/scripts-browser/diagnostics/> — maintainer's Security Hub: diagnostics pages per scheme (personal collection, not official documentation; tested on MarkLogic 11.3.7 and 12.1.0)
+- <https://mwarnes.github.io/howto/> — tested set-up guides for LDAP, client certificates, OAuth 2.0 and SAML
+- <https://mwarnes.github.io/articles/LDAP-TROUBLESHOOTING.html>
+- <https://mwarnes.github.io/articles/SAML-TROUBLESHOOTING.html>
+- <https://mwarnes.github.io/articles/OAUTH2-TROUBLESHOOTING.html>
+- <https://mwarnes.github.io/articles/KERBEROS-TROUBLESHOOTING.html> — untested on MarkLogic 11 and 12
+- <https://mwarnes.github.io/articles/TLS_CERTIFICATE_MANAGEMENT.html>
+- <https://github.com/mwarnes/mwarnes-marklogic-scripts/blob/main/scripts/Security/README.md> — usage reference of `ml-security-gather.py` and `ml-trace-events.py`
+
 ## ha-backup-failover.md
 
 - <https://docs.progress.com/bundle/marklogic-server-configure-scal-avail-perf-12/page/topics/failover.html>

@@ -40,6 +40,8 @@
 
 - **Password and account policies**: MarkLogic supports password complexity requirements and account lockout policies. Without proper configuration, weak passwords are accepted and repeated authentication failures don't lock accounts.
 
+For a failing login with LDAP, client certificates, OAuth 2.0, SAML, HTTPS/TLS or Kerberos, use `security-authentication.md` (ranked causes by scheme) and `security-data-requests.md` (how to collect the security configuration, which the support dump does not contain: the gather script, or the Management API by hand).
+
 ## Standard procedures
 
 1. Create security hierarchy: Create roles → assign execute/URI privileges → create users → assign roles to users
