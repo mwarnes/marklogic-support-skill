@@ -23,6 +23,28 @@ class SkillLayoutTest(unittest.TestCase):
             self.assertRegex(p.name, r"^[a-z0-9]+(-[a-z0-9]+)*$")
             self.assertTrue(fm.get("description", "").strip(), p)
 
+    def test_frontmatter_plain_scalars_are_valid_yaml(self):
+        # A plain (unquoted, non-block) YAML scalar cannot contain ": " or " #"; a strict loader rejects the file.
+        # PyYAML is not a dependency, so check the rule directly on each top-level "key: value" line.
+        for p in SKILLS:
+            m = re.match(r"---\n(.*?)\n---\n", (p / "SKILL.md").read_text(), re.S)
+            for line in m.group(1).splitlines():
+                key, sep, value = line.partition(":")
+                if not sep or line.startswith((" ", "-", "#")):
+                    continue
+                value = value.strip()
+                if not value or value[0] in "\"'>|[{&*!%@`":
+                    continue
+                self.assertNotIn(": ", value, f"{p.name}: {key} needs quoting or a folded scalar (>-)")
+                self.assertNotIn(" #", value, f"{p.name}: {key} needs quoting or a folded scalar (>-)")
+
+    def test_frontmatter_folded_description_is_not_empty(self):
+        for p in SKILLS:
+            text = (p / "SKILL.md").read_text()
+            m = re.search(r"^description:[ ]*[>|][+-]?\n((?:[ ]+.*\n)+)", text, re.M)
+            if m:
+                self.assertTrue(m.group(1).strip(), p.name)
+
     def test_no_agent_specific_leftovers_in_the_workflow_skills(self):
         for name in ("ticket", "kcs", "kcs-review"):
             text = (ROOT / "skills" / name / "SKILL.md").read_text()
