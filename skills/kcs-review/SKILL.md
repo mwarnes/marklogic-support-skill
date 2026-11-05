@@ -1,7 +1,7 @@
 ---
 name: kcs-review
 description: Review a KCS article written by another engineer (md/html/docx or pasted text) and write the revised article as Markdown, Word and Salesforce HTML. Use when the user runs /kcs-review or asks to review a KCS article.
-argument-hint: [path to article]
+argument-hint: "[path to article]"
 ---
 
 This is the `/kcs-review` workflow the user's own team maintains for reviewing a Knowledge-Centered Support article that another engineer sent for review (see the `kcs` skill, which writes articles from a ticket). It checks the article against the team's 20-field format, the Solution Content Standard rules in `kcs-writing.md`, and sanitisation rules, summarises recommendations, and on acceptance writes the revised article as Markdown, Word and Salesforce HTML. Imperative wording below is only there so steps are executed rather than narrated.
