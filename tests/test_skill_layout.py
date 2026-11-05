@@ -38,6 +38,17 @@ class SkillLayoutTest(unittest.TestCase):
                 self.assertNotIn(": ", value, f"{p.name}: {key} needs quoting or a folded scalar (>-)")
                 self.assertNotIn(" #", value, f"{p.name}: {key} needs quoting or a folded scalar (>-)")
 
+    def test_argument_hint_parses_as_a_string(self):
+        # An unquoted "[ticket number]" is a YAML flow sequence, so a strict loader yields a list, not the hint text.
+        # PyYAML is not a dependency, so reject unquoted values that start a flow collection.
+        for p in SKILLS:
+            m = re.match(r"---\n(.*?)\n---\n", (p / "SKILL.md").read_text(), re.S)
+            for line in m.group(1).splitlines():
+                if line.startswith("argument-hint:"):
+                    value = line.partition(":")[2].strip()
+                    self.assertTrue(value, f"{p.name}: argument-hint is empty")
+                    self.assertNotIn(value[0], "[{", f"{p.name}: argument-hint must be quoted to parse as a string")
+
     def test_frontmatter_folded_description_is_not_empty(self):
         for p in SKILLS:
             text = (p / "SKILL.md").read_text()
