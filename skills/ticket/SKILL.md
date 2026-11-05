@@ -20,6 +20,8 @@ Ticket number: $ARGUMENTS
 
    It creates the ticket working directory under the project root (the git top-level directory, else the current directory) and its persistent audit trail (5 files under `audit-trail/` — every ticket gets one, this is not optional), never truncating a file that already has content, and prints the ticket directory followed by the files. Check the output lists all 5 files (`Analysis.md`, `Problems.md`, `Required-Diagnostics.md`, `Root-Cause.md`, `Timeline.md`) — if any are missing or the command fails, say so and stop. See `references/ticket-auditing.md` in the skill for the format each file follows. Then change into the printed ticket directory now with `cd "<ticket directory>"` (use the exact path the script printed) and continue from there: all later commands in this session run there, so the skill's audit-trail updates find `audit-trail/`.
 
+   Keep the ticket folder for ticket data only: scripts, labs and test environments that grow out of the ticket belong in their own project folders (see "Ticket folder hygiene" in the `marklogic-support` skill).
+
 3. Load the MarkLogic support skill now: read `<skill-dir>/SKILL.md` in full and follow its instructions for the rest of this session exactly as if the user had invoked the `marklogic-support` skill directly.
 
 4. Check whether the user's message already contains (a) the ticket's problem description (pasted text, an error log, a dump path, etc.) beyond just the ticket number, and (b) the ticket's severity (1, 2 or 3, or "Sev 1" and similar wording).
