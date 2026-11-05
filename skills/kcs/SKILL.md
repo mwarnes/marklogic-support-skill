@@ -1,7 +1,7 @@
 ---
 name: kcs
 description: Write a compliant KCS article (Markdown, Word, Salesforce HTML) from a completed MarkLogic support ticket. Use when the user runs /kcs or asks for a KCS article for a finished ticket.
-argument-hint: [ticket number]
+argument-hint: "[ticket number]"
 ---
 
 This is the `/kcs` workflow the user's own team maintains for turning a finished MarkLogic support ticket into a Knowledge-Centered Support article that follows the company Solution Content Standard (see the `ticket` skill, which creates the ticket folder and its `audit-trail/`). It reads the ticket's audit trail, drafts an article in the team's fixed 20-field format, and renders it to Markdown, Word and Salesforce HTML. Imperative wording below is only there so steps are executed rather than narrated.
