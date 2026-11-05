@@ -23,6 +23,7 @@ Maintainer's policy, in the maintainer's words: the article "How to Prepare and 
 | Reproducible case | Reproduction | `repro/` holding a runbook with the exact steps plus what is needed to run it: code, ml-gradle projects, Query Console workspace exports, sample data and the folder hierarchy. |
 | Cloud deployment such as AWS EC2 | Cloud details | `cloud/` with the hostname to primary IP mapping (include the secondary ENI address), a copy of the DynamoDB table, volume count, size, type and IOPS, the exact CloudFormation templates (current and earlier), and host folders named by the secondary ENI hostname shown in the Admin UI. |
 | Backups | Backups | Large; send separately over the secure transfer Support provides (Progress MoveIt or a ShareFile request), not as case attachments or email. |
+| Security configuration and login failures (LDAP, certificates, OAuth, SAML) | Not part of the article; the support dump excludes security | Use `security-data-requests.md` (gather script or Management API); it is our own request, not the KB article |
 | Environment and deployment information | Environment overview | A readable document: product and version, infrastructure type, instance or hardware, OS, cloud or service provider, storage layout, deployment strategy (manual, scripted, cloud automation), hostname to IP mapping, load balancer details. |
 
 ## Where our own requests fit (optional hints)

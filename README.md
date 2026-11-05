@@ -16,6 +16,9 @@ What they do:
   ticket's severity does not fit the support-guide definitions, so the engineer can take it to the customer's Client
   Success Manager. `/ticket` asks for the severity if the description does not give it.
 - **Write and review KCS articles** that follow the company Solution Content Standard.
+- **Troubleshoot authentication and external security** (LDAP, client certificates, OAuth 2.0, SAML, HTTPS/TLS,
+  Kerberos): the support dump leaves the security configuration out, so the skill tells the engineer how to have it
+  collected (the read-only security gather script, or the Management API by hand) and reads the report.
 - **Follow the Progress security process** for vulnerability and security-incident tickets.
 
 ## The skills
@@ -82,6 +85,7 @@ These run on the customer's MarkLogic host, not on yours. Each request in `refer
 | Meters export (KB 000266887) | `exportMeters.xqy` runs in Query Console with the content database set to `Meters`; `get-raw.sh` needs MLCP installed and an XDBC server on the port |
 | Request and server status | Query Console or Admin access to run the `xdmp:` functions in `monitoring.md` |
 | Support dump | MarkLogic Admin UI (Config, Support tab) |
+| Security gather (`ml-security-gather.py`, `ml-trace-events.py`) | `python3`, `curl` and `openssl` on any machine that reaches the Management API (port 8002); a MarkLogic user with the `admin` role. Without Python, the Management API calls by hand in `references/security-data-requests.md` |
 
 ## Install
 
@@ -215,7 +219,15 @@ wrapper, unresolved kernel symbols and the top symbols. `pstack-analysis.md` is 
 
 ### Security tickets
 
-A ticket that mentions a security incident, malware or a virus stops at an **incident gate**: no customer dump or
+**Authentication and external security.** A support dump does not contain users, roles, external security profiles or
+certificates. For a failing LDAP, client certificate, OAuth 2.0, SAML or HTTPS login the skill asks the customer to run
+`ml-security-gather.py` (areas `saml`, `oauth`, `ldap`, `certificate`, `https`, with `ml-trace-events.py` to switch the
+logging on and off), or, where Python is not allowed, to make the Management API calls by hand; both are in
+`skills/marklogic-support/references/security-data-requests.md`. `security-authentication.md` ranks the causes per scheme
+(distilled from the maintainer's Security Hub, https://mwarnes.github.io, tested on MarkLogic 11.3.7 and 12.1.0), and
+**Security gather mode** reads the returned report. Kerberos has no gather area and stays `[unverified — confirm]`.
+
+**Incidents and vulnerabilities.** A ticket that mentions a security incident, malware or a virus stops at an **incident gate**: no customer dump or
 log is analysed until you confirm the Progress Security team and your manager are engaged. A vulnerability ticket
 (CVE, CVSS, scanner output) prints the Progress process checklist first. See
 `skills/marklogic-support/references/security-vulnerability-handling.md`.
@@ -262,10 +274,11 @@ links left behind point at nothing.
 ```
 install.sh  install.ps1          install / update / status / uninstall (macOS+Linux / Windows)
 skills/
-├── marklogic-support/           triage method, routing table, dump / log / SAR / pstack-perf modes
+├── marklogic-support/           triage method, routing table, dump / log / SAR / pstack-perf / security gather modes
 │   ├── SKILL.md
 │   ├── assets/support-scripts/pstack.sh   customer script from KB 000266816 (INTERVAL=5 instead of 3), hash-pinned
-│   │   also exportMeters.xqy and get-raw.sh (KB 000266887, verbatim, hash-pinned) and README.md
+│   │   also exportMeters.xqy and get-raw.sh (KB 000266887, verbatim, hash-pinned),
+│   │   ml-security-gather.py and ml-trace-events.py (security must-gather, copied from mwarnes-marklogic-scripts) and README.md
 │   ├── scripts/
 │   │   ├── parse_dump.py        splits a support dump into config/status/logs + findings
 │   │   ├── analyse_logs.py      ErrorLog/messages/AccessLog/AuditLog -> incident timeline + patterns
@@ -276,7 +289,7 @@ skills/
 │   │   ├── kcs_render.py        KCS article .md -> .docx and Salesforce .html (pandoc), SCS checks
 │   │   └── ticket_init.py       creates / checks a ticket folder and its audit trail
 │   └── references/              each domain: Concepts -> Standard procedures -> Common mistakes
-│       architecture · cluster-hosts-groups · databases-forests · app-servers · security
+│       architecture · cluster-hosts-groups · databases-forests · app-servers · security · security-authentication · security-data-requests
 │       ha-backup-failover · memory-and-os · monitoring · performance-tuning · dr-scaling
 │       app-code-review · client-integration · supportdump-anatomy · log-anatomy
 │       sar-analysis · performance-data-requests · pstack-analysis · security-vulnerability-handling

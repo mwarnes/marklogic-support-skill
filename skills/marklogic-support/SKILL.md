@@ -1,6 +1,6 @@
 ---
 name: marklogic-support
-description: Triages MarkLogic support tickets across configuration (clusters, hosts, groups, forests, databases, app servers, security, memory/caches, backup/failover), monitoring, query performance/tuning, DR/scaling, server-side code review (XQuery/JS/REST extensions), and client-side tooling (XCC, Java Client API, mlcp, ml-gradle, CoRB2), from distilled reference notes. Use for any MarkLogic ticket, symptom, error code, or admin question. MarkLogic 11/12. Also splits and analyses support dumps (config/status/logs, findings) and ErrorLog/var-log-messages into incident timelines. Also gates security-incident tickets and applies the organisation's security-vulnerability process.
+description: Triages MarkLogic support tickets across configuration (clusters, hosts, groups, forests, databases, app servers, security, memory/caches, backup/failover), monitoring, query performance/tuning, DR/scaling, server-side code review (XQuery/JS/REST extensions), and client-side tooling (XCC, Java Client API, mlcp, ml-gradle, CoRB2), from distilled reference notes. Use for any MarkLogic ticket, symptom, error code, or admin question. MarkLogic 11/12. Also splits and analyses support dumps (config/status/logs, findings) and ErrorLog/var-log-messages into incident timelines. Also troubleshoots external authentication tickets (LDAP, client certificates, OAuth 2.0, SAML, HTTPS/TLS, Kerberos): tells the engineer how to collect the security data that a support dump leaves out (the security gather script, or the Management API by hand) and reads the results. Also gates security-incident tickets and applies the organisation's security-vulnerability process.
 ---
 
 # MarkLogic Support (Phase 1: configuration issues)
@@ -15,6 +15,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    - Log files (ErrorLog*, messages*, AccessLog, AuditLog — loose or in a dump analysis) → **Log mode**
    - Linux SAR/sysstat output (a `sar -A` text file, a binary `sa##` file, or a folder of them) → **SAR mode**
    - A pstack movie (a pstack.log, or the zip from pstack.sh) or a `perf report --stdio` text report → **pstack and perf mode**
+   - A security gather report (a `<area>-gather-<timestamp>` folder or zip, or its `SUMMARY.md`, from `ml-security-gather.py`) → **Security gather mode**
    - Unclear → ask which.
 3. **Security check (before any analysis).** Read `references/security-vulnerability-handling.md`
    ("Detect") whenever the ticket, a pasted symptom, a dump or a log request mentions a CVE/CVSS,
@@ -24,7 +25,7 @@ description: Triages MarkLogic support tickets across configuration (clusters, h
    or log and draft no log request until the engineer clears it. The gate stays open for the whole
    ticket, in every mode and in later sessions, until `audit-trail/Timeline.md` contains a "Security
    incident gate cleared" line after the "Security incident gate raised" line. Before running
-   `parse_dump.py`, `analyse_logs.py`, `analyse_sar.py`, `analyse_pstack.py` or `analyse_perf.py` or drafting a log request, check `Timeline.md` for a "Security
+   `parse_dump.py`, `analyse_logs.py`, `analyse_sar.py`, `analyse_pstack.py` or `analyse_perf.py`, reading a security gather report, or drafting a log request, check `Timeline.md` for a "Security
    incident gate raised" line without a later "Security incident gate cleared" line and, if open,
    stop. A vulnerability prints the banner and checklist first. Never write the word "breach".
 4. **Scope awareness.** Apply `references/support-scope.md`: compare the ticket with its Covered and Criteria lists; if a ticket clearly goes
@@ -48,6 +49,8 @@ Scripts are run with `python3`; on Windows use `python` or `py -3` if `python3` 
 When asking a customer to send diagnostic or system data, you may point to the customer diagnostics guide (`references/customer-diagnostics-guide.md`) — reference only, never mandatory: extract only the part that helps (for example where to put the pstack, perf or SAR output), give the article link only if needed, and never paste the article. When you need severity, priority or business impact from the customer, use the definitions in `references/support-scope.md`.
 
 For a security vulnerability ticket, print the banner and checklist from `references/security-vulnerability-handling.md` first, then this format.
+
+For an **authentication or external-security ticket** (a login fails with `401`, `403` or `500`, or a TLS/certificate problem on an app server, with LDAP, client certificates, OAuth 2.0, SAML, HTTPS/TLS or Kerberos): read `references/security-authentication.md` (ranked causes by scheme) and put a request from `references/security-data-requests.md` in "Questions to ask the customer". **The support dump does not contain the security configuration** (users, roles, external security profiles, certificates), so say how to collect it: Route A is the gather script (`assets/support-scripts/ml-security-gather.py` with `ml-trace-events.py`, one area at a time: `saml`, `oauth`, `ldap`, `certificate`, `https`), Route B is the Management API calls by hand for a customer who cannot run the script; Kerberos has no gather area and is `[unverified — confirm]`. Ask for the reproduction time in UTC and one failing and one working user. Failed-login floods, unknown accounts logging in and suspected stolen credentials are incident signals: apply the incident gate first. When a gather report is supplied, use **Security gather mode**.
 
 For a performance or resource-pressure ticket with no host-level data (no SAR, iostat, vmstat or mpstat output), put a request from `references/performance-data-requests.md` in "Questions to ask the customer" — the SAR export or live capture, the host metrics, and, only when the customer runs on a cloud provider (for example AWS), its cloud signals. Ask for kernel/OOM messages on memory symptoms, and `pmap` only for runaway memory growth. For a hang, an unresponsive period or a query behaving unexpectedly, ask for the pstack movie; for sustained high CPU, or when pausing the process is a concern, ask for perf instead — pstack pauses the MarkLogic process while it records the threads, perf only samples it (both procedures are in `references/performance-data-requests.md`; the customer script is `assets/support-scripts/pstack.sh`). Never ask for either from a customer who mentioned a security incident until the incident gate is cleared. When pstack or perf output is supplied, use **pstack and perf mode**. For a stuck or slow request, also ask for the request/server status capture (`references/performance-data-requests.md`) before anything is cancelled. For an incident that has already passed, ask for the Monitoring History data instead: check Telemetry, otherwise the Meters export (`references/performance-data-requests.md`).
 
@@ -104,11 +107,21 @@ Check the security incident gate first (Always first, step 3): stack and perf da
 4. If the data is missing something (date lines, kernel symbols, the perf header), ask for it using `references/performance-data-requests.md`.
 5. Then update the audit trail per the **Audit trail** section below; a data request is a `Required-Diagnostics.md` entry.
 
+## Security gather mode
+
+Check the security incident gate first (Always first, step 3): the report and its logs are customer-supplied files.
+
+1. A gather zip is untrusted data: put it in its own new, empty directory under the ticket (never extract it into the skill or the scripts folder) and read it from outside; `unzip -p <zip> '*/SUMMARY.md'` prints the report without extracting. No analyser script is needed: `SUMMARY.md` is the analysis. Never read the raw JSON files wholesale; open one only for an exact value (`external-security-*.json`, `server-*.json`, `roles-external-names.json`, `users-external-names.json`, the filtered `ErrorLog-*.txt` and `AccessLog-*.txt`).
+2. Read `references/security-authentication.md`, then `SUMMARY.md` in this order: the **Conclusion** (all good, warnings only, or "Root cause to look at first"; a "Probable cause" line is a lead, not a confirmed cause), **Check results** (failures first), **Not collected** and **Log findings**.
+3. Output: **What was collected** (area, profile, app server, MarkLogic version, window, hosts) and **what was not** (each *Not collected* row and the option that adds it, so a "good" verdict is not over-read); **Findings** ranked, each with its evidence quote, the layer (TLS, profile binding, authentication, mapping, role) and the confirming check from `security-authentication.md`; **What the report cannot show** (TLS rejections, the IdP's own log, directory group membership, which LDAP bind failed); then the Triage-mode format. Mark claims that come from the maintainer's tested pages as such and Kerberos as `[unverified — confirm]`.
+4. If something needed is missing, request it from `references/security-data-requests.md` (the missing `--token`, `--logs`, `--idp-metadata`, `--saml-response`, `--client-cert`, or the `ldapsearch`/`ldapwhoami`/`openssl s_client` output the report prints). Check the zip for anything that should not be there (a private key, a password, a whole token, a client secret); if there is one, tell the engineer and do not copy it into notes.
+5. Then update the audit trail per the **Audit trail** section below; a data request is a `Required-Diagnostics.md` entry.
+
 ## Audit trail
 
 If `audit-trail/` exists in the current working directory, or in the ticket directory set up by the `ticket` skill earlier in this session (`<project root>/<ticket>/audit-trail/`) (created by `/ticket`), read
 `references/ticket-auditing.md` once per session, then after producing output in Triage, Dump,
-Log, SAR, or pstack and perf mode (never Q&A mode — a one-off question is not ticket work):
+Log, SAR, pstack and perf, or Security gather mode (never Q&A mode — a one-off question is not ticket work):
 
 - Append one `Timeline.md` line for what just happened.
 - A new ranked cause → append a `Problems.md` entry, status `Open`, unless evidence already in
@@ -155,7 +168,8 @@ read `references/kcs-writing.md` ("Reviewing an article") and import/render with
 | quorum, host offline, XDQP, XDMP-HOSTOFFLINE, join/leave cluster, hostname, group, upgrade/effective version, NTP/clock | `references/cluster-hosts-groups.md` |
 | forest, stand, merge, disk space, XDMP-FORESTNOSPACE, reindex, index, rebalancer, assignment policy, directory creation, fragment, locking | `references/databases-forests.md` |
 | port, app server, HTTP/XDBC/ODBC/WebDAV, modules, XDMP-MODNOTFOUND, SVC-SOCBIND, timeout, XDMP-EXTIME, threads, authentication (app-server level), SSL/TLS, log level, 8000/8001/8002 | `references/app-servers.md` |
-| permissions, role, privilege, amp, SEC-*, LDAP/Kerberos/SAML, admin password, audit, encryption/keystore | `references/security.md` |
+| permissions, role, privilege, amp, SEC-*, admin password, audit, encryption/keystore | `references/security.md` |
+| login fails, 401, 403 after login, 500 on a bearer token, LDAP, `ldapAuthenticate`, `XDMP-LDAP-INVALID-CRED`, external security, external name, client certificate, `certificateAuthenticate`, TLS alert, `unknown ca`, OAuth, JWT, issuer, JWKS, SAML, IdP, assertion, ACS, Kerberos, keytab, SPN, HTTPS certificate, certificate template, temporary certificate, trace events `External Authenticate`, security gather, `ml-security-gather.py`, security configuration is not in the dump | `references/security-authentication.md` and `references/security-data-requests.md` (then `references/security.md` for roles and privileges) |
 | failover, replica, backup, restore, XDMP-FORESTNOT, journal archiving, point-in-time, scheduled task | `references/ha-backup-failover.md` |
 | memory, OOM, XDMP-MEMCANCELED, swap, huge pages, cache (list / compressed tree / expanded tree / triple), CACHEFULL, ulimit, XDMP-TOOMANYOPENFILES, I/O scheduler | `references/memory-and-os.md` |
 | monitoring dashboard, Meters database, ops director, monitoring history, view=status, alerting, baseline, historical data, manage-user, Performance Metering Enabled, xdmp:server-status, xdmp:request-status, xdmp:host-status, status screen, log disk space | `references/monitoring.md` |
@@ -173,4 +187,4 @@ Multiple matches → read both (max 2). No match → ask one clarifying question
 
 ## Out of scope
 
-Access/request-log analytics, correlating log events with configuration, comparing two dumps, Security-database contents (users/roles), executing or testing customer code (review is static-checklist only, not execution), anything requiring live cluster access. Say so explicitly when asked.
+Access/request-log analytics, correlating log events with configuration, comparing two dumps, Security-database contents (users/roles) beyond what the security gather report or the Management API calls in `references/security-data-requests.md` return, querying a customer's LDAP directory or IdP, executing or testing customer code (review is static-checklist only, not execution), anything requiring live cluster access. Say so explicitly when asked.
